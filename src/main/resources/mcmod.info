@@ -1,0 +1,16 @@
+[
+{
+  "modid": "testmod1",
+  "name": "Test Mod 1",
+  "description": "Test Mod 1",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Graham King"],
+  "credits": "www.minecraftforge.net, shadowfacts.net, mcforge.readthedocs.io, greyminecraftcoder.blogspot.co.uk",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
