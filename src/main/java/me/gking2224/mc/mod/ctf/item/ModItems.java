@@ -11,7 +11,6 @@ public class ModItems {
 	public static ItemBase BLUE_FLAG;
 
 	public static void init() {
-		register(new ItemBase("ingot_copper").setCreativeTab(CreativeTabs.MATERIALS));
 		RED_FLAG = register(new ItemBase("flag_red").setCreativeTab(CreativeTabs.MISC).setMaxStackSize(1).setPlacesAsBlock(ModBlocks.RED_FLAG));
 		BLUE_FLAG = register(new ItemBase("flag_blue").setCreativeTab(CreativeTabs.MISC).setMaxStackSize(1).setPlacesAsBlock(ModBlocks.BLUE_FLAG));
 	}

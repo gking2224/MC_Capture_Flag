@@ -12,7 +12,6 @@ public class ModBlocks {
 	public static BlockFlag BLUE_FLAG;
 
 	public static void init() {
-		register(new BlockOre("ore_copper").setCreativeTab(CreativeTabs.MATERIALS));
 		RED_FLAG = (BlockFlag)register(new BlockFlag("placed_flag_red").setCreativeTab(CreativeTabs.MATERIALS).setIsOpaque(false));
 		BLUE_FLAG = (BlockFlag)register(new BlockFlag("placed_flag_blue").setCreativeTab(CreativeTabs.MATERIALS).setIsOpaque(false));
 	}
