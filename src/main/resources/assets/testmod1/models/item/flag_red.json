@@ -1,6 +1,0 @@
-{
-	"parent": "testmod1:item/flag",
-	"textures": {
-		"layer0": "testmod1:items/flag_red"
-	}
-}
