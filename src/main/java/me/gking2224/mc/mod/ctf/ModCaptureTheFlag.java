@@ -23,14 +23,14 @@ import net.minecraftforge.fml.common.gameevent.PlayerEvent.ItemPickupEvent;
 @Mod(modid = ModCaptureTheFlag.modId, name = ModCaptureTheFlag.name, version = ModCaptureTheFlag.version, acceptedMinecraftVersions = "[1.11.2]")
 public class ModCaptureTheFlag {
 
-	public static final String modId = "testmod1";
-	public static final String name = "Test Mod 1";
+	public static final String modId = "ctf";
+	public static final String name = "Capture The Flag";
 	public static final String version = "1.0.0";
 
 	@Mod.Instance(modId)
 	public static ModCaptureTheFlag instance;
 
-	@SidedProxy(serverSide = "me.gking2224.mc.mod.test1.proxy.ServerProxy", clientSide = "me.gking2224.mc.mod.test1.proxy.ClientProxy")
+	@SidedProxy(serverSide = "me.gking2224.mc.mod.ctf.proxy.ServerProxy", clientSide = "me.gking2224.mc.mod.ctf.proxy.ClientProxy")
 	public static me.gking2224.mc.mod.ctf.proxy.SidedProxy proxy;
 
 	@Mod.EventHandler
