@@ -1,0 +1,6 @@
+{
+    "parent": "ctf:item/flag",
+    "textures": {
+        "layer0": "ctf:items/flag_clear"
+    }
+}

@@ -8,12 +8,13 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModBlocks {
 
-	public static BlockFlag RED_FLAG;
-	public static BlockFlag BLUE_FLAG;
+	public static PlacedFlag FLAG;
 
 	public static void init() {
-		RED_FLAG = (BlockFlag)register(new BlockFlag("placed_flag_red").setCreativeTab(CreativeTabs.MATERIALS).setIsOpaque(false));
-		BLUE_FLAG = (BlockFlag)register(new BlockFlag("placed_flag_blue").setCreativeTab(CreativeTabs.MATERIALS).setIsOpaque(false));
+		FLAG = (PlacedFlag)register(
+				new PlacedFlag("placed_flag")
+				.setCreativeTab(CreativeTabs.MATERIALS)
+				.setIsOpaque(false));
 	}
 
 	private static <T extends Block> T register(T block, ItemBlock itemBlock) {
@@ -34,8 +35,7 @@ public class ModBlocks {
 	}
 
 	public static void postItemsInit() {
-		RED_FLAG.setItemDropped(ModItems.RED_FLAG);
-		BLUE_FLAG.setItemDropped(ModItems.BLUE_FLAG);
+		FLAG.setItemDropped(ModItems.RED_FLAG);
 	}
 
 }

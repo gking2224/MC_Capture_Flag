@@ -1,0 +1,25 @@
+{
+    "forge_marker": 1,
+    "defaults": {
+        "model": "ctf:placed_flag",
+        "textures": {
+            "flag_pole": "ctf:blocks/flag_pole",
+            "particle": "ctf:blocks/flag_pole",
+            "flag": "ctf:blocks/flag_red"
+        }
+    },
+    "variants": {
+        "colour": {
+            "red": {
+                "textures": {
+                    "flag": "ctf:blocks/flag_red"
+                }
+            },
+            "blue": {
+                "textures": {
+                    "flag": "ctf:blocks/flag_blue"
+                }
+            }
+        }   
+    }
+}

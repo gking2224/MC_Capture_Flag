@@ -2,6 +2,7 @@ package me.gking2224.mc.mod.ctf.item;
 
 import me.gking2224.mc.mod.ctf.ModCaptureTheFlag;
 import me.gking2224.mc.mod.ctf.blocks.BlockBase;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -17,6 +18,7 @@ public class ItemBase extends Item {
 
 	protected String name;
 	private BlockBase placesAsBlock;
+	private IBlockState placesAsBlockState;
 
 	public ItemBase(String name) {
 		this.name = name;
@@ -41,7 +43,12 @@ public class ItemBase extends Item {
 	}
 	
 	public ItemBase setPlacesAsBlock(BlockBase block) {
+		return setPlacesAsBlock(block, null);
+	}
+	
+	public ItemBase setPlacesAsBlock(BlockBase block, IBlockState blockState) {
 		this.placesAsBlock = block;
+		this.placesAsBlockState = blockState;
 		return this;
 	}
 	
@@ -74,7 +81,7 @@ public class ItemBase extends Item {
         		this.placesAsBlock.canPlaceBlockAt(worldIn, blockpos)
 		) {
             itemstack.shrink(1);
-            worldIn.setBlockState(blockpos, this.placesAsBlock.getDefaultState());
+            worldIn.setBlockState(blockpos, this.placesAsBlockState != null ? this.placesAsBlockState : this.placesAsBlock.getDefaultState());
             return EnumActionResult.SUCCESS;
         }
         else
