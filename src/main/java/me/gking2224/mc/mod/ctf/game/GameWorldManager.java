@@ -27,8 +27,9 @@ public class GameWorldManager {
 
 	public void createGameBases(Game game, World world) {
 		
-		createBase(world, game, CtfTeam.RED, RED_BLOCK, false);
-		createBase(world, game, CtfTeam.BLUE, BLUE_BLOCK, true);
+		boolean rndBool = world.rand.nextBoolean();
+		createBase(world, game, CtfTeam.RED, RED_BLOCK, rndBool);
+		createBase(world, game, CtfTeam.BLUE, BLUE_BLOCK, !rndBool);
 		
 		resetFlags(game, world);
 	}
