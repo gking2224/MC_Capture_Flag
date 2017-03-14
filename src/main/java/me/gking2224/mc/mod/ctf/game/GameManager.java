@@ -3,7 +3,6 @@ package me.gking2224.mc.mod.ctf.game;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.minecraft.command.CommandException;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 
@@ -35,14 +34,13 @@ public class GameManager {
 		return instance;
 	}
 
-	public Game newGame(String name, EntityPlayer owner) throws CommandException {
+	public Game newGame(String name, EntityPlayer owner)
+			throws GameCreationException {
 		checkOwnerPermissions(owner);
 		checkOwnerLimit(owner);
 		checkNameUnique(name);
 		
-		Bounds bounds = getNewGameBounds();
-		
-		Game game = new Game(name, owner, bounds);
+		Game game = new Game(name, owner, getNewGameBounds());
 		GameFileManager.writeGameToFile(server, game);
 		addGame(game);
 		save();
@@ -56,18 +54,17 @@ public class GameManager {
 		return new Bounds(from, to);
 	}
 
-	private void checkNameUnique(String name) throws CommandException {
-		if (games.containsKey(name)) throw new CommandException("Game %s already exists!", name);
+	private void checkNameUnique(String name) throws GameCreationException {
+		if (games.containsKey(name))
+			throw new GameCreationException(String.format("Game %s already exists!", name));
 	}
 
 	private void checkOwnerLimit(EntityPlayer owner) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	private void checkOwnerPermissions(EntityPlayer owner) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	private void addGame(Game game) {

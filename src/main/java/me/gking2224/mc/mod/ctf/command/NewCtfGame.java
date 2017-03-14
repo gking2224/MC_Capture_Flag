@@ -3,7 +3,7 @@ package me.gking2224.mc.mod.ctf.command;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.gking2224.mc.mod.ctf.game.Game;
+import me.gking2224.mc.mod.ctf.game.GameCreationException;
 import me.gking2224.mc.mod.ctf.game.GameManager;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
@@ -53,8 +53,12 @@ public class NewCtfGame extends CommandBase {
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
 			
-			GameManager gameManager = GameManager.get();
-			Game game = gameManager.newGame(name, player);
+			try {
+				GameManager.get().newGame(name, player);
+			}
+			catch (GameCreationException ex) {
+				throw new CommandException(ex.getMessage());
+			}
 		}
 	}
 
