@@ -12,7 +12,7 @@ import net.minecraft.world.World;
 public class GameWorldManager {
 	
 	private static final int WOOL_BLUE = 11;
-	private static final int WOOL_RED = 15;
+	private static final int WOOL_RED = 14;
 	private static final IBlockState RED_BLOCK = Block.getStateById(Block.getIdFromBlock(Blocks.WOOL) + (WOOL_RED << 12));
 	private static final IBlockState BLUE_BLOCK = Block.getStateById(Block.getIdFromBlock(Blocks.WOOL) + (WOOL_BLUE << 12));
 	

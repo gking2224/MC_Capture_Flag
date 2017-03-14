@@ -3,6 +3,7 @@ package me.gking2224.mc.mod.ctf.command;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameCreationException;
 import me.gking2224.mc.mod.ctf.game.GameManager;
 import net.minecraft.command.CommandException;
@@ -12,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 
 public class NewCtfGame extends CommandBase {
 	private final List<String> aliases;
@@ -52,9 +54,14 @@ public class NewCtfGame extends CommandBase {
 		if (e == null) return;
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
+			String playerName = player.getName();
 			
 			try {
-				GameManager.get().newGame(name, player);
+				Game game = GameManager.get().newGame(name, player);
+				String team = game.addPlayer(playerName);
+				game.sendPlayerToBase(server.getEntityWorld(), playerName);
+				sender.sendMessage(new TextComponentString(
+						String.format("Created game %s and joined team", name, team)));
 			}
 			catch (GameCreationException ex) {
 				throw new CommandException(ex.getMessage());

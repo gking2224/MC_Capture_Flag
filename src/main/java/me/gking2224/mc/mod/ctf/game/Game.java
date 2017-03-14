@@ -5,6 +5,7 @@ import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 public class Game {
 
@@ -25,20 +26,35 @@ public class Game {
 		score.put(CtfTeam.BLUE, 0);
 	}
 	
-	public String addPlayer(String name) {
-		String joiningTeam = null;
-		if (teamNumPlayers(CtfTeam.RED) > teamNumPlayers(CtfTeam.BLUE)) {
-			joiningTeam = CtfTeam.BLUE;
-		}
-		else if (teamNumPlayers(CtfTeam.BLUE) > teamNumPlayers(CtfTeam.RED)) {
-			joiningTeam = CtfTeam.RED;
-		}
-		else joiningTeam = chooseRandomTeam();
-		teams.get(joiningTeam).getPlayers().add(name);
+	public String addPlayer(String playerName) {
+		String nextTeam = nextTeam();
+		teams.get(nextTeam).getPlayers().add(playerName);
 		save();
-		return joiningTeam;
+		return nextTeam;
 	}
 	
+	private String nextTeam() {
+		String nextTeam = null;
+		if (teamNumPlayers(CtfTeam.RED) > teamNumPlayers(CtfTeam.BLUE)) {
+			nextTeam = CtfTeam.BLUE;
+		}
+		else if (teamNumPlayers(CtfTeam.BLUE) > teamNumPlayers(CtfTeam.RED)) {
+			nextTeam = CtfTeam.RED;
+		}
+		else nextTeam = chooseRandomTeam();
+		return nextTeam;
+	}
+
+	public void sendPlayerToBase(World world, String playerName) {
+		String team = getTeamForPlayer(playerName);
+		EntityPlayer player = world.getPlayerEntityByName(playerName);
+		BlockPos baseLocation = getBaseLocation(team);
+		int x = baseLocation.getX() + 2, z = baseLocation.getZ() + 2;
+		int y = world.getHeight(x, z) + 1;
+		player.setPosition(x, y, z);
+		
+	}
+
 	private void save() {
 		GameManager.get().saveGame(this);
 	}

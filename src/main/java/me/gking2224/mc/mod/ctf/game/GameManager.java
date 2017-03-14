@@ -84,4 +84,8 @@ public class GameManager {
 		GameFileManager.writeGameToFile(server, game);
 	}
 
+	public Game getPlayerActiveGame(String name) {
+		return games.values().stream().filter(g -> g.containsPlayer(name)).findFirst().orElse(null);
+	}
+
 }

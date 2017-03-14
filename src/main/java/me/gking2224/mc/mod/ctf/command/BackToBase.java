@@ -3,6 +3,8 @@ package me.gking2224.mc.mod.ctf.command;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.gking2224.mc.mod.ctf.game.Game;
+import me.gking2224.mc.mod.ctf.game.GameManager;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -51,9 +53,12 @@ public class BackToBase implements ICommand {
 		if (e == null) return;
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
+			String playerName = player.getName();
+			Game game = GameManager.get().getPlayerActiveGame(playerName);
+			if (game == null) throw new CommandException("No active game");
+			game.sendPlayerToBase(server.getEntityWorld(), playerName);
 			
-			System.out.printf("Player %s wishes to go back to base", player.getName());
-			player.setPosition(-69, 81, 526);	
+			System.out.printf("Player %s sent back to base", playerName);
 		}
 	}
 

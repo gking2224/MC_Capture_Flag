@@ -68,12 +68,9 @@ public class JoinCtfGame extends CommandBase {
 			}
 			else {
 				team = game.addPlayer(playerName);
+				GameManager.get().save();
 				sender.sendMessage(new TextComponentString(
 						String.format("Joined game %s on team %s", gameName, team)));
-				BlockPos baseLocation = game.getBaseLocation(team);
-				int x = baseLocation.getX() + 2, z = baseLocation.getZ() + 2;
-				int y = server.getEntityWorld().getHeight(x, z) + 1;
-				player.setPosition(x, y, z);
 			}
 		}
 	}
