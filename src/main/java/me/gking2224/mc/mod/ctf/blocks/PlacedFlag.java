@@ -3,7 +3,6 @@ package me.gking2224.mc.mod.ctf.blocks;
 import java.util.Random;
 
 import me.gking2224.mc.mod.ctf.item.ModItems;
-import net.minecraft.block.BlockPlanks;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
@@ -78,5 +77,9 @@ public class PlacedFlag extends BlockBase {
 		public static EnumFlagColour fromMeta(int meta) {
 			return BY_META[meta];
 		}
+	}
+	
+	public static IBlockState withColour(EnumFlagColour colour) {
+		return ModBlocks.PLACED_FLAG.getDefaultState().withProperty(COLOUR, colour);
 	}
 }

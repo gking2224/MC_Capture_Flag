@@ -2,9 +2,9 @@ package me.gking2224.mc.mod.ctf.game;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.BlockPos;
 
 public class Game {
 
@@ -13,6 +13,7 @@ public class Game {
 	private Bounds bounds;
 	private Map<String, CtfTeam> teams = new HashMap<String, CtfTeam>();
 	private Map<String, Integer> score = new HashMap<String, Integer>();
+	private Map<String, BlockPos> baseLocations = new HashMap<String, BlockPos>();
 
 	Game(String name, EntityPlayer owner, Bounds bounds) {
 		setName(name);
@@ -48,6 +49,21 @@ public class Game {
 
 	protected int teamNumPlayers(String team) {
 		return teams.get(team).getPlayers().size();
+	}
+
+	public boolean containsPlayer(String player) {
+		return teams.get(CtfTeam.RED).containsPlayer(player) ||
+				teams.get(CtfTeam.BLUE).containsPlayer(player);
+	}
+
+	public String getTeamForPlayer(String player) {
+		if (teams.get(CtfTeam.RED).containsPlayer(player)) return CtfTeam.RED;
+		else if (teams.get(CtfTeam.BLUE).containsPlayer(player)) return CtfTeam.BLUE;
+		else return null;
+	}
+
+	public void setBaseLocation(String team, BlockPos refPos) {
+		baseLocations.put(team, refPos);
 	}
 
 	public String getName() {
@@ -90,16 +106,16 @@ public class Game {
 		this.score = score;
 	}
 
-	public boolean containsPlayer(String player) {
-		return teams.get(CtfTeam.RED).containsPlayer(player) ||
-				teams.get(CtfTeam.BLUE).containsPlayer(player);
+	public Map<String, BlockPos> getBaseLocations() {
+		return baseLocations;
 	}
 
-	public String getTeamForPlayer(String player) {
-		if (teams.get(CtfTeam.RED).containsPlayer(player)) return CtfTeam.RED;
-		else if (teams.get(CtfTeam.BLUE).containsPlayer(player)) return CtfTeam.BLUE;
-		else return null;
+	public void setBaseLocations(Map<String, BlockPos> baseLocations) {
+		this.baseLocations = baseLocations;
 	}
-	
+
+	public BlockPos getBaseLocation(String team) {
+		return this.baseLocations.get(team);
+	}
 	
 }

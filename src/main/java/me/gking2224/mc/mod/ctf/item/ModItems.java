@@ -17,15 +17,15 @@ public class ModItems {
 				.setCreativeTab(CreativeTabs.MISC)
 				.setMaxStackSize(1)
 				.setPlacesAsBlock(
-						ModBlocks.FLAG,
-						ModBlocks.FLAG.getDefaultState().withProperty(PlacedFlag.COLOUR, PlacedFlag.EnumFlagColour.RED)));
+						ModBlocks.PLACED_FLAG,
+						ModBlocks.PLACED_FLAG.getDefaultState().withProperty(PlacedFlag.COLOUR, PlacedFlag.EnumFlagColour.RED)));
 		BLUE_FLAG = register(
 				new ItemBase("flag_blue")
 				.setCreativeTab(CreativeTabs.MISC)
 				.setMaxStackSize(1)
 				.setPlacesAsBlock(
-						ModBlocks.FLAG,
-						ModBlocks.FLAG.getDefaultState().withProperty(PlacedFlag.COLOUR, PlacedFlag.EnumFlagColour.BLUE)));
+						ModBlocks.PLACED_FLAG,
+						ModBlocks.PLACED_FLAG.getDefaultState().withProperty(PlacedFlag.COLOUR, PlacedFlag.EnumFlagColour.BLUE)));
 	}
 
 	private static <T extends Item> T register(T item) {

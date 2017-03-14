@@ -1,6 +1,5 @@
 package me.gking2224.mc.mod.ctf.blocks;
 
-import me.gking2224.mc.mod.ctf.item.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemBlock;
@@ -8,10 +7,10 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModBlocks {
 
-	public static PlacedFlag FLAG;
+	public static PlacedFlag PLACED_FLAG;
 
 	public static void init() {
-		FLAG = (PlacedFlag)register(
+		PLACED_FLAG = (PlacedFlag)register(
 				new PlacedFlag("placed_flag")
 				.setCreativeTab(CreativeTabs.MATERIALS)
 				.setIsOpaque(false));
@@ -35,7 +34,6 @@ public class ModBlocks {
 	}
 
 	public static void postItemsInit() {
-		FLAG.setItemDropped(ModItems.RED_FLAG);
 	}
 
 }

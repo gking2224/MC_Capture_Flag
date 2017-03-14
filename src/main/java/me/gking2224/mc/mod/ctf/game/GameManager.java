@@ -41,6 +41,7 @@ public class GameManager {
 		checkNameUnique(name);
 		
 		Game game = new Game(name, owner, getNewGameBounds());
+		GameWorldManager.get().createGameBases(game, server.getEntityWorld());
 		GameFileManager.writeGameToFile(server, game);
 		addGame(game);
 		save();

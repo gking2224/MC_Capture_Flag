@@ -52,7 +52,7 @@ public class BackToBase implements ICommand {
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
 			
-			System.out.printf("Player %s wishes to go back to base 81", player.getName());
+			System.out.printf("Player %s wishes to go back to base", player.getName());
 			player.setPosition(-69, 81, 526);	
 		}
 	}
