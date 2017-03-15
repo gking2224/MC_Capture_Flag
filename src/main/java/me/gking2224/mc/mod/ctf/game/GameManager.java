@@ -4,15 +4,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
 public class GameManager {
 	
 	private static GameManager instance = null;
 	private transient MinecraftServer server;
+	private transient World world;
 	
 	private GameManager() {
 		this.games = new HashMap<String, Game>();
@@ -21,12 +26,14 @@ public class GameManager {
 	public static void initialise(MinecraftServer server) {
 		GameFileManager.init(server);
 		GameWorldManager.init(server);
+		GameEventManager.init(server);
 		if (instance != null) throw new IllegalStateException();
 		instance = GameFileManager.get().readGameManagerFromFile().setServer(server);
 	}
 	
 	private GameManager setServer(MinecraftServer server) {
 		this.server = server;
+		this.world = server.getEntityWorld();
 		return this;
 	}
 
@@ -132,21 +139,31 @@ public class GameManager {
 		GameFileManager.get().writeGameManagerToFile(this);
 	}
 
-	public Game getGame(String name) {
+	public Optional<Game> getGame(String name) {
 		if (gameNames.contains(name)) {
 			if (!games.containsKey(name)) {
 				games.put(name, GameFileManager.get().readGameFromFile(name));
 			}
 		}
-		return games.get(name);
+		return Optional.ofNullable(games.get(name));
 	}
 
 	public void saveGame(Game game) {
 		GameFileManager.get().writeGameToFile(game);
 	}
 
-	public Game getPlayerActiveGame(String name) {
-		return games.values().stream().filter(g -> g.containsPlayer(name)).findFirst().orElse(null);
+	public Optional<Game> getPlayerActiveGame(String name) {
+		return Optional.ofNullable(games.values().stream().filter(g -> g.containsPlayer(name)).findFirst().orElse(null));
+	}
+
+	public void broadcastToAllPlayers(Game game, String msg) {
+		ITextComponent msgComponent = new TextComponentString(msg);
+		game.getAllPlayers().forEach( n -> world.getPlayerEntityByName(n).sendMessage(msgComponent));
+	}
+
+	public void broadcastToTeamPlayers(Game game, String team, String msg) {
+		ITextComponent msgComponent = new TextComponentString(msg);
+		game.getTeamPlayers(team).forEach( n -> world.getPlayerEntityByName(n).sendMessage(msgComponent));
 	}
 
 }

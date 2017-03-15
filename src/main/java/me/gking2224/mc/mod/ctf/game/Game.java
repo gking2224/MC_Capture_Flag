@@ -1,10 +1,14 @@
 package me.gking2224.mc.mod.ctf.game;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 
 public class Game {
@@ -133,6 +137,21 @@ public class Game {
 
 	public BlockPos getBaseLocation(String team) {
 		return this.baseLocations.get(team);
+	}
+	
+	public int totalNumPlayers() {
+		Collector<CtfTeam, Integer, Integer> c = Collector.of(() -> 0, (Integer tot, CtfTeam team) -> team.numPlayers(), (t1, t2) -> t1 + t2);
+		return teams.values().stream().collect(c);
+	}
+
+	public Iterable<String> getAllPlayers() {
+		List<String> rv = new ArrayList<String>(totalNumPlayers());
+		teams.values().forEach( t -> rv.addAll(t.getPlayers()));
+		return rv;
+	}
+
+	public Iterable<String> getTeamPlayers(String team) {
+		return teams.get(team).getPlayers();
 	}
 	
 }

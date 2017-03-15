@@ -2,12 +2,14 @@ package me.gking2224.mc.mod.ctf.game;
 
 import static me.gking2224.mc.mod.ctf.game.GameWorldManager.WorldMetrics.fromChunk;
 import static me.gking2224.mc.mod.ctf.game.GameWorldManager.WorldMetrics.toChunk;
+import static me.gking2224.mc.mod.ctf.util.StringUtils.blockPosStr;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
+import me.gking2224.mc.mod.ctf.util.StringUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -88,7 +90,7 @@ public class GameWorldManager {
 		BlockPos refPos = getBasePos(game.getBounds(), invertZ);
 		ensureBlockGenerated(refPos);
 		createBaseStructure(state, refPos);
-		System.out.printf("Team %s base location at (%d %d %d)\n", team, refPos.getX(), refPos.getY(), refPos.getZ());
+		System.out.printf("Team %s base location at %s\n", team, blockPosStr(refPos));
 		game.setBaseLocation(team, refPos);
 	}
 
@@ -106,7 +108,7 @@ public class GameWorldManager {
 			for (int z = -7; z < 15; z++) {
 				BlockPos testPos = new BlockPos(refX + x, 0, refZ + z);
 				BlockPos testSurface = getSurfaceBlock(testPos);
-				System.out.printf("Testing block at (%d %d %d)... ", testSurface.getX(), testSurface.getY(), testSurface.getZ());
+				System.out.printf("Testing block at %s... ", blockPosStr(testSurface));
 				Block block = world.getBlockState(testSurface).getBlock();
 				Biome b = getBiome(testSurface);
 				System.out.printf("biome %s... ", b.getBiomeName());
@@ -179,9 +181,11 @@ public class GameWorldManager {
 		int numUnsuitable = 0;
 		for (int x = x1; x <= x2; x += xInc) {
 			for (int z = z1; z <= z2; z += zInc) {
-				System.out.printf("Checking for suitable biome at (%d, %d)\n", x, z);
+				System.out.printf("Checking for suitable biome at (%d, %d)...", x, z);
 				BlockPos blockPos = getSurfaceBlock(new BlockPos(x, 0, z));
-				if (!isSuitableBiome(getBiome(blockPos))) numUnsuitable++;
+				Biome biome = getBiome(blockPos);
+				System.out.println(biome.getBiomeName());
+				if (!isSuitableBiome(biome)) numUnsuitable++;
 				numChecks++;
 			}
 		}
@@ -201,7 +205,7 @@ public class GameWorldManager {
 	}
 
 	private boolean isSuitableBiome(Biome biome) {
-		return !(BiomeOcean.class.isAssignableFrom(biome.getClass()) || Biome.getIdForBiome(biome) == BIOME_COLD_BEACH);
+		return !(BiomeOcean.class.isAssignableFrom(biome.getClass()) || Biome.getIdForBiome(biome) == BIOME_COLD_BEACH || Biome.getIdForBiome(biome) == 24);
 	}
 	
 	public static class WorldMetrics {

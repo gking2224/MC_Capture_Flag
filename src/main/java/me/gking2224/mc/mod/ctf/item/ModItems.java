@@ -2,6 +2,7 @@ package me.gking2224.mc.mod.ctf.item;
 
 import me.gking2224.mc.mod.ctf.blocks.ModBlocks;
 import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
+import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -13,18 +14,16 @@ public class ModItems {
 
 	public static void init() {
 		RED_FLAG = register(
-				new ItemBase("flag_red")
+				new ItemBase(Flag.FLAG_PREFIX+CtfTeam.RED)
 				.setCreativeTab(CreativeTabs.MISC)
 				.setMaxStackSize(1)
 				.setPlacesAsBlock(
-						ModBlocks.PLACED_FLAG,
 						ModBlocks.PLACED_FLAG.getDefaultState().withProperty(PlacedFlag.COLOUR, PlacedFlag.EnumFlagColour.RED)));
 		BLUE_FLAG = register(
-				new ItemBase("flag_blue")
+				new ItemBase(Flag.FLAG_PREFIX+CtfTeam.BLUE)
 				.setCreativeTab(CreativeTabs.MISC)
 				.setMaxStackSize(1)
 				.setPlacesAsBlock(
-						ModBlocks.PLACED_FLAG,
 						ModBlocks.PLACED_FLAG.getDefaultState().withProperty(PlacedFlag.COLOUR, PlacedFlag.EnumFlagColour.BLUE)));
 	}
 

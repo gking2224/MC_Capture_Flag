@@ -2,6 +2,7 @@ package me.gking2224.mc.mod.ctf.command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
@@ -52,8 +53,8 @@ public class JoinCtfGame extends CommandBase {
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
 			
-			Game game = GameManager.get().getGame(gameName);
-			if (game == null) throw new CommandException("Game %s not found", gameName);
+			Optional<Game> g = GameManager.get().getGame(gameName);
+			Game game = g.orElseThrow(() -> new CommandException("Game %s not found", gameName));
 			
 			String playerName = player.getName();
 			String team = game.getTeamForPlayer(playerName);

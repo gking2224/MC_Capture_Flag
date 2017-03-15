@@ -1,7 +1,10 @@
 package me.gking2224.mc.mod.ctf.command;
 
+import static java.lang.String.format;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
@@ -54,11 +57,13 @@ public class BackToBase implements ICommand {
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
 			String playerName = player.getName();
-			Game game = GameManager.get().getPlayerActiveGame(playerName);
-			if (game == null) throw new CommandException("No active game");
-			game.sendPlayerToBase(server.getEntityWorld(), playerName);
+			Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
+			g.orElseThrow(() -> new CommandException("No active game"));
 			
-			System.out.printf("Player %s sent back to base\n", playerName);
+			g.ifPresent((game) -> {
+				game.sendPlayerToBase(server.getEntityWorld(), playerName);
+				GameManager.get().broadcastToAllPlayers(game, format("Player %s teleported back to base\n", playerName));
+			});
 		}
 	}
 

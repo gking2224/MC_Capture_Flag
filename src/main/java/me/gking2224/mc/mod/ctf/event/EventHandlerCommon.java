@@ -1,19 +1,22 @@
 package me.gking2224.mc.mod.ctf.event;
 
-import com.mojang.realmsclient.dto.RealmsServer.WorldType;
+import java.util.Optional;
 
 import me.gking2224.mc.mod.ctf.blocks.TM1Blocks;
+import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
+import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.event.world.WorldEvent.Load;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.ItemPickupEvent;
 
 public class EventHandlerCommon {
 
@@ -41,14 +44,17 @@ public class EventHandlerCommon {
 	}
 
 	@SubscribeEvent
-	public void itemPickup(ItemPickupEvent event) {
-		EntityPlayer player = event.player;
-		Item pickedUpItem = event.pickedUp.getEntityItem().getItem();
-		if (ItemBase.class.isAssignableFrom(pickedUpItem.getClass())) {
-			ItemBase item = (ItemBase)pickedUpItem;
-			if (item.getName().startsWith("flag")) {
-				System.out.printf("Player %s picked up flag!", player.getName());
-			}
-		}
+	public void itemPickup(EntityItemPickupEvent event) {
+		Optional<ItemBase> f = Flag.toFlag(event.getItem().getEntityItem());
+		f.ifPresent(flag -> GameEventManager.get().playerPickedUpFlag(event.getEntityPlayer().getName(), flag));
+	}
+	
+	@SubscribeEvent
+	public void itemPlaced(RightClickBlock event) {
+		EntityPlayer player = event.getEntityPlayer();
+		Vec3d hitVec = event.getHitVec();
+		Optional<ItemBase> f = Flag.toFlag(event.getItemStack());
+		f.ifPresent(flag -> GameEventManager.get().flagPlaced(
+				player.getName(), flag, new BlockPos((int)hitVec.xCoord, (int)hitVec.yCoord, (int)hitVec.zCoord)));
 	}
 }

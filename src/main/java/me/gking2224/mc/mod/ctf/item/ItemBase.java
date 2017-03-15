@@ -17,8 +17,7 @@ import net.minecraft.world.World;
 public class ItemBase extends Item {
 
 	protected String name;
-	private BlockBase placesAsBlock;
-	private IBlockState placesAsBlockState;
+	private IBlockState placesAsBlock;
 
 	public ItemBase(String name) {
 		this.name = name;
@@ -42,13 +41,9 @@ public class ItemBase extends Item {
 		return this;
 	}
 	
-	public ItemBase setPlacesAsBlock(BlockBase block) {
-		return setPlacesAsBlock(block, null);
-	}
 	
-	public ItemBase setPlacesAsBlock(BlockBase block, IBlockState blockState) {
-		this.placesAsBlock = block;
-		this.placesAsBlockState = blockState;
+	public ItemBase setPlacesAsBlock(IBlockState blockState) {
+		this.placesAsBlock = blockState;
 		return this;
 	}
 	
@@ -78,10 +73,10 @@ public class ItemBase extends Item {
         if (
         		player.canPlayerEdit(blockpos, facing, itemstack) &&
         		worldIn.mayPlace(worldIn.getBlockState(blockpos).getBlock(), blockpos, false, facing, (Entity)null) &&
-        		this.placesAsBlock.canPlaceBlockAt(worldIn, blockpos)
+        		this.placesAsBlock.getBlock().canPlaceBlockAt(worldIn, blockpos)
 		) {
             itemstack.shrink(1);
-            worldIn.setBlockState(blockpos, this.placesAsBlockState != null ? this.placesAsBlockState : this.placesAsBlock.getDefaultState());
+            worldIn.setBlockState(blockpos, this.placesAsBlock);
             return EnumActionResult.SUCCESS;
         }
         else

@@ -2,6 +2,7 @@ package me.gking2224.mc.mod.ctf.command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
@@ -53,14 +54,12 @@ public class CurrentGame extends CommandBase {
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
 			String playerName = player.getName();
-			Game game = GameManager.get().getPlayerActiveGame(playerName);
-			if (game == null) {
-				sender.sendMessage(new TextComponentString("You are not currently in a game. Use /new_ctf_game or /join_ctf_game"));
-			}
-			else {
+			Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
+			g.orElseThrow(() -> new CommandException("You are not currently in a game. Use /new_ctf_game or /join_ctf_game"));
+			g.ifPresent( (game) -> {
 				String team = game.getTeamForPlayer(playerName);
 				sender.sendMessage(new TextComponentString(String.format("You are currently in game %s, in team %s", game.getName(), team)));
-			}
+			});
 		}
 	}
 

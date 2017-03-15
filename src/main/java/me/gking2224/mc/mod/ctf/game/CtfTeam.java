@@ -29,5 +29,8 @@ public class CtfTeam {
 	public boolean containsPlayer(String player) {
 		return getPlayers().contains(player);
 	}
+	public int numPlayers() {
+		return getPlayers().size();
+	}
 
 }
