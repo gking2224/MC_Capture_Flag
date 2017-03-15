@@ -55,11 +55,11 @@ public class CurrentGame extends CommandBase {
 			String playerName = player.getName();
 			Game game = GameManager.get().getPlayerActiveGame(playerName);
 			if (game == null) {
-				server.sendMessage(new TextComponentString("You are not currently in a game. Use /new_ctf_game or /join_ctf_game"));
+				sender.sendMessage(new TextComponentString("You are not currently in a game. Use /new_ctf_game or /join_ctf_game"));
 			}
 			else {
 				String team = game.getTeamForPlayer(playerName);
-				server.sendMessage(new TextComponentString(String.format("You are currently in game %s, in team %s", game.getName(), team)));
+				sender.sendMessage(new TextComponentString(String.format("You are currently in game %s, in team %s", game.getName(), team)));
 			}
 		}
 	}
