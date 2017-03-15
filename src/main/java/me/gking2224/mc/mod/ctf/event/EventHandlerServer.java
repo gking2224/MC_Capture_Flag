@@ -2,7 +2,10 @@ package me.gking2224.mc.mod.ctf.event;
 
 import java.util.Optional;
 
+import me.gking2224.mc.mod.ctf.game.GameWorldManager;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
+import me.gking2224.mc.mod.ctf.game.event.GameResetEvent;
+import me.gking2224.mc.mod.ctf.game.event.NewGameEvent;
 import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -20,5 +23,17 @@ public class EventHandlerServer extends EventHandlerCommon {
 		Optional<ItemBase> f = Flag.toFlag(event.getItemStack());
 		f.ifPresent(flag -> GameEventManager.get().flagPlaced(
 				player.getName(), flag, new BlockPos((int)hitVec.xCoord, (int)hitVec.yCoord, (int)hitVec.zCoord)));
+	}
+	
+	@SubscribeEvent
+	public void newGame(NewGameEvent event) {
+
+		GameWorldManager.get().createGameBases(event.getGame());
+	}
+	
+	@SubscribeEvent
+	public void resetGame(GameResetEvent event) {
+
+		GameWorldManager.get().resetFlags(event.getGame());
 	}
 }

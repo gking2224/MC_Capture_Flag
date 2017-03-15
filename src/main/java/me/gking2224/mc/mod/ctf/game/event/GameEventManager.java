@@ -1,7 +1,6 @@
 package me.gking2224.mc.mod.ctf.game.event;
 
 import static java.lang.String.format;
-import static me.gking2224.mc.mod.ctf.util.StringUtils.blockPosStr;
 
 import java.util.Optional;
 
@@ -25,10 +24,8 @@ public class GameEventManager {
 	
 	public final static GameEventManager get() { return instance; }
 	
-	@SuppressWarnings("unused")
-	private MinecraftServer server;
-	@SuppressWarnings("unused")
-	private World world;
+	@SuppressWarnings("unused") private MinecraftServer server;
+	@SuppressWarnings("unused") private World world;
 	
 	private GameEventManager(MinecraftServer server) {
 		this.server = server;
@@ -39,6 +36,7 @@ public class GameEventManager {
 		Optional<Game> g = GameManager.get().getPlayerActiveGame(player);
 		g.ifPresent((game) -> {
 			String team = game.getTeamForPlayer(player);
+			game.setPlayerHoldingFlag(Flag.getFlagColour(item), player);
 			if (!Flag.isOwnTeamFlag(item, team)) {
 				broadcastTeamCapturedFlag(game, player, Flag.getFlagColour(item));
 			}
@@ -49,17 +47,32 @@ public class GameEventManager {
 	}
 
 	private void broadcastTeamCapturedFlag(Game game, String player, String team) {
-		GameManager.get().broadcastToAllPlayers(game, format("Player %s has captured %s team's flag!", player, team));
+		GameManager.get().broadcastToAllPlayers(game, format("Player %s has got %s team's flag!", player, team));
 	}
 
 	public void flagPlaced(String player, ItemBase flag, BlockPos blockPos) {
 		Optional<Game> g = GameManager.get().getPlayerActiveGame(player);
 		g.ifPresent((game) -> {
+			game.setFlagBlockPosition(Flag.getFlagColour(flag), blockPos);
 			String team = game.getTeamForPlayer(player);
 			String flagColour = Flag.getFlagColour(flag);
-			if (GameWorldManager.get().isInHomeBase(game, team, blockPos)) {
+			if (!Flag.isOwnTeamFlag(flag, team) && GameWorldManager.get().isInHomeBase(game, team, blockPos)) {
 				GameManager.get().flagCaptured(game, player, team, flagColour);
 			}
 		});
+	}
+
+	public void schedule(Runnable r, int timeout, String description) {
+
+		Runnable target = () -> {
+			try {
+				Thread.sleep(timeout);
+				r.run();
+			} catch (InterruptedException e) {
+				GameManager.get().log(format("Thread.sleep interrupted before scheduled task (%s) executed, running now anyway...", description));
+				r.run();
+			};
+		};
+		new Thread(target).start();
 	}
 }

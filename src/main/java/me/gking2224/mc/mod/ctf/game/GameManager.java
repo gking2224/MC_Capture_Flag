@@ -1,7 +1,7 @@
 package me.gking2224.mc.mod.ctf.game;
 
 import static java.lang.String.format;
-import static me.gking2224.mc.mod.ctf.util.StringUtils.blockPosStr;
+import static me.gking2224.mc.mod.ctf.util.StringUtils.toITextComponent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,19 +9,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Vector;
-import java.util.function.Consumer;
 
 import me.gking2224.mc.mod.ctf.command.BackToBase;
 import me.gking2224.mc.mod.ctf.command.CurrentGame;
 import me.gking2224.mc.mod.ctf.command.JoinCtfGame;
 import me.gking2224.mc.mod.ctf.command.NewCtfGame;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
+import me.gking2224.mc.mod.ctf.game.event.GameResetEvent;
+import me.gking2224.mc.mod.ctf.game.event.NewGameEvent;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 
 public class GameManager {
 	
@@ -63,11 +64,12 @@ public class GameManager {
 			throws GameCreationException {
 		checkOwnerPermissions(owner);
 		checkOwnerLimit(owner);
-		String name = checkNameUnique(n != null ? n : generateName());
+		String name = checkGameNameUnique(n != null ? n : generateGameName());
 		
 		Game game = new Game(name, owner, getNewGameBounds());
-		GameWorldManager.get().createGameBases(game);
-		GameFileManager.get().writeGameToFile(game);
+
+		MinecraftForge.TERRAIN_GEN_BUS.post(new NewGameEvent(game));
+		game.save();
 		addGame(game);
 		save();
 		
@@ -79,8 +81,8 @@ public class GameManager {
 		World world = server.getEntityWorld();
 		boolean suitable = false;
 		Bounds bounds = null;
-		int gameChunksX = 2;
-		int gameChunksZ = 3;
+		int gameChunksX = 1;
+		int gameChunksZ = 1;
 		
 		while (!suitable) {
 			int xBound = 10000;//(server.getMaxWorldSize() / 16) - gameChunksX;
@@ -127,14 +129,14 @@ public class GameManager {
 		return !((fullyRight || fullyLeft) && (fullyAbove || fullyBelow));   
 	}
 
-	private String checkNameUnique(final String name) throws GameCreationException {
+	private String checkGameNameUnique(final String name) throws GameCreationException {
 		String rv = name;
 		int idx = 0;
 		while (gameNames.contains(rv)) rv = name +"-"+(++idx);
 		return rv;
 	}
 
-	private String generateName() {
+	private String generateGameName() {
 		return "Game"+(gameNames.size()+1);
 	}
 
@@ -164,17 +166,12 @@ public class GameManager {
 		return Optional.ofNullable(games.get(name));
 	}
 
-	public void saveGame(Game game) {
-		GameFileManager.get().writeGameToFile(game);
-	}
-
 	public Optional<Game> getPlayerActiveGame(String name) {
 		return Optional.ofNullable(games.values().stream().filter(g -> g.containsPlayer(name)).findFirst().orElse(null));
 	}
 
 	public void broadcastToAllPlayers(Game game, String msg) {
-		ITextComponent msgComponent = new TextComponentString(msg);
-		game.getAllPlayers().forEach( (player) -> broadCastMessageToPlayer(player, msgComponent));
+		game.getAllPlayers().forEach( (player) -> broadCastMessageToPlayer(player, toITextComponent(msg)));
 	}
 
 	public void broadCastMessageToPlayer(String player, ITextComponent msg) {
@@ -182,8 +179,7 @@ public class GameManager {
 	}
 
 	public void broadcastToTeamPlayers(Game game, String team, String msg) {
-		ITextComponent msgComponent = new TextComponentString(msg);
-		game.getTeamPlayers(team).forEach( (player) -> broadCastMessageToPlayer(player, msgComponent));
+		game.getTeamPlayers(team).forEach( (player) -> broadCastMessageToPlayer(player, toITextComponent(msg)));
 	}
 
 	public List<ICommand> getGameCommands() {
@@ -196,8 +192,28 @@ public class GameManager {
 	}
 
 	public void flagCaptured(Game game, String player, String team, String flagColour) {
-		GameManager.get().broadcastToAllPlayers(
+		broadcastToAllPlayers(
 				game, format("Player %s (team %s) has successfully recovered %s team's flag!", player, team, flagColour));
+		game.incrementScore(team);
+		broadcastScore(game);
+		GameEventManager.get().schedule(() -> MinecraftForge.TERRAIN_GEN_BUS.post(new GameResetEvent(game)), 1000, "Reset game");
+	}
+
+	private void broadcastScore(Game game) {
+		int redScore = game.getScore().get(CtfTeam.RED);
+		int blueScore = game.getScore().get(CtfTeam.BLUE);
+		String message = String.format("Score: RED (%d) (%d) BLUE", redScore, blueScore);
+		broadcastToAllPlayers(game, message);
+		
+	}
+
+	public void playerLeaveAllGames(String playerName) {
+		games.values().stream().filter(g -> g.getAllPlayers().contains(playerName))
+				.forEach(g -> g.removePlayer(playerName));
+	}
+
+	public void log(String msg) {
+		server.sendMessage(toITextComponent(msg));
 	}
 
 }

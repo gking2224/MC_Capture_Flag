@@ -59,6 +59,7 @@ public class NewCtfGame extends CommandBase {
 			
 			try {
 				World world = server.getEntityWorld();
+				GameManager.get().playerLeaveAllGames(playerName);
 				Game game = GameManager.get().newGame(name, player);
 				String team = game.addPlayer(playerName);
 				game.sendPlayerToBase(world, playerName);

@@ -3,6 +3,7 @@ package me.gking2224.mc.mod.ctf.game;
 import static me.gking2224.mc.mod.ctf.game.GameWorldManager.WorldMetrics.fromChunk;
 import static me.gking2224.mc.mod.ctf.game.GameWorldManager.WorldMetrics.toChunk;
 import static me.gking2224.mc.mod.ctf.util.StringUtils.blockPosStr;
+import static me.gking2224.mc.mod.ctf.util.WorldUtils.offsetBlockPos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,30 +18,38 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeOcean;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public class GameWorldManager {
 	
-	private static final int WOOL_BLUE = 11;
-	private static final int WOOL_RED = 14;
-	private static final IBlockState RED_BLOCK = Block.getStateById(Block.getIdFromBlock(Blocks.WOOL) + (WOOL_RED << 12));
-	private static final IBlockState BLUE_BLOCK = Block.getStateById(Block.getIdFromBlock(Blocks.WOOL) + (WOOL_BLUE << 12));
+	private static final int WOOL_BLUE_ID = 11;
+	private static final int WOOL_RED_ID = 14;
 	
+	private static final IBlockState RED_BLOCK = Block.getStateById(Block.getIdFromBlock(Blocks.WOOL) + (WOOL_RED_ID << 12));
+	private static final IBlockState BLUE_BLOCK = Block.getStateById(Block.getIdFromBlock(Blocks.WOOL) + (WOOL_BLUE_ID << 12));
 	private static final IBlockState RED_FLAG = PlacedFlag.withColour(PlacedFlag.EnumFlagColour.RED);
 	private static final IBlockState BLUE_FLAG = PlacedFlag.withColour(PlacedFlag.EnumFlagColour.BLUE);
 	
-	private static final List<Integer> SUITABLE_BASE_BLOCKS = new ArrayList<Integer>();
-	private static final int BIOME_COLD_BEACH = 26;
+	private static final List<Integer> FLAG_BLOCK_WHITELIST = new ArrayList<Integer>();
+	private static final List<Integer> BASE_BIOME_BLACKLIST = new ArrayList<Integer>();
+	
+	private static final int BIOME_ID_OCEAN = 0;
+	private static final int BIOME_ID_DEEP_OCEAN = 24;
+	private static final int BIOME_ID_COLD_BEACH = 26;
+	
 	static {
-		SUITABLE_BASE_BLOCKS.add(Block.getIdFromBlock(Blocks.DIRT));
-		SUITABLE_BASE_BLOCKS.add(Block.getIdFromBlock(Blocks.SANDSTONE));
-		SUITABLE_BASE_BLOCKS.add(Block.getIdFromBlock(Blocks.STONE));
-		SUITABLE_BASE_BLOCKS.add(Block.getIdFromBlock(Blocks.GRASS));
-		SUITABLE_BASE_BLOCKS.add(Block.getIdFromBlock(Blocks.TALLGRASS));
-		SUITABLE_BASE_BLOCKS.add(Block.getIdFromBlock(Blocks.SAND));
-		SUITABLE_BASE_BLOCKS.add(Block.getIdFromBlock(Blocks.SNOW));
+		FLAG_BLOCK_WHITELIST.add(Block.getIdFromBlock(Blocks.DIRT));
+		FLAG_BLOCK_WHITELIST.add(Block.getIdFromBlock(Blocks.SANDSTONE));
+		FLAG_BLOCK_WHITELIST.add(Block.getIdFromBlock(Blocks.STONE));
+		FLAG_BLOCK_WHITELIST.add(Block.getIdFromBlock(Blocks.GRASS));
+		FLAG_BLOCK_WHITELIST.add(Block.getIdFromBlock(Blocks.TALLGRASS));
+		FLAG_BLOCK_WHITELIST.add(Block.getIdFromBlock(Blocks.SAND));
+		FLAG_BLOCK_WHITELIST.add(Block.getIdFromBlock(Blocks.SNOW));
+		
+		BASE_BIOME_BLACKLIST.add(BIOME_ID_OCEAN);
+		BASE_BIOME_BLACKLIST.add(BIOME_ID_COLD_BEACH);
+		BASE_BIOME_BLACKLIST.add(BIOME_ID_DEEP_OCEAN);
 	}
 	
 	@SuppressWarnings("unused")
@@ -72,13 +81,30 @@ public class GameWorldManager {
 		resetFlags(game);
 	}
 	
-	private void resetFlags(Game game) {
-		placeFlag(game.getBaseLocation(CtfTeam.RED), RED_FLAG);
-		placeFlag(game.getBaseLocation(CtfTeam.BLUE), BLUE_FLAG);
+	public void resetFlags(Game game) {
+		resetFlag(game, CtfTeam.RED);
+		resetFlag(game, CtfTeam.BLUE);
+	}
+
+	public void resetFlag(Game game, String colour) {
+		
+		deletePlacedFlag(game, colour);
+		removeFlagFromPlayerInventory(game, colour);
+		placeFlag(game.getBaseLocation(colour), CtfTeam.BLUE.equals(colour) ? BLUE_FLAG : RED_FLAG);
+	}
+
+	private void removeFlagFromPlayerInventory(Game game, String colour) {
+	}
+
+	private void deletePlacedFlag(Game game, String colour) {
+		BlockPos pos = game.getFlagPosition(colour);
+		if (pos != null) {
+			world.destroyBlock(offsetBlockPos(pos, 0, 0, 0), false);
+		}
 	}
 
 	private void placeFlag(BlockPos refPos, IBlockState flag) {
-		world.setBlockState(WorldUtils.move(refPos, 0, 1, 0), flag);
+		world.setBlockState(offsetBlockPos(refPos, 0, 1, 0), flag);
 	}
 
 	private void createBase(Game game, String team, IBlockState state, boolean invertZ) {
@@ -107,7 +133,7 @@ public class GameWorldManager {
 				Block block = world.getBlockState(testSurface).getBlock();
 				Biome b = getBiome(testSurface);
 				System.out.printf("biome %s... ", b.getBiomeName());
-				if (!SUITABLE_BASE_BLOCKS.contains(Block.getIdFromBlock(block))) {
+				if (!FLAG_BLOCK_WHITELIST.contains(Block.getIdFromBlock(block))) {
 					System.out.printf("not creating base on block %s\n", block.getLocalizedName());
 				}
 				else {
@@ -200,7 +226,7 @@ public class GameWorldManager {
 	}
 
 	private boolean isSuitableBiome(Biome biome) {
-		return !(BiomeOcean.class.isAssignableFrom(biome.getClass()) || Biome.getIdForBiome(biome) == BIOME_COLD_BEACH || Biome.getIdForBiome(biome) == 24);
+		return !BASE_BIOME_BLACKLIST.contains(Biome.getIdForBiome(biome));
 	}
 	
 	public static class WorldMetrics {

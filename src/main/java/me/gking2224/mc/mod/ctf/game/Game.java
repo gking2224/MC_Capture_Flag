@@ -1,14 +1,13 @@
 package me.gking2224.mc.mod.ctf.game;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collector;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 
 public class Game {
@@ -19,6 +18,8 @@ public class Game {
 	private Map<String, CtfTeam> teams = new HashMap<String, CtfTeam>();
 	private Map<String, Integer> score = new HashMap<String, Integer>();
 	private Map<String, BlockPos> baseLocations = new HashMap<String, BlockPos>();
+	private Map<String, BlockPos> flagLocations = new HashMap<String, BlockPos>();
+	private Map<String, String> playerHoldingFlag = new HashMap<String, String>();
 
 	Game(String name, EntityPlayer owner, Bounds bounds) {
 		setName(name);
@@ -32,7 +33,7 @@ public class Game {
 	
 	public String addPlayer(String playerName) {
 		String nextTeam = nextTeam();
-		teams.get(nextTeam).getPlayers().add(playerName);
+		teams.get(nextTeam).addPlayer(playerName);
 		save();
 		return nextTeam;
 	}
@@ -53,15 +54,15 @@ public class Game {
 		String team = getTeamForPlayer(playerName);
 		EntityPlayer player = world.getPlayerEntityByName(playerName);
 		BlockPos baseLocation = getBaseLocation(team);
-		System.out.printf("Sending player %s back to %s team base %s\n", playerName, team, baseLocation);
+		System.out.printf("Sending player %s to %s team base %s\n", playerName, team, baseLocation);
 		int x = baseLocation.getX() + 2, z = baseLocation.getZ() + 2;
 		int y = GameWorldManager.get().getWorldHeight(x, z) + 1;
 		player.setPosition(x, y, z);
 		
 	}
 
-	private void save() {
-		GameManager.get().saveGame(this);
+	void save() {
+		GameFileManager.get().writeGameToFile(this);
 	}
 
 	private String chooseRandomTeam() {
@@ -144,14 +145,47 @@ public class Game {
 		return teams.values().stream().collect(c);
 	}
 
-	public Iterable<String> getAllPlayers() {
-		List<String> rv = new ArrayList<String>(totalNumPlayers());
+	public Set<String> getAllPlayers() {
+		Set<String> rv = new HashSet<String>(totalNumPlayers());
 		teams.values().forEach( t -> rv.addAll(t.getPlayers()));
 		return rv;
 	}
 
-	public Iterable<String> getTeamPlayers(String team) {
+	public Set<String> getTeamPlayers(String team) {
 		return teams.get(team).getPlayers();
+	}
+
+	public void incrementScore(String team) {
+		getScore().put(team, getScore().get(team).intValue() + 1);
+		save();
+	}
+
+	public void setFlagBlockPosition(String flagColour, BlockPos blockPos) {
+		flagLocations.put(flagColour, blockPos);
+		playerHoldingFlag.remove(flagColour);
+		save();
+	}
+
+	public BlockPos getFlagPosition(String flagColour) {
+		return flagLocations.get(flagColour);
+	}
+
+	public void setPlayerHoldingFlag(String flagColour, String player) {
+		playerHoldingFlag.put(flagColour, player);
+		flagLocations.remove(flagColour);
+		save();
+	}
+
+	public String getPlayerHoldingFlag(String flagColour) {
+		return playerHoldingFlag.get(flagColour);
+	}
+
+	public void removePlayer(String playerName) {
+		teams.values().forEach(t -> t.removePlayer(playerName));
+		playerHoldingFlag.entrySet().stream().filter(e -> e.getValue().equals(playerName)).forEach( e->
+				GameWorldManager.get().resetFlag(this, e.getKey()));
+		GameManager.get().broadcastToAllPlayers(this, String.format("Player %s leaving game", playerName));
+		save();
 	}
 	
 }

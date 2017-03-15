@@ -4,7 +4,7 @@ import net.minecraft.util.math.BlockPos;
 
 public class WorldUtils {
 
-	public static BlockPos move(BlockPos refPos, int x, int y, int z) {
+	public static BlockPos offsetBlockPos(BlockPos refPos, int x, int y, int z) {
 		return new BlockPos(refPos.getX() + x, refPos.getY() + y, refPos.getZ() + z);
 	}
 
