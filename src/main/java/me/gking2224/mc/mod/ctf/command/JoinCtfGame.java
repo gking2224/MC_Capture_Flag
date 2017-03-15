@@ -37,11 +37,6 @@ public class JoinCtfGame extends CommandBase {
 	}
 
 	@Override
-	public String getUsage(ICommandSender sender) {
-		return "join_ctf_game <name>";
-	}
-
-	@Override
 	public List<String> getAliases() {
 		return this.aliases;
 	}

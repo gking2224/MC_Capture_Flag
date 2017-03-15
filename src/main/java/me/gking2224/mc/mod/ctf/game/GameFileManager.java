@@ -6,16 +6,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import net.minecraft.server.MinecraftServer;
-
 import org.apache.commons.io.FileExistsException;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
+import net.minecraft.server.MinecraftServer;
+
 public class GameFileManager {
 	private static Gson gson = null;
+	private static GameFileManager instance = null;
+	
 	static {
 		gson = new Gson();
 	}
@@ -23,13 +25,20 @@ public class GameFileManager {
 	private static final String GAMEMANAGER_JSON = "game_mgr.json";
 	private static final String GAMES_DIR_NAME = "games";
 	
-	private GameFileManager() {
-		
+	private MinecraftServer server = null;
+	
+	private GameFileManager(MinecraftServer server) {
+		this.server = server;
 	}
 
-	static GameManager loadGameManager(MinecraftServer server) {
+	public static void init(MinecraftServer server) {
+		if (instance != null) throw new IllegalStateException();
+		instance = new GameFileManager(server);
+	}
 
-		File file = getGameManagerFile(server);
+	GameManager readGameManagerFromFile() {
+
+		File file = getGameManagerFile();
 		try {
 			FileReader fr = new FileReader(file);
 			GameManager gameMgr = gson.fromJson(fr, GameManager.class);
@@ -44,16 +53,16 @@ public class GameFileManager {
 		}
 	}
 
-	private static File getGameManagerFileLocation(MinecraftServer server) {
+	private File getGameManagerFileLocation() {
 		return new File(server.getDataDirectory(), GAMEMANAGER_JSON);
 	}
 
-	private static File getGameManagerFile(MinecraftServer server) {
+	private File getGameManagerFile() {
 
-		File file = getGameManagerFileLocation(server);
+		File file = getGameManagerFileLocation();
 		try {
 			if (!file.exists()) {
-				initGameManagerFile(server, file);
+				initGameManagerFile(file);
 			}
 			return file;
 		} catch (JsonIOException | IOException e) {
@@ -61,24 +70,24 @@ public class GameFileManager {
 		}
 	}
 
-	private static void initGameManagerFile(MinecraftServer server, File file) throws JsonIOException, IOException {
-		File gamesDirectory = getGamesDir(server);
+	private void initGameManagerFile(File file) throws JsonIOException, IOException {
+		File gamesDirectory = getGamesDir();
 		if (gamesDirectory.exists() && !gamesDirectory.isDirectory()) {
 			throw new GameInitialisationException(new FileExistsException(gamesDirectory));
 		}
 		else if (!gamesDirectory.exists()) {
 			gamesDirectory.mkdirs();
 		}
-		writeGameManagerToFile(server, GameManager.defaultGameManager(server));
+		writeGameManagerToFile(GameManager.defaultGameManager(server));
 	}
 
-	private static File getGamesDir(MinecraftServer server) {
+	private File getGamesDir() {
 		return new File(server.getDataDirectory(), GAMES_DIR_NAME);
 	}
 
-	static void writeGameToFile(MinecraftServer server, Game game) {
+	void writeGameToFile(Game game) {
 		try {
-			File file = new File(getGamesDir(server), game.getName()+".json");
+			File file = new File(getGamesDir(), game.getName()+".json");
 			FileWriter fw = new FileWriter(file, false);
 			gson.toJson(game, fw);
 			try {
@@ -90,9 +99,24 @@ public class GameFileManager {
 			throw new GameInitialisationException(e);
 		}
 	}
+	Game readGameFromFile(String name) {
+		try {
+			File file = new File(getGamesDir(), name+".json");
+			FileReader fr = new FileReader(file);
+			Game game = gson.fromJson(fr, Game.class);
+			try {
+				fr.close();
+			} catch (IOException e) {
+				System.out.println(String.format("WARN: caught error closing file %s: %s", file.getAbsolutePath(), e.toString()));
+			}
+			return game;
+		} catch (JsonSyntaxException | JsonIOException | FileNotFoundException e) {
+			throw new GameInitialisationException(e);
+		}
+	}
 
-	static void writeGameManagerToFile(MinecraftServer server, GameManager gameManager) {
-		File file = getGameManagerFileLocation(server);
+	void writeGameManagerToFile(GameManager gameManager) {
+		File file = getGameManagerFileLocation();
 		try {
 			FileWriter fw = new FileWriter(file);
 			gson.toJson(gameManager, fw);
@@ -104,5 +128,9 @@ public class GameFileManager {
 		} catch (JsonIOException | IOException e) {
 			throw new GameManagerPersistenceException(e);
 		}
+	}
+
+	public static GameFileManager get() {
+		return instance;
 	}
 }

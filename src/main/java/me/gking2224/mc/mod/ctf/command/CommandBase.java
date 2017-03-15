@@ -11,7 +11,7 @@ public abstract class CommandBase extends net.minecraft.command.CommandBase {
 	protected abstract boolean[] getMandatoryArgs();
 
 	@Override
-	public String getUsage(ICommandSender sender) {
+	public final String getUsage(ICommandSender sender) {
 		return getName() + getArgUsageString();
 	}
 

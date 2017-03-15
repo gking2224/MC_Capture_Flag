@@ -12,17 +12,21 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 
-public class BackToBase implements ICommand {
+public class CurrentGame extends CommandBase {
+	private static final String[] NO_ARGS = new String[0];
+	private static final boolean[] NO_ARGS_MANDATORY = new boolean[0];
+
 	private final List<String> aliases;
 
 	protected String fullEntityName;
 	protected Entity conjuredEntity;
 	
-	public BackToBase() {
+	public CurrentGame() {
 
         aliases = new ArrayList<String>(); 
-        aliases.add("btb"); 
+        aliases.add("cg"); 
 	}
 
 	@Override
@@ -32,12 +36,7 @@ public class BackToBase implements ICommand {
 
 	@Override
 	public String getName() {
-		return "back_to_base";
-	}
-
-	@Override
-	public String getUsage(ICommandSender sender) {
-		return "back_to_base";
+		return "current_game";
 	}
 
 	@Override
@@ -46,7 +45,7 @@ public class BackToBase implements ICommand {
 	}
 
 	@Override
-	public void execute(MinecraftServer server, ICommandSender sender,
+	protected void doExecute(MinecraftServer server, ICommandSender sender,
 			String[] args) throws CommandException {
 		Entity e = sender.getCommandSenderEntity();
 		
@@ -55,10 +54,13 @@ public class BackToBase implements ICommand {
 			EntityPlayer player = (EntityPlayer)e;
 			String playerName = player.getName();
 			Game game = GameManager.get().getPlayerActiveGame(playerName);
-			if (game == null) throw new CommandException("No active game");
-			game.sendPlayerToBase(server.getEntityWorld(), playerName);
-			
-			System.out.printf("Player %s sent back to base\n", playerName);
+			if (game == null) {
+				server.sendMessage(new TextComponentString("You are not currently in a game. Use /new_ctf_game or /join_ctf_game"));
+			}
+			else {
+				String team = game.getTeamForPlayer(playerName);
+				server.sendMessage(new TextComponentString(String.format("You are currently in game %s, in team %s", game.getName(), team)));
+			}
 		}
 	}
 
@@ -76,6 +78,16 @@ public class BackToBase implements ICommand {
 	@Override
 	public boolean isUsernameIndex(String[] args, int index) {
 		return false;
+	}
+
+	@Override
+	protected String[] getArgNames() {
+		return NO_ARGS;
+	}
+
+	@Override
+	protected boolean[] getMandatoryArgs() {
+		return NO_ARGS_MANDATORY;
 	}
 
 }

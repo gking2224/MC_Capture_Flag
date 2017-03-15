@@ -2,6 +2,10 @@ package me.gking2224.mc.mod.ctf.game;
 
 public class Bounds {
 
+	@Override
+	public String toString() {
+		return String.format("[%s : %s]", from, to);
+	}
 	private ChunkLocation from;
 	private ChunkLocation to;
 	

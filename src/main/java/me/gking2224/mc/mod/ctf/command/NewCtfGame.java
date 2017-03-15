@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.World;
 
 public class NewCtfGame extends CommandBase {
 	private final List<String> aliases;
@@ -57,11 +58,12 @@ public class NewCtfGame extends CommandBase {
 			String playerName = player.getName();
 			
 			try {
+				World world = server.getEntityWorld();
 				Game game = GameManager.get().newGame(name, player);
 				String team = game.addPlayer(playerName);
-				game.sendPlayerToBase(server.getEntityWorld(), playerName);
+				game.sendPlayerToBase(world, playerName);
 				sender.sendMessage(new TextComponentString(
-						String.format("Created game %s and joined team", name, team)));
+						String.format("Created game %s and joined team %s", name, team)));
 			}
 			catch (GameCreationException ex) {
 				throw new CommandException(ex.getMessage());

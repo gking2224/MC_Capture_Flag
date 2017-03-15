@@ -49,6 +49,7 @@ public class Game {
 		String team = getTeamForPlayer(playerName);
 		EntityPlayer player = world.getPlayerEntityByName(playerName);
 		BlockPos baseLocation = getBaseLocation(team);
+		System.out.printf("Sending player %s back to %s team base %s\n", playerName, team, baseLocation);
 		int x = baseLocation.getX() + 2, z = baseLocation.getZ() + 2;
 		int y = world.getHeight(x, z) + 1;
 		player.setPosition(x, y, z);

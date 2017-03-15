@@ -30,4 +30,8 @@ public class ChunkLocation {
 	public void setZ(int z) {
 		this.z = z;
 	}
+	
+	public String toString() {
+		return String.format("(%d, %d)", x, z);
+	}
 }
