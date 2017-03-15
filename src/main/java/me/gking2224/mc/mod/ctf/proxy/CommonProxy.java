@@ -1,10 +1,7 @@
 package me.gking2224.mc.mod.ctf.proxy;
 
-import me.gking2224.mc.mod.ctf.command.BackToBase;
-import me.gking2224.mc.mod.ctf.command.CurrentGame;
-import me.gking2224.mc.mod.ctf.command.JoinCtfGame;
-import me.gking2224.mc.mod.ctf.command.NewCtfGame;
 import me.gking2224.mc.mod.ctf.event.EventHandlerCommon;
+import me.gking2224.mc.mod.ctf.game.GameManager;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -27,10 +24,7 @@ public class CommonProxy implements SidedProxy {
 
 	@Override
 	public void serverLoad(FMLServerStartingEvent event) {
-		event.registerServerCommand(new BackToBase());
-		event.registerServerCommand(new NewCtfGame());
-		event.registerServerCommand(new JoinCtfGame());
-		event.registerServerCommand(new CurrentGame());
-		System.out.println("server load");
+		GameManager.initialise(event.getServer());
+		GameManager.get().getGameCommands().forEach((cmd) -> event.registerServerCommand(cmd));
 	}
 }

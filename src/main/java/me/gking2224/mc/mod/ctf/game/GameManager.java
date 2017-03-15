@@ -1,12 +1,22 @@
 package me.gking2224.mc.mod.ctf.game;
 
+import static java.lang.String.format;
+import static me.gking2224.mc.mod.ctf.util.StringUtils.blockPosStr;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Vector;
+import java.util.function.Consumer;
 
+import me.gking2224.mc.mod.ctf.command.BackToBase;
+import me.gking2224.mc.mod.ctf.command.CurrentGame;
+import me.gking2224.mc.mod.ctf.command.JoinCtfGame;
+import me.gking2224.mc.mod.ctf.command.NewCtfGame;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
+import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
@@ -49,11 +59,11 @@ public class GameManager {
 		return instance;
 	}
 
-	public Game newGame(String name, EntityPlayer owner)
+	public Game newGame(String n, EntityPlayer owner)
 			throws GameCreationException {
 		checkOwnerPermissions(owner);
 		checkOwnerLimit(owner);
-		checkNameUnique(name);
+		String name = checkNameUnique(n != null ? n : generateName());
 		
 		Game game = new Game(name, owner, getNewGameBounds());
 		GameWorldManager.get().createGameBases(game);
@@ -117,9 +127,15 @@ public class GameManager {
 		return !((fullyRight || fullyLeft) && (fullyAbove || fullyBelow));   
 	}
 
-	private void checkNameUnique(String name) throws GameCreationException {
-		if (games.containsKey(name))
-			throw new GameCreationException(String.format("Game %s already exists!", name));
+	private String checkNameUnique(final String name) throws GameCreationException {
+		String rv = name;
+		int idx = 0;
+		while (gameNames.contains(rv)) rv = name +"-"+(++idx);
+		return rv;
+	}
+
+	private String generateName() {
+		return "Game"+(gameNames.size()+1);
 	}
 
 	private void checkOwnerLimit(EntityPlayer owner) {
@@ -158,12 +174,30 @@ public class GameManager {
 
 	public void broadcastToAllPlayers(Game game, String msg) {
 		ITextComponent msgComponent = new TextComponentString(msg);
-		game.getAllPlayers().forEach( n -> world.getPlayerEntityByName(n).sendMessage(msgComponent));
+		game.getAllPlayers().forEach( (player) -> broadCastMessageToPlayer(player, msgComponent));
+	}
+
+	public void broadCastMessageToPlayer(String player, ITextComponent msg) {
+		world.getPlayerEntityByName(player).sendMessage(msg);
 	}
 
 	public void broadcastToTeamPlayers(Game game, String team, String msg) {
 		ITextComponent msgComponent = new TextComponentString(msg);
-		game.getTeamPlayers(team).forEach( n -> world.getPlayerEntityByName(n).sendMessage(msgComponent));
+		game.getTeamPlayers(team).forEach( (player) -> broadCastMessageToPlayer(player, msgComponent));
+	}
+
+	public List<ICommand> getGameCommands() {
+		List<ICommand> rv = new Vector<ICommand>();
+		rv.add(new BackToBase());
+		rv.add(new NewCtfGame());
+		rv.add(new JoinCtfGame());
+		rv.add(new CurrentGame());
+		return rv;
+	}
+
+	public void flagCaptured(Game game, String player, String team, String flagColour) {
+		GameManager.get().broadcastToAllPlayers(
+				game, format("Player %s (team %s) has successfully recovered %s team's flag!", player, team, flagColour));
 	}
 
 }

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 
 import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
-import me.gking2224.mc.mod.ctf.util.StringUtils;
+import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -17,7 +17,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeBeach;
 import net.minecraft.world.biome.BiomeOcean;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -79,11 +78,7 @@ public class GameWorldManager {
 	}
 
 	private void placeFlag(BlockPos refPos, IBlockState flag) {
-		world.setBlockState(move(refPos, 0, 1, 0), flag);
-	}
-
-	private BlockPos move(BlockPos refPos, int x, int y, int z) {
-		return new BlockPos(refPos.getX() + x, refPos.getY() + y, refPos.getZ() + z);
+		world.setBlockState(WorldUtils.move(refPos, 0, 1, 0), flag);
 	}
 
 	private void createBase(Game game, String team, IBlockState state, boolean invertZ) {
@@ -215,5 +210,11 @@ public class GameWorldManager {
 		public static int toChunk(int n) {
 			return (int)Math.floor(n / 16);
 		}
+	}
+
+	public boolean isInHomeBase(Game game, String team, BlockPos blockPos) {
+		BlockPos pos = game.getBaseLocation(team);
+		BlockPos delta = WorldUtils.getDelta(pos, blockPos);
+		return (delta.getX() <= 3 && delta.getY() <= 3 && delta.getZ() <= 3);
 	}
 }

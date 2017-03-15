@@ -61,12 +61,14 @@ public class JoinCtfGame extends CommandBase {
 			if (team != null) {
 				sender.sendMessage(new TextComponentString(
 						String.format("Already in game %s on team %s", gameName, team)));
+				game.sendPlayerToBase(server.getEntityWorld(), playerName);
 			}
 			else {
 				team = game.addPlayer(playerName);
 				GameManager.get().save();
 				sender.sendMessage(new TextComponentString(
 						String.format("Joined game %s on team %s", gameName, team)));
+				game.sendPlayerToBase(server.getEntityWorld(), playerName);
 			}
 		}
 	}

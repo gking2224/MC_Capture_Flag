@@ -50,7 +50,7 @@ public class NewCtfGame extends CommandBase {
 	) throws CommandException {
 
 		Entity e = sender.getCommandSenderEntity();
-		String name = args[0];
+		String name = args.length >= 1 ? args[0] : null;
 		
 		if (e == null) return;
 		if (e instanceof EntityPlayer) {
@@ -63,7 +63,7 @@ public class NewCtfGame extends CommandBase {
 				String team = game.addPlayer(playerName);
 				game.sendPlayerToBase(world, playerName);
 				sender.sendMessage(new TextComponentString(
-						String.format("Created game %s and joined team %s", name, team)));
+						String.format("Created game %s and joined team %s", game.getName(), team)));
 			}
 			catch (GameCreationException ex) {
 				throw new CommandException(ex.getMessage());
@@ -90,7 +90,7 @@ public class NewCtfGame extends CommandBase {
 
 	@Override
 	protected boolean[] getMandatoryArgs() {
-		return new boolean[] { true, false };
+		return new boolean[] { false, false };
 	}
 
 	@Override

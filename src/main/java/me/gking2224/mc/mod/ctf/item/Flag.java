@@ -2,6 +2,7 @@ package me.gking2224.mc.mod.ctf.item;
 
 import java.util.Optional;
 
+import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
@@ -31,6 +32,10 @@ public class Flag {
 
 	public static boolean isOwnTeamFlag(ItemBase item, String team) {
 		return item.getName().equals(FLAG_PREFIX+team);
+	}
+
+	public static String getOppositeColour(ItemBase flag) {
+		return getFlagColour(flag).equals(CtfTeam.RED) ? CtfTeam.BLUE : CtfTeam.RED;
 	}
 
 }

@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
+import me.gking2224.mc.mod.ctf.game.GameWorldManager;
 import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
 import net.minecraft.server.MinecraftServer;
@@ -53,7 +54,12 @@ public class GameEventManager {
 
 	public void flagPlaced(String player, ItemBase flag, BlockPos blockPos) {
 		Optional<Game> g = GameManager.get().getPlayerActiveGame(player);
-		g.ifPresent((game) -> GameManager.get().broadcastToAllPlayers(
-				game, format("Player %s has placed %s flag at (%d %d %d)!", player, Flag.getFlagColour(flag), blockPosStr(blockPos))));
+		g.ifPresent((game) -> {
+			String team = game.getTeamForPlayer(player);
+			String flagColour = Flag.getFlagColour(flag);
+			if (GameWorldManager.get().isInHomeBase(game, team, blockPos)) {
+				GameManager.get().flagCaptured(game, player, team, flagColour);
+			}
+		});
 	}
 }
