@@ -6,7 +6,7 @@ import net.minecraft.item.ItemBlock;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModBlocks {
-
+	
 	public static PlacedFlag PLACED_FLAG;
 
 	public static void init() {

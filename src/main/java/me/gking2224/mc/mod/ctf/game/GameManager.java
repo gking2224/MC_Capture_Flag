@@ -14,6 +14,7 @@ import me.gking2224.mc.mod.ctf.command.BackToBase;
 import me.gking2224.mc.mod.ctf.command.CurrentGame;
 import me.gking2224.mc.mod.ctf.command.JoinCtfGame;
 import me.gking2224.mc.mod.ctf.command.NewCtfGame;
+import me.gking2224.mc.mod.ctf.command.ToolUp;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import me.gking2224.mc.mod.ctf.game.event.GameResetEvent;
 import me.gking2224.mc.mod.ctf.game.event.NewGameEvent;
@@ -188,6 +189,7 @@ public class GameManager {
 		rv.add(new NewCtfGame());
 		rv.add(new JoinCtfGame());
 		rv.add(new CurrentGame());
+		rv.add(new ToolUp());
 		return rv;
 	}
 
