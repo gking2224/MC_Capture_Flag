@@ -10,10 +10,14 @@ import java.util.List;
 import java.util.Random;
 
 import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
+import me.gking2224.mc.mod.ctf.item.ItemBase;
+import me.gking2224.mc.mod.ctf.item.ModItems;
 import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -89,11 +93,22 @@ public class GameWorldManager {
 	public void resetFlag(Game game, String colour) {
 		
 		deletePlacedFlag(game, colour);
-		removeFlagFromPlayerInventory(game, colour);
+		//removeFlagsFromPlayerInventory(game);
 		placeFlag(game.getBaseLocation(colour), CtfTeam.BLUE.equals(colour) ? BLUE_FLAG : RED_FLAG);
 	}
 
-	private void removeFlagFromPlayerInventory(Game game, String colour) {
+	private void removeFlagsFromPlayerInventory(Game game) {
+//		GameManager.get().broadcastToAllPlayers(game, "You're going to lose your held flags!");
+		game.getAllPlayers().forEach((player) -> removeFlagsFromPlayerInventory(player, ModItems.BLUE_FLAG));
+		game.getAllPlayers().forEach((player) -> removeFlagsFromPlayerInventory(player, ModItems.RED_FLAG));
+	}
+
+	private void removeFlagsFromPlayerInventory(String player, ItemBase flag) {
+		InventoryPlayer inventory = world.getPlayerEntityByName(player).inventory;
+		ItemStack stack = new ItemStack(flag, 1);
+		while (inventory.hasItemStack(stack)) {
+			inventory.deleteStack(stack);
+		}
 	}
 
 	private void deletePlacedFlag(Game game, String colour) {

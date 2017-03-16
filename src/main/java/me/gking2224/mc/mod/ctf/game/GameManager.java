@@ -191,7 +191,7 @@ public class GameManager {
 		return rv;
 	}
 
-	public void flagCaptured(Game game, String player, String team, String flagColour) {
+	public void flagCaptureComplete(Game game, String player, String team, String flagColour) {
 		broadcastToAllPlayers(
 				game, format("Player %s (team %s) has successfully recovered %s team's flag!", player, team, flagColour));
 		game.incrementScore(team);

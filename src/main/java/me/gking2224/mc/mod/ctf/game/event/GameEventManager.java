@@ -41,7 +41,7 @@ public class GameEventManager {
 				broadcastTeamCapturedFlag(game, player, Flag.getFlagColour(item));
 			}
 			else {
-				//pickedUpOwnFlag(game, player, item);
+				GameManager.get().broadcastToAllPlayers(game, format("Player %s has picked up his own flag!", player));
 			}
 		});
 	}
@@ -57,7 +57,10 @@ public class GameEventManager {
 			String team = game.getTeamForPlayer(player);
 			String flagColour = Flag.getFlagColour(flag);
 			if (!Flag.isOwnTeamFlag(flag, team) && GameWorldManager.get().isInHomeBase(game, team, blockPos)) {
-				GameManager.get().flagCaptured(game, player, team, flagColour);
+				GameManager.get().flagCaptureComplete(game, player, team, flagColour);
+			}
+			else {
+				GameManager.get().broadcastToAllPlayers(game, format("Player %s has placed his team's flag!", player));
 			}
 		});
 	}
