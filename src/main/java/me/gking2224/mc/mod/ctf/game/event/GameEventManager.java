@@ -12,6 +12,7 @@ import me.gking2224.mc.mod.ctf.game.GameManager;
 import me.gking2224.mc.mod.ctf.game.GameWorldManager;
 import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
@@ -45,7 +46,7 @@ public class GameEventManager {
 				game.setPlayerHoldingFlag(Flag.getFlagColour(item), playerName);
 				if (Flag.getFlagColour(item) != team.getColour()) {
 					broadcastTeamCapturedFlag(game, playerName, Flag.getFlagColour(item));
-					schedule(() -> moveItemFromInventoryToPlayerHand(player, item));
+					schedule(() -> moveItemFromInventoryToPlayerHand(player, item), 0);
 				}
 				else {
 					GameManager.get().broadcastToAllPlayers(game, format("Player %s has picked up his own flag!", playerName));
@@ -83,11 +84,13 @@ public class GameEventManager {
 	}
 
 	public void schedule(Runnable r, int delay) {
-		new Thread(() -> {
-			if (delay != -1) {
-				try { Thread.sleep(delay); } catch (Exception e) {}
-			}
-			r.run();
-		}).start();
+		if (delay != -1) {
+			try { Thread.sleep(delay); } catch (Exception e) {}
+		}
+		new Thread(r).start();
+	}
+
+	public void playerDied(Entity entity) {
+//		GameManager.get().broadcastToAllPlayers(game, format("Player %s has placed his team's flag!", player));
 	}
 }

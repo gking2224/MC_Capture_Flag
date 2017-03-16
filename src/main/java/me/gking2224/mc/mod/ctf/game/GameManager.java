@@ -200,7 +200,7 @@ public class GameManager {
 
 	public void gameRoundWon(Game game, String player, CtfTeam team, TeamColour capturedFlagColour) {
 		broadcastToAllPlayers(
-				game, format("Player %s (team %s) has successfully recovered %s team's flag!", player, team, capturedFlagColour));
+				game, format("Player %s won the round for team %s!", player, team.getColour(), capturedFlagColour));
 		game.incrementScore(team.getColour());
 		broadcastScore(game);
 		resetGame(game);
@@ -226,7 +226,7 @@ public class GameManager {
 		
 	}
 	
-	private void toolUpPlayer(EntityPlayer p) {
+	public void toolUpPlayer(EntityPlayer p) {
 		InventoryUtils.setPlayerInventory(p, GameInventoryFactory.getDefault().getGameItems());
 	}
 

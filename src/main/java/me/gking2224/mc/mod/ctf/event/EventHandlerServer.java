@@ -18,6 +18,7 @@ public class EventHandlerServer extends EventHandlerCommon {
 	
 	@SubscribeEvent
 	public void itemPlaced(RightClickBlock event) {
+		System.out.println("itemPlaced");
 		EntityPlayer player = event.getEntityPlayer();
 		Vec3d hitVec = event.getHitVec();
 		Optional<ItemBase> f = Flag.toFlag(event.getItemStack());

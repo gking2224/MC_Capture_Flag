@@ -10,6 +10,7 @@ import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameCreationException;
 import me.gking2224.mc.mod.ctf.game.GameManager;
+import me.gking2224.mc.mod.ctf.util.InventoryUtils;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -64,7 +65,10 @@ public class NewCtfGame extends CommandBase {
 				gameManager.playerLeaveAllGames(playerName);
 				Game game = gameManager.newGame(name, player);
 				CtfTeam team = game.addPlayer(playerName);
+				//TODO refactor join game code
+				player.setSpawnPoint(game.getBaseLocation(team.getColour()), true);
 				gameManager.sendPlayerToBase(game, player);
+				gameManager.toolUpPlayer(player);
 				sender.sendMessage(toITextComponent(
 						format("Created game %s and joined team %s", game.getName(), team.getColour())));
 			}

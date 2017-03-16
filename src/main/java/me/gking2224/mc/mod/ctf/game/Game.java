@@ -148,9 +148,11 @@ public class Game {
 
 	public void removePlayer(String playerName) {
 		teams.values().forEach(t -> t.removePlayer(playerName));
+		GameWorldManager gameWorldManager = GameWorldManager.get();
 		playerHoldingFlag.entrySet().stream().filter(e -> e.getValue().equals(playerName)).forEach( e->
-				GameWorldManager.get().resetFlag(this, e.getKey()));
-		GameManager.get().broadcastToAllPlayers(this, String.format("Player %s leaving game", playerName));
+				gameWorldManager.resetFlag(this, e.getKey()));
+		GameManager gameManager = GameManager.get();
+		gameManager.broadcastToAllPlayers(this, String.format("Player %s leaving game", playerName));
 		save();
 	}
 	

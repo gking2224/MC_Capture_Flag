@@ -59,8 +59,9 @@ public class JoinCtfGame extends CommandBase {
 			GameManager gameManager = GameManager.get();
 			Optional<Game> g = gameManager.getGame(gameName);
 			Game game = g.orElseThrow(() -> new CommandException("Game %s not found", gameName));
-			
+
 			String playerName = player.getName();
+			gameManager.playerLeaveAllGames(playerName);
 			Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
 			t.ifPresent((team) -> {
 				sender.sendMessage(StringUtils.toITextComponent(
