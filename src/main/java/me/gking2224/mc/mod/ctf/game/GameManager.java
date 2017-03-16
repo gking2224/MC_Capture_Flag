@@ -8,7 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import me.gking2224.mc.mod.ctf.command.BackToBase;
 import me.gking2224.mc.mod.ctf.command.CurrentGame;
@@ -242,6 +244,10 @@ public class GameManager {
 
 	public void log(String msg) {
 		server.sendMessage(toITextComponent(msg));
+	}
+
+	public Set<Game> getAllGamesWithPlayer(String playerName) {
+		return games.values().stream().filter((g) -> g.containsPlayer(playerName)).collect(Collectors.toSet());
 	}
 }
  
