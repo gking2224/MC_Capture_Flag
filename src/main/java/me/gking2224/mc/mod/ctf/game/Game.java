@@ -1,72 +1,63 @@
 package me.gking2224.mc.mod.ctf.game;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 
+import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 
 public class Game {
 
 	private String owner;
 	private String name;
 	private Bounds bounds;
-	private Map<String, CtfTeam> teams = new HashMap<String, CtfTeam>();
-	private Map<String, Integer> score = new HashMap<String, Integer>();
-	private Map<String, BlockPos> baseLocations = new HashMap<String, BlockPos>();
-	private Map<String, BlockPos> flagLocations = new HashMap<String, BlockPos>();
-	private Map<String, String> playerHoldingFlag = new HashMap<String, String>();
+	private Map<TeamColour, CtfTeam> teams = new HashMap<TeamColour, CtfTeam>();
+	private Map<TeamColour, Integer> score = new HashMap<TeamColour, Integer>();
+	private Map<TeamColour, BlockPos> baseLocations = new HashMap<TeamColour, BlockPos>();
+	private Map<TeamColour, BlockPos> flagLocations = new HashMap<TeamColour, BlockPos>();
+	private Map<TeamColour, String> playerHoldingFlag = new HashMap<TeamColour, String>();
 
 	Game(String name, EntityPlayer owner, Bounds bounds) {
 		setName(name);
 		setOwner(owner.getName());
 		setBounds(bounds);
-		teams.put(CtfTeam.RED, new CtfTeam(CtfTeam.RED));
-		teams.put(CtfTeam.BLUE, new CtfTeam(CtfTeam.BLUE));
-		score.put(CtfTeam.RED, 0);
-		score.put(CtfTeam.BLUE, 0);
+		addTeam(TeamColour.RED);
+		addTeam(TeamColour.BLUE);
+		score.put(TeamColour.RED, 0);
+		score.put(TeamColour.BLUE, 0);
 	}
 	
-	public String addPlayer(String playerName) {
-		String nextTeam = nextTeam();
-		teams.get(nextTeam).addPlayer(playerName);
-		save();
-		return nextTeam;
-	}
-	
-	private String nextTeam() {
-		String nextTeam = null;
-		if (teamNumPlayers(CtfTeam.RED) > teamNumPlayers(CtfTeam.BLUE)) {
-			nextTeam = CtfTeam.BLUE;
-		}
-		else if (teamNumPlayers(CtfTeam.BLUE) > teamNumPlayers(CtfTeam.RED)) {
-			nextTeam = CtfTeam.RED;
-		}
-		else nextTeam = chooseRandomTeam();
-		return nextTeam;
+	private void addTeam(TeamColour colour) {;
+		teams.put(colour, new CtfTeam(colour));
 	}
 
-	public void sendPlayerToBase(World world, String playerName) {
-		String team = getTeamForPlayer(playerName);
-		EntityPlayer player = world.getPlayerEntityByName(playerName);
-		BlockPos baseLocation = getBaseLocation(team);
-		System.out.printf("Sending player %s to %s team base %s\n", playerName, team, baseLocation);
-		int x = baseLocation.getX() + 2, z = baseLocation.getZ() + 2;
-		int y = GameWorldManager.get().getWorldHeight(x, z) + 1;
-		player.setPosition(x, y, z);
-		
+	public CtfTeam addPlayer(String playerName) {
+		CtfTeam team = nextTeam();
+		team.addPlayer(playerName);
+		save();
+		return team;
+	}
+	
+	private CtfTeam nextTeam() {
+		Comparator<? super CtfTeam> comp = (a, b) -> a.numPlayers() - b.numPlayers();
+		CtfTeam nextTeam = Collections.min(teams.values(), comp);
+		// need to chose random here?
+		return nextTeam;
 	}
 
 	void save() {
 		GameFileManager.get().writeGameToFile(this);
 	}
 
-	private String chooseRandomTeam() {
-		return (new java.util.Random().nextBoolean()) ? CtfTeam.RED : CtfTeam.BLUE;
+	private TeamColour chooseRandomTeam() {
+		return (new java.util.Random().nextBoolean()) ? TeamColour.RED : TeamColour.BLUE;
 	}
 
 	protected int teamNumPlayers(String team) {
@@ -74,17 +65,16 @@ public class Game {
 	}
 
 	public boolean containsPlayer(String player) {
-		return teams.get(CtfTeam.RED).containsPlayer(player) ||
-				teams.get(CtfTeam.BLUE).containsPlayer(player);
+		
+		return teams.get(TeamColour.RED).containsPlayer(player) ||
+				teams.get(TeamColour.BLUE).containsPlayer(player);
 	}
 
-	public String getTeamForPlayer(String player) {
-		if (teams.get(CtfTeam.RED).containsPlayer(player)) return CtfTeam.RED;
-		else if (teams.get(CtfTeam.BLUE).containsPlayer(player)) return CtfTeam.BLUE;
-		else return null;
+	public Optional<CtfTeam> getTeamForPlayer(String player) {
+		return teams.values().stream().filter(t -> t.getPlayers().contains(player)).findAny();
 	}
 
-	public void setBaseLocation(String team, BlockPos refPos) {
+	public void setBaseLocation(TeamColour team, BlockPos refPos) {
 		baseLocations.put(team, refPos);
 	}
 
@@ -111,32 +101,8 @@ public class Game {
 	public void setBounds(Bounds bounds) {
 		this.bounds = bounds;
 	}
-
-	public Map<String, CtfTeam> getTeams() {
-		return teams;
-	}
-
-	public void setTeams(Map<String, CtfTeam> teams) {
-		this.teams = teams;
-	}
-
-	public Map<String, Integer> getScore() {
-		return score;
-	}
-
-	public void setScore(Map<String, Integer> score) {
-		this.score = score;
-	}
-
-	public Map<String, BlockPos> getBaseLocations() {
-		return baseLocations;
-	}
-
-	public void setBaseLocations(Map<String, BlockPos> baseLocations) {
-		this.baseLocations = baseLocations;
-	}
-
-	public BlockPos getBaseLocation(String team) {
+	
+	public BlockPos getBaseLocation(TeamColour team) {
 		return this.baseLocations.get(team);
 	}
 	
@@ -155,24 +121,24 @@ public class Game {
 		return teams.get(team).getPlayers();
 	}
 
-	public void incrementScore(String team) {
-		getScore().put(team, getScore().get(team).intValue() + 1);
+	public void incrementScore(TeamColour team) {
+		score.put(team, score.get(team).intValue() + 1);
 		save();
 	}
 
-	public void setFlagBlockPosition(String flagColour, BlockPos blockPos) {
-		flagLocations.put(flagColour, blockPos);
-		playerHoldingFlag.remove(flagColour);
+	public void setFlagBlockPosition(TeamColour colour, BlockPos blockPos) {
+		flagLocations.put(colour, blockPos);
+		playerHoldingFlag.remove(colour);
 		save();
 	}
 
-	public BlockPos getFlagPosition(String flagColour) {
-		return flagLocations.get(flagColour);
+	public BlockPos getFlagPosition(TeamColour colour) {
+		return flagLocations.get(colour);
 	}
 
-	public void setPlayerHoldingFlag(String flagColour, String player) {
-		playerHoldingFlag.put(flagColour, player);
-		flagLocations.remove(flagColour);
+	public void setPlayerHoldingFlag(TeamColour colour, String player) {
+		playerHoldingFlag.put(colour, player);
+		flagLocations.remove(colour);
 		save();
 	}
 
@@ -188,4 +154,16 @@ public class Game {
 		save();
 	}
 	
+	public Set<CtfTeam> getTeams() {
+		return new HashSet<CtfTeam>(this.teams.values());
+	}
+	
+	public Set<TeamColour> getTeamColours() {
+		return new HashSet<TeamColour>(this.teams.keySet());
+	}
+
+	public Map<TeamColour, Integer> getScore() {
+		return new HashMap<TeamColour, Integer>(this.score);
+	}
+
 }

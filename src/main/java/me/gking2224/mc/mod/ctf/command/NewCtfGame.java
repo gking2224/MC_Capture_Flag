@@ -1,8 +1,12 @@
 package me.gking2224.mc.mod.ctf.command;
 
+import static java.lang.String.format;
+import static me.gking2224.mc.mod.ctf.util.StringUtils.toITextComponent;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameCreationException;
 import me.gking2224.mc.mod.ctf.game.GameManager;
@@ -13,8 +17,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.World;
 
 public class NewCtfGame extends CommandBase {
 	private final List<String> aliases;
@@ -58,13 +60,13 @@ public class NewCtfGame extends CommandBase {
 			String playerName = player.getName();
 			
 			try {
-				World world = server.getEntityWorld();
-				GameManager.get().playerLeaveAllGames(playerName);
-				Game game = GameManager.get().newGame(name, player);
-				String team = game.addPlayer(playerName);
-				game.sendPlayerToBase(world, playerName);
-				sender.sendMessage(new TextComponentString(
-						String.format("Created game %s and joined team %s", game.getName(), team)));
+				GameManager gameManager = GameManager.get();
+				gameManager.playerLeaveAllGames(playerName);
+				Game game = gameManager.newGame(name, player);
+				CtfTeam team = game.addPlayer(playerName);
+				gameManager.sendPlayerToBase(game, player);
+				sender.sendMessage(toITextComponent(
+						format("Created game %s and joined team %s", game.getName(), team.getColour())));
 			}
 			catch (GameCreationException ex) {
 				throw new CommandException(ex.getMessage());

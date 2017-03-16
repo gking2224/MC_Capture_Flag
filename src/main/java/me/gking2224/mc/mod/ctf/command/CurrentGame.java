@@ -1,11 +1,15 @@
 package me.gking2224.mc.mod.ctf.command;
 
+import static java.lang.String.format;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
+import me.gking2224.mc.mod.ctf.util.StringUtils;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -13,7 +17,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
 
 public class CurrentGame extends CommandBase {
 	private static final String[] NO_ARGS = new String[0];
@@ -57,8 +60,9 @@ public class CurrentGame extends CommandBase {
 			Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
 			g.orElseThrow(() -> new CommandException("You are not currently in a game. Use /new_ctf_game or /join_ctf_game"));
 			g.ifPresent( (game) -> {
-				String team = game.getTeamForPlayer(playerName);
-				sender.sendMessage(new TextComponentString(String.format("You are currently in game %s, in team %s", game.getName(), team)));
+				Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
+				t.ifPresent(team -> sender.sendMessage(StringUtils.toITextComponent(
+						format("You are currently in game %s, in team %s", game.getName(), team.getColour()))));
 			});
 		}
 	}

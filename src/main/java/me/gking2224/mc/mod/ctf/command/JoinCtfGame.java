@@ -1,11 +1,15 @@
 package me.gking2224.mc.mod.ctf.command;
 
+import static java.lang.String.format;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
+import me.gking2224.mc.mod.ctf.util.StringUtils;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -13,7 +17,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
 
 public class JoinCtfGame extends CommandBase {
 	private final List<String> aliases;
@@ -53,22 +56,23 @@ public class JoinCtfGame extends CommandBase {
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
 			
-			Optional<Game> g = GameManager.get().getGame(gameName);
+			GameManager gameManager = GameManager.get();
+			Optional<Game> g = gameManager.getGame(gameName);
 			Game game = g.orElseThrow(() -> new CommandException("Game %s not found", gameName));
 			
 			String playerName = player.getName();
-			String team = game.getTeamForPlayer(playerName);
-			if (team != null) {
-				sender.sendMessage(new TextComponentString(
-						String.format("Already in game %s on team %s", gameName, team)));
-				game.sendPlayerToBase(server.getEntityWorld(), playerName);
-			}
-			else {
-				team = game.addPlayer(playerName);
-				GameManager.get().save();
-				sender.sendMessage(new TextComponentString(
-						String.format("Joined game %s on team %s", gameName, team)));
-				game.sendPlayerToBase(server.getEntityWorld(), playerName);
+			Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
+			t.ifPresent((team) -> {
+				sender.sendMessage(StringUtils.toITextComponent(
+						format("Already in game %s on team %s", gameName, team.getColour())));
+				gameManager.sendPlayerToBase(game, player);
+			});
+			if (!t.isPresent()) {
+				CtfTeam team = game.addPlayer(playerName);
+				gameManager.save();
+				sender.sendMessage(StringUtils.toITextComponent(
+						format("Joined game %s on team %s", gameName, team.getColour())));
+				gameManager.sendPlayerToBase(game, player);
 			}
 		}
 	}

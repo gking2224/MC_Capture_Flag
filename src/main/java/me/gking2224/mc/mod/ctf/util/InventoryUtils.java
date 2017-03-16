@@ -47,4 +47,14 @@ public class InventoryUtils {
 		//CtfNetworkHandler.INSTANCE.sendTo(new MoveItemToHand(fromInv), (EntityPlayerMP)player);
 	}
 
+	public static void setPlayerInventory(EntityPlayer p, Set<ItemStack> gameItems) {
+		clearPlayerInventory(p);
+		gameItems.forEach((s) -> p.inventory.addItemStackToInventory(s));
+	}
+
+	public static void clearPlayerInventory(EntityPlayer p) {
+		for (int i = 0; i < p.inventory.getSizeInventory(); i++) {
+			p.inventory.removeStackFromSlot(i);
+		}
+	}
 }

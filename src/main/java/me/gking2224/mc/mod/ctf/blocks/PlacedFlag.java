@@ -2,6 +2,7 @@ package me.gking2224.mc.mod.ctf.blocks;
 
 import java.util.Random;
 
+import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.item.ModItems;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyEnum;
@@ -52,22 +53,22 @@ public class PlacedFlag extends BlockBase {
 	
 	public static enum EnumFlagColour implements IStringSerializable{
 		
-		RED("red", 0),
-		BLUE("blue", 1);
+		RED(TeamColour.RED, 0),
+		BLUE(TeamColour.BLUE, 1);
 		
 		static EnumFlagColour[] BY_META = {RED, BLUE};
 		
-		private String colour;
+		private TeamColour colour;
 		private int meta;
 		
-		private EnumFlagColour(String colour, int meta) {
+		private EnumFlagColour(TeamColour colour, int meta) {
 			this.meta = meta;
 			this.colour = colour;
 		}
 
 		@Override
 		public String getName() {
-			return this.colour;
+			return this.colour.getColour();
 		}
 		
 		public int getMeta() {

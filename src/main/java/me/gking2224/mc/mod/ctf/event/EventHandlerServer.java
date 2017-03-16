@@ -33,7 +33,7 @@ public class EventHandlerServer extends EventHandlerCommon {
 	
 	@SubscribeEvent
 	public void resetGame(GameResetEvent event) {
-
-		GameWorldManager.get().resetFlags(event.getGame());
+		
+		GameEventManager.get().schedule(() -> GameWorldManager.get().resetFlags(event.getGame()), 1000);
 	}
 }

@@ -61,7 +61,7 @@ public class BackToBase implements ICommand {
 			g.orElseThrow(() -> new CommandException("No active game"));
 			
 			g.ifPresent((game) -> {
-				game.sendPlayerToBase(server.getEntityWorld(), playerName);
+				GameManager.get().sendPlayerToBase(game, player);
 				GameManager.get().broadcastToAllPlayers(game, format("Player %s teleported back to base\n", playerName));
 			});
 		}

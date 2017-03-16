@@ -15,12 +15,15 @@ import me.gking2224.mc.mod.ctf.command.CurrentGame;
 import me.gking2224.mc.mod.ctf.command.JoinCtfGame;
 import me.gking2224.mc.mod.ctf.command.NewCtfGame;
 import me.gking2224.mc.mod.ctf.command.ToolUp;
+import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import me.gking2224.mc.mod.ctf.game.event.GameResetEvent;
 import me.gking2224.mc.mod.ctf.game.event.NewGameEvent;
+import me.gking2224.mc.mod.ctf.util.InventoryUtils;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -193,17 +196,41 @@ public class GameManager {
 		return rv;
 	}
 
-	public void gameRoundWon(Game game, String player, String team, String flagColour) {
+	public void gameRoundWon(Game game, String player, CtfTeam team, TeamColour capturedFlagColour) {
 		broadcastToAllPlayers(
-				game, format("Player %s (team %s) has successfully recovered %s team's flag!", player, team, flagColour));
-		game.incrementScore(team);
+				game, format("Player %s (team %s) has successfully recovered %s team's flag!", player, team, capturedFlagColour));
+		game.incrementScore(team.getColour());
 		broadcastScore(game);
+		resetGame(game);
+	}
+
+	private void resetGame(Game game) {
 		server.addScheduledTask(() -> MinecraftForge.TERRAIN_GEN_BUS.post(new GameResetEvent(game)));
+		game.getAllPlayers().forEach( p -> {
+			EntityPlayer ep = world.getPlayerEntityByName(p);
+			toolUpPlayer(ep);
+			sendPlayerToBase(game, ep);
+		});
+	}
+
+	public void sendPlayerToBase(Game game, EntityPlayer player) {
+		Optional<CtfTeam> t = game.getTeamForPlayer(player.getName());
+		t.ifPresent(team -> {
+			BlockPos baseLocation = game.getBaseLocation(team.getColour());
+			int x = baseLocation.getX() + 2, z = baseLocation.getZ() + 2;
+			int y = GameWorldManager.get().getWorldHeight(x, z) + 1;
+			player.setPosition(x, y, z);
+		});
+		
+	}
+	
+	private void toolUpPlayer(EntityPlayer p) {
+		InventoryUtils.setPlayerInventory(p, GameInventoryFactory.getDefault().getGameItems());
 	}
 
 	private void broadcastScore(Game game) {
-		int redScore = game.getScore().get(CtfTeam.RED);
-		int blueScore = game.getScore().get(CtfTeam.BLUE);
+		int redScore = game.getScore().get(TeamColour.RED);
+		int blueScore = game.getScore().get(TeamColour.BLUE);
 		String message = String.format("Score: RED (%d) (%d) BLUE", redScore, blueScore);
 		broadcastToAllPlayers(game, message);
 	}
@@ -216,6 +243,5 @@ public class GameManager {
 	public void log(String msg) {
 		server.sendMessage(toITextComponent(msg));
 	}
-
 }
  

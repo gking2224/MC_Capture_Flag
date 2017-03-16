@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Random;
 
 import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
+import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
+import me.gking2224.mc.mod.ctf.game.base.BaseBuilder;
+import me.gking2224.mc.mod.ctf.game.base.BaseBuilderFactory;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
 import me.gking2224.mc.mod.ctf.item.ModItems;
 import me.gking2224.mc.mod.ctf.util.InventoryUtils;
@@ -17,13 +20,8 @@ import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.inventory.InventoryHelper;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
@@ -31,12 +29,6 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public class GameWorldManager {
-	
-	private static final int WOOL_BLUE_ID = 11;
-	private static final int WOOL_RED_ID = 14;
-	
-	private static final IBlockState RED_BLOCK = Block.getStateById(Block.getIdFromBlock(Blocks.WOOL) + (WOOL_RED_ID << 12));
-	private static final IBlockState BLUE_BLOCK = Block.getStateById(Block.getIdFromBlock(Blocks.WOOL) + (WOOL_BLUE_ID << 12));
 	private static final IBlockState RED_FLAG = PlacedFlag.withColour(PlacedFlag.EnumFlagColour.RED);
 	private static final IBlockState BLUE_FLAG = PlacedFlag.withColour(PlacedFlag.EnumFlagColour.BLUE);
 	
@@ -84,26 +76,24 @@ public class GameWorldManager {
 	public void createGameBases(Game game) {
 		
 		boolean rndBool = world.rand.nextBoolean();
-		createBase(game, CtfTeam.RED, RED_BLOCK, rndBool);
-		createBase(game, CtfTeam.BLUE, BLUE_BLOCK, !rndBool);
+
+		game.getTeamColours().forEach(colour -> createBase(game, colour, colour == TeamColour.RED && rndBool));
 		
 		resetFlags(game);
 	}
 	
 	public void resetFlags(Game game) {
-		resetFlag(game, CtfTeam.RED);
-		resetFlag(game, CtfTeam.BLUE);
+		game.getTeamColours().forEach(colour -> resetFlag(game, colour));
 	}
 
-	public void resetFlag(Game game, String colour) {
+	public void resetFlag(Game game, TeamColour colour) {
 		
 		deletePlacedFlag(game, colour);
 		removeFlagsFromPlayerInventory(game);
-		placeFlag(game.getBaseLocation(colour), CtfTeam.BLUE.equals(colour) ? BLUE_FLAG : RED_FLAG);
+		placeFlag(game.getBaseLocation(colour), TeamColour.BLUE.equals(colour) ? BLUE_FLAG : RED_FLAG);
 	}
 
 	private void removeFlagsFromPlayerInventory(Game game) {
-//		GameManager.get().broadcastToAllPlayers(game, "You're going to lose your held flags!");
 		game.getAllPlayers().forEach((player) -> removeFlagsFromPlayerInventory(player, ModItems.BLUE_FLAG));
 		game.getAllPlayers().forEach((player) -> removeFlagsFromPlayerInventory(player, ModItems.RED_FLAG));
 	}
@@ -113,8 +103,8 @@ public class GameWorldManager {
 		InventoryUtils.removeAllSimilarItemsFromPlayerInventory(player, flag);
 	}
 
-	private void deletePlacedFlag(Game game, String colour) {
-		BlockPos pos = game.getFlagPosition(colour);
+	private void deletePlacedFlag(Game game, TeamColour teamColour) {
+		BlockPos pos = game.getFlagPosition(teamColour);
 		if (pos != null) {
 			world.destroyBlock(pos, false);
 		}
@@ -124,16 +114,17 @@ public class GameWorldManager {
 		world.setBlockState(offsetBlockPos(refPos, 0, 1, 0), flag);
 	}
 
-	private void createBase(Game game, String team, IBlockState state, boolean invertZ) {
+	private void createBase(Game game, TeamColour team, boolean invertZ) {
 		BlockPos refPos = getBasePos(game.getBounds(), invertZ);
 		ensureBlockGenerated(refPos);
-		createBaseStructure(state, refPos);
+		createBaseStructure(refPos, team);
 		System.out.printf("Team %s base location at %s\n", team, blockPosStr(refPos));
 		game.setBaseLocation(team, refPos);
 	}
 
-	private void createBaseStructure(IBlockState state, BlockPos refPos) {
-		world.setBlockState(refPos, state);
+	private Bounds createBaseStructure(BlockPos refPos, TeamColour colour) {
+		BaseBuilder builder = BaseBuilderFactory.defaultBaseBuilder();
+		return builder.buildBase(world, refPos, colour);
 	}
 
 	private BlockPos adjustBasePosition(BlockPos refPos) {
@@ -255,8 +246,8 @@ public class GameWorldManager {
 		}
 	}
 
-	public boolean isInHomeBase(Game game, String team, BlockPos blockPos) {
-		BlockPos pos = game.getBaseLocation(team);
+	public boolean isInHomeBase(Game game, TeamColour colour, BlockPos blockPos) {
+		BlockPos pos = game.getBaseLocation(colour);
 		BlockPos delta = WorldUtils.getDelta(pos, blockPos);
 		return (delta.getX() <= 3 && delta.getY() <= 3 && delta.getZ() <= 3);
 	}
