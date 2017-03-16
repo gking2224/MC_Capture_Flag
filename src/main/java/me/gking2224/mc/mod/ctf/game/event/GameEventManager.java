@@ -9,6 +9,9 @@ import me.gking2224.mc.mod.ctf.game.GameManager;
 import me.gking2224.mc.mod.ctf.game.GameWorldManager;
 import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
+import me.gking2224.mc.mod.ctf.util.InventoryUtils;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -25,23 +28,25 @@ public class GameEventManager {
 	public final static GameEventManager get() { return instance; }
 	
 	@SuppressWarnings("unused") private MinecraftServer server;
-	@SuppressWarnings("unused") private World world;
+	private World world;
 	
 	private GameEventManager(MinecraftServer server) {
 		this.server = server;
 		this.world = server.getEntityWorld();
 	}
 
-	public void playerPickedUpFlag(String player, ItemBase item) {
-		Optional<Game> g = GameManager.get().getPlayerActiveGame(player);
+	public void playerPickedUpFlag(String playerName, ItemBase item) {
+		Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
+		EntityPlayer player = world.getPlayerEntityByName(playerName);
 		g.ifPresent((game) -> {
-			String team = game.getTeamForPlayer(player);
-			game.setPlayerHoldingFlag(Flag.getFlagColour(item), player);
+			String team = game.getTeamForPlayer(playerName);
+			game.setPlayerHoldingFlag(Flag.getFlagColour(item), playerName);
 			if (!Flag.isOwnTeamFlag(item, team)) {
-				broadcastTeamCapturedFlag(game, player, Flag.getFlagColour(item));
+				broadcastTeamCapturedFlag(game, playerName, Flag.getFlagColour(item));
+				server.addScheduledTask(() -> InventoryUtils.moveItemFromInventoryToPlayerHand(player, item));
 			}
 			else {
-				GameManager.get().broadcastToAllPlayers(game, format("Player %s has picked up his own flag!", player));
+				GameManager.get().broadcastToAllPlayers(game, format("Player %s has picked up his own flag!", playerName));
 			}
 		});
 	}
@@ -56,26 +61,15 @@ public class GameEventManager {
 			game.setFlagBlockPosition(Flag.getFlagColour(flag), blockPos);
 			String team = game.getTeamForPlayer(player);
 			String flagColour = Flag.getFlagColour(flag);
-			if (!Flag.isOwnTeamFlag(flag, team) && GameWorldManager.get().isInHomeBase(game, team, blockPos)) {
-				GameManager.get().flagCaptureComplete(game, player, team, flagColour);
+			if (!Flag.isOwnTeamFlag(flag, team)) {
+				if (GameWorldManager.get().isInHomeBase(game, team, blockPos)) {
+					GameManager.get().gameRoundWon(game, player, team, flagColour);
+//					GameManager.get().broadcastToPlayer(game, format("Player %s has placed his team's flag!", player));
+				}
 			}
 			else {
 				GameManager.get().broadcastToAllPlayers(game, format("Player %s has placed his team's flag!", player));
 			}
 		});
-	}
-
-	public void schedule(Runnable r, int timeout, String description) {
-
-		Runnable target = () -> {
-			try {
-				Thread.sleep(timeout);
-				r.run();
-			} catch (InterruptedException e) {
-				GameManager.get().log(format("Thread.sleep interrupted before scheduled task (%s) executed, running now anyway...", description));
-				r.run();
-			};
-		};
-		new Thread(target).start();
 	}
 }

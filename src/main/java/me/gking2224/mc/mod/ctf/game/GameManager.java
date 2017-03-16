@@ -193,12 +193,12 @@ public class GameManager {
 		return rv;
 	}
 
-	public void flagCaptureComplete(Game game, String player, String team, String flagColour) {
+	public void gameRoundWon(Game game, String player, String team, String flagColour) {
 		broadcastToAllPlayers(
 				game, format("Player %s (team %s) has successfully recovered %s team's flag!", player, team, flagColour));
 		game.incrementScore(team);
 		broadcastScore(game);
-		GameEventManager.get().schedule(() -> MinecraftForge.TERRAIN_GEN_BUS.post(new GameResetEvent(game)), 1000, "Reset game");
+		server.addScheduledTask(() -> MinecraftForge.TERRAIN_GEN_BUS.post(new GameResetEvent(game)));
 	}
 
 	private void broadcastScore(Game game) {
@@ -206,7 +206,6 @@ public class GameManager {
 		int blueScore = game.getScore().get(CtfTeam.BLUE);
 		String message = String.format("Score: RED (%d) (%d) BLUE", redScore, blueScore);
 		broadcastToAllPlayers(game, message);
-		
 	}
 
 	public void playerLeaveAllGames(String playerName) {

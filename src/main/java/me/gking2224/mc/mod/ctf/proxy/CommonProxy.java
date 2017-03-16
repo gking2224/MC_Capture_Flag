@@ -2,6 +2,7 @@ package me.gking2224.mc.mod.ctf.proxy;
 
 import me.gking2224.mc.mod.ctf.event.EventHandlerCommon;
 import me.gking2224.mc.mod.ctf.game.GameManager;
+import me.gking2224.mc.mod.ctf.net.CtfNetworkHandler;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -26,5 +27,6 @@ public class CommonProxy implements SidedProxy {
 	public void serverLoad(FMLServerStartingEvent event) {
 		GameManager.initialise(event.getServer());
 		GameManager.get().getGameCommands().forEach((cmd) -> event.registerServerCommand(cmd));
+		CtfNetworkHandler.registerMessages();
 	}
 }

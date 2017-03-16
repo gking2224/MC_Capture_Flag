@@ -15,14 +15,13 @@ public class ModCaptureTheFlag {
 	public static final String modId = "ctf";
 	public static final String name = "Capture The Flag";
 	public static final String version = "1.0.0";
-	
 
 	@Mod.Instance(modId)
 	public static ModCaptureTheFlag instance;
 
 	@SidedProxy(serverSide = "me.gking2224.mc.mod.ctf.proxy.ServerProxy", clientSide = "me.gking2224.mc.mod.ctf.proxy.ClientProxy")
 	public static me.gking2224.mc.mod.ctf.proxy.SidedProxy proxy;
-
+	
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		System.out.println("pre-init");
@@ -44,7 +43,6 @@ public class ModCaptureTheFlag {
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
 		System.out.println("post-init");
-
 	}
 
 }
