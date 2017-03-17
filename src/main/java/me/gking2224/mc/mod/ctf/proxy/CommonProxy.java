@@ -21,12 +21,12 @@ public class CommonProxy implements SidedProxy {
 	@Override
 	public void init(FMLInitializationEvent event) {
 		MinecraftForge.EVENT_BUS.register(handler);
+		CtfNetworkHandler.registerMessages();
 	}
 
 	@Override
 	public void serverLoad(FMLServerStartingEvent event) {
 		GameManager.initialise(event.getServer());
 		GameManager.get().getGameCommands().forEach((cmd) -> event.registerServerCommand(cmd));
-		CtfNetworkHandler.registerMessages();
 	}
 }

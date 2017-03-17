@@ -199,8 +199,10 @@ public class GameManager {
 		game.getAllPlayers().forEach( (player) -> broadCastMessageToPlayer(player, toIText(msg)));
 	}
 
-	public void broadCastMessageToPlayer(String player, ITextComponent msg) {
-		world.getPlayerEntityByName(player).sendMessage(msg);
+	public void broadCastMessageToPlayer(String playerName, ITextComponent msg) {
+		System.out.printf("Sending message %s to player %s\n", msg, playerName);
+		EntityPlayer player = world.getPlayerEntityByName(playerName);
+		if (player != null) player.sendMessage(msg);
 	}
 
 	public void broadcastToTeamPlayers(Game game, TeamColour colour, String msg) {
@@ -232,8 +234,10 @@ public class GameManager {
 		server.addScheduledTask(() -> MinecraftForge.TERRAIN_GEN_BUS.post(new GameResetEvent(game)));
 		game.getAllPlayers().forEach( p -> {
 			EntityPlayer ep = world.getPlayerEntityByName(p);
-			toolUpPlayer(ep);
-			sendPlayerToBase(game, ep);
+			if (ep != null) {
+				toolUpPlayer(ep);
+				sendPlayerToBase(game, ep);
+			}
 		});
 	}
 

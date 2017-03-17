@@ -1,5 +1,6 @@
 package me.gking2224.mc.mod.ctf.item;
 
+import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour.fromString;
 
@@ -45,6 +46,18 @@ public class Flag {
 
 	public static boolean isOwnTeamFlag(ItemBase flag, CtfTeam team) {
 		return isOwnTeamFlag(flag, team.getColour());
+	}
+
+	public static ItemBase getForColour(TeamColour colour) {
+		if (colour == TeamColour.RED) {
+			return ModItems.RED_FLAG;
+		}
+		else if (colour == TeamColour.BLUE) {
+			return ModItems.BLUE_FLAG;
+		}
+		else {
+			throw new IllegalArgumentException(format("Unknown colour: %s", colour));
+		}
 	}
 
 }

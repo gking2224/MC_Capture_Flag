@@ -2,7 +2,7 @@ package me.gking2224.mc.mod.ctf.net;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -40,14 +40,16 @@ public class MoveItemToHand implements IMessage {
 		return this.itemStack;
 	}
 	
-	public static class MoveItemToHandMessageHandler implements IMessageHandler<MoveItemToHand, MoveItemToHand> {
-
+	public static class MoveItemToHandMessageHandler implements IMessageHandler<MoveItemToHand, IMessage> {
 		@Override
-		public MoveItemToHand onMessage(MoveItemToHand msg, MessageContext ctx) {
-			// This is the player the packet was sent to the server from
-			EntityPlayerMP player = ctx.getServerHandler().playerEntity;
-			Minecraft.getMinecraft().addScheduledTask(() -> player.inventory.setPickedItemStack(msg.getItemStack()));
-			
+		public IMessage onMessage(MoveItemToHand msg, MessageContext ctx) {
+			EntityPlayer player = Minecraft.getMinecraft().player;
+			new Thread(() -> {
+				try { Thread.sleep(500); } catch (Exception e) {}
+				int slot = player.inventory.getSlotFor(msg.getItemStack());
+				System.out.printf("%s in slot %d\n", msg.getItemStack().getDisplayName(), slot);
+				//if (slot != -1) player.inventory.pickItem(slot);
+			}).start();
 			return null;
 		}
 	}

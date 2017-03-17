@@ -3,6 +3,7 @@ package me.gking2224.mc.mod.ctf.util;
 import java.util.Collections;
 import java.util.Set;
 
+import me.gking2224.mc.mod.ctf.item.ItemBase;
 import me.gking2224.mc.mod.ctf.net.CtfNetworkHandler;
 import me.gking2224.mc.mod.ctf.net.MoveItemToHand;
 import net.minecraft.entity.player.EntityPlayer;
@@ -42,9 +43,11 @@ public class InventoryUtils {
 //		ItemStack fromInv = removeAllSimilarItemsFromPlayerInventory(player, item);
 		
 		ItemStack fromHand = player.getHeldItemMainhand();
+		System.out.printf("%s has %s in his hand\n", player.getName(), fromHand.getDisplayName());
 		addItemsToPlayerInventory(player, Collections.singleton(fromHand));
 		
-		//CtfNetworkHandler.INSTANCE.sendTo(new MoveItemToHand(fromInv), (EntityPlayerMP)player);
+		
+		CtfNetworkHandler.INSTANCE.sendTo(new MoveItemToHand(new ItemStack(item)), (EntityPlayerMP)player);
 	}
 
 	public static void setPlayerInventory(EntityPlayer p, Set<ItemStack> gameItems) {

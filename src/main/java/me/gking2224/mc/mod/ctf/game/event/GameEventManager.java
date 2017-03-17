@@ -43,13 +43,15 @@ public class GameEventManager {
 		g.ifPresent((game) -> {
 			Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
 			t.ifPresent((team) -> {
-				game.setPlayerHoldingFlag(Flag.getFlagColour(item), playerName);
-				if (Flag.getFlagColour(item) != team.getColour()) {
-					broadcastTeamCapturedFlag(game, playerName, Flag.getFlagColour(item));
+				TeamColour flagColour = Flag.getFlagColour(item);
+				game.setPlayerHoldingFlag(flagColour, playerName);
+				if (flagColour != team.getColour()) {
+					broadcastTeamCapturedFlag(game, playerName, flagColour);
 					schedule(() -> moveItemFromInventoryToPlayerHand(player, item), 0);
 				}
 				else {
-					GameManager.get().broadcastToAllPlayers(game, format("Player %s has picked up his own flag!", playerName));
+					GameManager.get().broadcastToAllPlayers(game, format("Player %s tried to pick up his own flag!", playerName));
+					GameWorldManager.get().resetFlag(game, flagColour);
 				}
 			});
 		});
@@ -70,7 +72,6 @@ public class GameEventManager {
 				if (!Flag.isOwnTeamFlag(flag, team)) {
 					if (GameWorldManager.get().isInHomeBase(game, team.getColour(), blockPos)) {
 						GameManager.get().gameRoundWon(game, player, team, flagColour);
-//						GameManager.get().broadcastToPlayer(game, format("Player %s has placed his team's flag!", player));
 					}
 				}
 				else {

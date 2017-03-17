@@ -16,6 +16,7 @@ import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.base.BaseBuilder;
 import me.gking2224.mc.mod.ctf.game.base.BaseBuilderFactory;
+import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
 import me.gking2224.mc.mod.ctf.item.ModItems;
 import me.gking2224.mc.mod.ctf.util.InventoryUtils;
@@ -94,20 +95,36 @@ public class GameWorldManager {
 	public void resetFlag(Game game, TeamColour colour) {
 		
 		deletePlacedFlag(game, colour);
-		removeFlagsFromPlayerInventory(game);
+		removeFlagFromAllPlayerInventories(game, colour);
 		placeFlag(game, colour, TeamColour.BLUE.equals(colour) ? BLUE_FLAG : RED_FLAG);
 	}
 
-	private void removeFlagsFromPlayerInventory(Game game) {
-		ModItems.ALL_FLAGS.forEach(flag -> game.getAllPlayers().forEach((player) -> removeFlagsFromPlayerInventory(player, flag)));
+	public void removeFlagsFromPlayerInventories(Game game) {
+		ModItems.ALL_FLAGS.forEach(flag -> removeFlagFromAllPlayerInventories(game, flag));
 	}
 
-	private void removeFlagsFromPlayerInventory(String playerName, ItemBase flag) {
-		EntityPlayer player = world.getPlayerEntityByName(playerName);
+	public void removeFlagFromAllPlayerInventories(Game game, TeamColour colour) {
+		removeFlagFromAllPlayerInventories(game, Flag.getForColour(colour));
+	}
+
+	public void removeFlagFromAllPlayerInventories(Game game, ItemBase flag) {
+		game.getAllPlayers().forEach(p -> removeFlagFromPlayerInventory(p, flag));
+	}
+
+	public void removeFlagFromPlayerInventory(EntityPlayer player, TeamColour colour) {
+		ItemBase flag = Flag.getForColour(colour);
+		removeFlagFromPlayerInventory(player, flag);
+	}
+	
+	public void removeFlagFromPlayerInventory(String playerName, ItemBase flag) {
+		removeFlagFromPlayerInventory(world.getPlayerEntityByName(playerName), flag);
+	}
+
+	public void removeFlagFromPlayerInventory(EntityPlayer player, ItemBase flag) {
 		InventoryUtils.removeAllSimilarItemsFromPlayerInventory(player, flag);
 	}
 
-	private void deletePlacedFlag(Game game, TeamColour teamColour) {
+	public void deletePlacedFlag(Game game, TeamColour teamColour) {
 		BlockPos pos = game.getFlagPosition(teamColour);
 		if (pos != null) {
 			LOGGER.log(Level.INFO, format("Delete %s flag from %s", teamColour, pos));
@@ -128,6 +145,7 @@ public class GameWorldManager {
 		world.setBlockState(flagPos, flag);
 		game.setFlagBlockPosition(colour, flagPos);
 	}
+
 
 	private void createBase(Game game, TeamColour team, boolean invertZ) {
 		BlockPos refPos = getBasePos(game.getBounds(), invertZ);

@@ -21,8 +21,8 @@ public class GameInfo extends CommandBase {
 
 	public GameInfo() {
 
-        aliases = new ArrayList<String>(); 
-        aliases.add("gi"); 
+		aliases = new ArrayList<String>();
+		aliases.add("gi");
 	}
 
 	@Override
@@ -47,13 +47,21 @@ public class GameInfo extends CommandBase {
 	) throws CommandException {
 		
 		Entity e = sender.getCommandSenderEntity();
-		String gameName = args[0];
+		String gameArg = (args.length != 0) ? args[0] : null; 
 		
 		if (e == null) return;
 		if (e instanceof EntityPlayer) {
+			EntityPlayer player = (EntityPlayer)e;
 			GameManager gameManager = GameManager.get();
-			Optional<Game> g = gameManager.getGame(gameName);
-			Game game = g.orElseThrow(() -> new CommandException("Game %s not found", gameName));
+			Game game = null;
+			if (gameArg != null) {
+				Optional<Game> g = gameManager.getGame(gameArg);
+				game = g.orElseThrow(() -> new CommandException("Game %s not found", gameArg));
+			}
+			else {
+				Optional<Game> g = gameManager.getPlayerActiveGame(player.getName());
+				game = g.orElseThrow(() -> new CommandException("No active game and no game specified"));
+			}
 			sender.sendMessage(toIText(game.toString()));
 		}
 	}
@@ -64,8 +72,8 @@ public class GameInfo extends CommandBase {
 	}
 
 	@Override
-	public List<String> getTabCompletions(MinecraftServer server,
-			ICommandSender sender, String[] args, BlockPos targetPos) {
+	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
+			BlockPos targetPos) {
 		return null;
 	}
 
@@ -73,7 +81,6 @@ public class GameInfo extends CommandBase {
 	public boolean isUsernameIndex(String[] args, int index) {
 		return false;
 	}
-
 
 	@Override
 	protected boolean[] getMandatoryArgs() {
