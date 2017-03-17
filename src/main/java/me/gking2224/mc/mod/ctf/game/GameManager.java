@@ -1,23 +1,27 @@
 package me.gking2224.mc.mod.ctf.game;
 
 import static java.lang.String.format;
-import static me.gking2224.mc.mod.ctf.util.StringUtils.toITextComponent;
+import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import me.gking2224.mc.mod.ctf.command.BackToBase;
 import me.gking2224.mc.mod.ctf.command.CurrentGame;
+import me.gking2224.mc.mod.ctf.command.GameInfo;
+import me.gking2224.mc.mod.ctf.command.GetScore;
 import me.gking2224.mc.mod.ctf.command.JoinCtfGame;
 import me.gking2224.mc.mod.ctf.command.NewCtfGame;
 import me.gking2224.mc.mod.ctf.command.ToolUp;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
+import me.gking2224.mc.mod.ctf.game.data.GameList;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import me.gking2224.mc.mod.ctf.game.event.GameResetEvent;
 import me.gking2224.mc.mod.ctf.game.event.NewGameEvent;
@@ -32,35 +36,44 @@ import net.minecraftforge.common.MinecraftForge;
 
 public class GameManager {
 	
+	private static Logger LOGGER = Logger.getLogger(GameManager.class.getName()); 
+	
 	private static GameManager instance = null;
 	private transient MinecraftServer server;
 	private transient World world;
 	
-	private GameManager() {
-		this.games = new HashMap<String, Game>();
+	private GameList gameList;
+
+	private Map<String, Game> games = null;
+	
+	private GameManager(MinecraftServer server) {
+		this.server = server;
+		this.world = server.getEntityWorld();
+		gameList = GameList.get(this.world);
+		games = new HashMap<String, Game>();
 	}
 
 	public static void initialise(MinecraftServer server) {
-		GameFileManager.init(server);
+		if (instance != null) throw new IllegalStateException();
+//		GameFileManager.init(server);
 		GameWorldManager.init(server);
 		GameEventManager.init(server);
-		if (instance != null) throw new IllegalStateException();
-		instance = GameFileManager.get().readGameManagerFromFile().setServer(server);
+//		instance = GameFileManager.get().readGameManagerFromFile().setServer(server);
+		instance = new GameManager(server);
+		
 	}
 	
-	private GameManager setServer(MinecraftServer server) {
-		this.server = server;
-		this.world = server.getEntityWorld();
-		return this;
-	}
-
-	private transient Map<String, Game> games = null;
+//	private GameManager setServer(MinecraftServer server) {
+//		this.server = server;
+//		this.world = server.getEntityWorld();
+//		return this;
+//	}
 	
-	private List<String> gameNames = new ArrayList<String>();
+//	private List<String> gameNames = new ArrayList<String>();
 
-	static GameManager defaultGameManager(MinecraftServer server) {
-		return new GameManager().setServer(server);
-	}
+//	static GameManager defaultGameManager(MinecraftServer server) {
+//		return new GameManager().setServer(server);
+//	}
 
 	public static GameManager get() {
 		return instance;
@@ -72,7 +85,7 @@ public class GameManager {
 		checkOwnerLimit(owner);
 		String name = checkGameNameUnique(n != null ? n : generateGameName());
 		
-		Game game = new Game(name, owner, getNewGameBounds());
+		Game game = new Game(world, name, owner, getNewGameBounds());
 
 		MinecraftForge.TERRAIN_GEN_BUS.post(new NewGameEvent(game));
 		game.save();
@@ -138,12 +151,12 @@ public class GameManager {
 	private String checkGameNameUnique(final String name) throws GameCreationException {
 		String rv = name;
 		int idx = 0;
-		while (gameNames.contains(rv)) rv = name +"-"+(++idx);
+		while (gameList.contains(rv)) rv = name +"-"+(++idx);
 		return rv;
 	}
 
 	private String generateGameName() {
-		return "Game"+(gameNames.size()+1);
+		return "Game"+(gameList.numGames()+1);
 	}
 
 	private void checkOwnerLimit(EntityPlayer owner) {
@@ -155,21 +168,27 @@ public class GameManager {
 	}
 
 	private void addGame(Game game) {
+		gameList.add(game.getName());
 		this.games.put(game.getName(), game);
-		gameNames.add(game.getName());
+		save();
 	}
 
 	public void save() {
-		GameFileManager.get().writeGameManagerToFile(this);
+		gameList.setDirty(true);
 	}
 
 	public Optional<Game> getGame(String name) {
-		if (gameNames.contains(name)) {
-			if (!games.containsKey(name)) {
-				games.put(name, GameFileManager.get().readGameFromFile(name));
-			}
+		Game game = null;
+		if (games.containsKey(name)) {
+			game = games.get(name);
+			System.out.printf("Got cached game: %s\n", game);
 		}
-		return Optional.ofNullable(games.get(name));
+		else if (gameList.contains(name)) {
+			game = Game.load(world, name).orElse(null);
+			games.put(name, game);
+			System.out.printf("Loaded game: %s\n", game);
+		}
+		return Optional.ofNullable(game);
 	}
 
 	public Optional<Game> getPlayerActiveGame(String name) {
@@ -177,15 +196,15 @@ public class GameManager {
 	}
 
 	public void broadcastToAllPlayers(Game game, String msg) {
-		game.getAllPlayers().forEach( (player) -> broadCastMessageToPlayer(player, toITextComponent(msg)));
+		game.getAllPlayers().forEach( (player) -> broadCastMessageToPlayer(player, toIText(msg)));
 	}
 
 	public void broadCastMessageToPlayer(String player, ITextComponent msg) {
 		world.getPlayerEntityByName(player).sendMessage(msg);
 	}
 
-	public void broadcastToTeamPlayers(Game game, String team, String msg) {
-		game.getTeamPlayers(team).forEach( (player) -> broadCastMessageToPlayer(player, toITextComponent(msg)));
+	public void broadcastToTeamPlayers(Game game, TeamColour colour, String msg) {
+		game.getTeamPlayers( colour).forEach( (player) -> broadCastMessageToPlayer(player, toIText(msg)));
 	}
 
 	public List<ICommand> getGameCommands() {
@@ -194,14 +213,17 @@ public class GameManager {
 		rv.add(new NewCtfGame());
 		rv.add(new JoinCtfGame());
 		rv.add(new CurrentGame());
+		rv.add(new me.gking2224.mc.mod.ctf.command.GameList());
+		rv.add(new GameInfo());
 		rv.add(new ToolUp());
+		rv.add(new GetScore());
 		return rv;
 	}
 
 	public void gameRoundWon(Game game, String player, CtfTeam team, TeamColour capturedFlagColour) {
 		broadcastToAllPlayers(
 				game, format("Player %s won the round for team %s!", player, team.getColour(), capturedFlagColour));
-		game.incrementScore(team.getColour());
+		game.incrementScore(team.getColour()); // to new method
 		broadcastScore(game);
 		resetGame(game);
 	}
@@ -231,10 +253,7 @@ public class GameManager {
 	}
 
 	private void broadcastScore(Game game) {
-		int redScore = game.getScore().get(TeamColour.RED);
-		int blueScore = game.getScore().get(TeamColour.BLUE);
-		String message = String.format("Score: RED (%d) (%d) BLUE", redScore, blueScore);
-		broadcastToAllPlayers(game, message);
+		broadcastToAllPlayers(game, game.getFormattedScore());
 	}
 
 	public void playerLeaveAllGames(String playerName) {
@@ -243,11 +262,15 @@ public class GameManager {
 	}
 
 	public void log(String msg) {
-		server.sendMessage(toITextComponent(msg));
+		server.sendMessage(toIText(msg));
 	}
 
 	public Set<Game> getAllGamesWithPlayer(String playerName) {
 		return games.values().stream().filter((g) -> g.containsPlayer(playerName)).collect(Collectors.toSet());
+	}
+
+	public Set<String> getAllGames() {
+		return new TreeSet<String>(gameList.getGames());
 	}
 }
  

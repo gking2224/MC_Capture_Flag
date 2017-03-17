@@ -10,7 +10,7 @@ public class StringUtils {
 		return String.format("(%d %d %d)", blockPos.getX(), blockPos.getY(), blockPos.getZ());
 	}
 
-	public static ITextComponent toITextComponent(String msg) {
+	public static ITextComponent toIText(String msg) {
 		return new TextComponentString(msg);
 	}
 

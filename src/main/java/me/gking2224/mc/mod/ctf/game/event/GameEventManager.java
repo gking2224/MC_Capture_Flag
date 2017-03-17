@@ -62,10 +62,11 @@ public class GameEventManager {
 	public void flagPlaced(String player, ItemBase flag, BlockPos blockPos) {
 		Optional<Game> g = GameManager.get().getPlayerActiveGame(player);
 		g.ifPresent((game) -> {
-			game.setFlagBlockPosition(Flag.getFlagColour(flag), blockPos);
+			TeamColour flagColour = Flag.getFlagColour(flag);
+			game.setFlagBlockPosition(flagColour, blockPos);
+			System.out.printf("%s: %s flag position updated as %s\n", Thread.currentThread().getName(), flagColour, blockPos);
 			Optional<CtfTeam> t = game.getTeamForPlayer(player);
 			t.ifPresent(team -> {
-				TeamColour flagColour = Flag.getFlagColour(flag);
 				if (!Flag.isOwnTeamFlag(flag, team)) {
 					if (GameWorldManager.get().isInHomeBase(game, team.getColour(), blockPos)) {
 						GameManager.get().gameRoundWon(game, player, team, flagColour);

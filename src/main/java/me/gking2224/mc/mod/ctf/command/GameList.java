@@ -1,13 +1,13 @@
 package me.gking2224.mc.mod.ctf.command;
 
-import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
+import static java.lang.String.format;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
-import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
+import me.gking2224.mc.mod.ctf.util.StringUtils;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -16,13 +16,13 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
-public class GameInfo extends CommandBase {
+public class GameList extends CommandBase {
 	private final List<String> aliases;
 
-	public GameInfo() {
+	public GameList() {
 
         aliases = new ArrayList<String>(); 
-        aliases.add("gi"); 
+        aliases.add("gl"); 
 	}
 
 	@Override
@@ -32,7 +32,7 @@ public class GameInfo extends CommandBase {
 
 	@Override
 	public String getName() {
-		return "ctf:game_info";
+		return "ctf:game_list";
 	}
 
 	@Override
@@ -45,16 +45,13 @@ public class GameInfo extends CommandBase {
 			MinecraftServer server, ICommandSender sender,
 			String[] args
 	) throws CommandException {
-		
+
 		Entity e = sender.getCommandSenderEntity();
-		String gameName = args[0];
 		
 		if (e == null) return;
 		if (e instanceof EntityPlayer) {
-			GameManager gameManager = GameManager.get();
-			Optional<Game> g = gameManager.getGame(gameName);
-			Game game = g.orElseThrow(() -> new CommandException("Game %s not found", gameName));
-			sender.sendMessage(toIText(game.toString()));
+			Set<String> games = GameManager.get().getAllGames();
+			sender.sendMessage(StringUtils.toIText(format("Games: %s", games)));
 		}
 	}
 
@@ -77,11 +74,11 @@ public class GameInfo extends CommandBase {
 
 	@Override
 	protected boolean[] getMandatoryArgs() {
-		return new boolean[] { true };
+		return new boolean[0];
 	}
 
 	@Override
 	protected String[] getArgNames() {
-		return new String[] { "game" };
+		return new String[0];
 	}
 }

@@ -61,7 +61,7 @@ public class CurrentGame extends CommandBase {
 			g.orElseThrow(() -> new CommandException("You are not currently in a game. Use /new_ctf_game or /join_ctf_game"));
 			g.ifPresent( (game) -> {
 				Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
-				t.ifPresent(team -> sender.sendMessage(StringUtils.toITextComponent(
+				t.ifPresent(team -> sender.sendMessage(StringUtils.toIText(
 						format("You are currently in game %s, in team %s", game.getName(), team.getColour()))));
 			});
 		}

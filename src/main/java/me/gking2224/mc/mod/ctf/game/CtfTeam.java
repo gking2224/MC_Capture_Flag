@@ -3,13 +3,20 @@ package me.gking2224.mc.mod.ctf.game;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.minecraft.nbt.NBTTagCompound;
+
 public class CtfTeam {
 	
 	private TeamColour colour;
-	private Set<String> players = new HashSet<String>();
+	private Set<String> players;
 	
 	public CtfTeam(TeamColour colour) {
+		this(colour, new HashSet<String>());
+	}
+	
+	public CtfTeam(TeamColour colour, Set<String> players) {
 		this.colour = colour;
+		this.players = players;
 	}
 
 	public TeamColour getColour() {
@@ -56,6 +63,26 @@ public class CtfTeam {
 			if ("red".equals(s)) return RED;
 			else if ("blue".equals(s)) return BLUE;
 			else throw new IllegalArgumentException("Unknown colour");
+		}
+	}
+
+	public static CtfTeam readFromNBT(NBTTagCompound nbt, String prefix) {
+		TeamColour colour = TeamColour.fromString(nbt.getString(prefix+"colour"));
+		int numPlayers = nbt.getInteger(prefix+"numPlayers");
+		Set<String> players = new HashSet<String>();
+		for (int i = 0; i< numPlayers; i++) {
+			players.add(nbt.getString(prefix+"player"+i));
+		}
+		return new CtfTeam(colour, players);
+	}
+
+	public static void writeToNBT(NBTTagCompound nbt, String prefix, CtfTeam team) {
+		nbt.setString(prefix+"colour", team.getColour().getColour());
+		nbt.setInteger(prefix+"numPlayers", team.getPlayers().size());
+		int i = 0;
+		for (String p : team.getPlayers()) {
+			nbt.setString(prefix+"player"+i, p);
+			i++;
 		}
 	}
 }

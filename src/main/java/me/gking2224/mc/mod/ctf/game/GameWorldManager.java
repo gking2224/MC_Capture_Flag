@@ -1,5 +1,6 @@
 package me.gking2224.mc.mod.ctf.game;
 
+import static java.lang.String.format;
 import static me.gking2224.mc.mod.ctf.game.GameWorldManager.WorldMetrics.fromChunk;
 import static me.gking2224.mc.mod.ctf.game.GameWorldManager.WorldMetrics.toChunk;
 import static me.gking2224.mc.mod.ctf.util.StringUtils.blockPosStr;
@@ -8,6 +9,8 @@ import static me.gking2224.mc.mod.ctf.util.WorldUtils.offsetBlockPos;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
@@ -29,6 +32,9 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public class GameWorldManager {
+	
+	private static Logger LOGGER = Logger.getLogger(GameManager.class.getName()); 
+	
 	private static final IBlockState RED_FLAG = PlacedFlag.withColour(PlacedFlag.EnumFlagColour.RED);
 	private static final IBlockState BLUE_FLAG = PlacedFlag.withColour(PlacedFlag.EnumFlagColour.BLUE);
 	
@@ -66,7 +72,6 @@ public class GameWorldManager {
 	public static void init(MinecraftServer server) {
 		if (instance != null) throw new IllegalStateException();
 		instance = new GameWorldManager(server);
-		
 	}
 	
 	private static GameWorldManager instance = null;
@@ -90,12 +95,11 @@ public class GameWorldManager {
 		
 		deletePlacedFlag(game, colour);
 		removeFlagsFromPlayerInventory(game);
-		placeFlag(game.getBaseLocation(colour), TeamColour.BLUE.equals(colour) ? BLUE_FLAG : RED_FLAG);
+		placeFlag(game, colour, TeamColour.BLUE.equals(colour) ? BLUE_FLAG : RED_FLAG);
 	}
 
 	private void removeFlagsFromPlayerInventory(Game game) {
-		game.getAllPlayers().forEach((player) -> removeFlagsFromPlayerInventory(player, ModItems.BLUE_FLAG));
-		game.getAllPlayers().forEach((player) -> removeFlagsFromPlayerInventory(player, ModItems.RED_FLAG));
+		ModItems.ALL_FLAGS.forEach(flag -> game.getAllPlayers().forEach((player) -> removeFlagsFromPlayerInventory(player, flag)));
 	}
 
 	private void removeFlagsFromPlayerInventory(String playerName, ItemBase flag) {
@@ -106,12 +110,23 @@ public class GameWorldManager {
 	private void deletePlacedFlag(Game game, TeamColour teamColour) {
 		BlockPos pos = game.getFlagPosition(teamColour);
 		if (pos != null) {
+			LOGGER.log(Level.INFO, format("Delete %s flag from %s", teamColour, pos));
+			LOGGER.log(Level.INFO, "Delete {} flag from {}", new Object[] {teamColour, pos});
+			IBlockState current = getBlockAt(pos);
+			System.out.printf("%s: Check block at position %s: %s\n", Thread.currentThread().getName(), pos, current);
 			world.destroyBlock(pos, false);
 		}
 	}
 
-	private void placeFlag(BlockPos refPos, IBlockState flag) {
-		world.setBlockState(offsetBlockPos(refPos, 0, 1, 0), flag);
+	private IBlockState getBlockAt(BlockPos pos) {
+		ensureBlockGenerated(pos);
+		return world.getBlockState(pos);
+	}
+
+	private void placeFlag(Game game, TeamColour colour, IBlockState flag) {
+		BlockPos flagPos = offsetBlockPos(game.getBaseLocation(colour), 0, 1, 0);
+		world.setBlockState(flagPos, flag);
+		game.setFlagBlockPosition(colour, flagPos);
 	}
 
 	private void createBase(Game game, TeamColour team, boolean invertZ) {
@@ -151,7 +166,8 @@ public class GameWorldManager {
 				
 			}
 		}
-		System.out.println("Could not find suitable block for base, hope for the best!");
+		Biome b = getBiome(refPos);
+		System.out.printf("Could not find suitable block for base, hope for the best - you're in %s!\n", b.getBiomeName());
 		return getSurfaceBlock(refPos);
 	}
 

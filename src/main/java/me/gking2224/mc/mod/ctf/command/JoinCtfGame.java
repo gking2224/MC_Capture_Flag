@@ -64,14 +64,14 @@ public class JoinCtfGame extends CommandBase {
 			gameManager.playerLeaveAllGames(playerName);
 			Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
 			t.ifPresent((team) -> {
-				sender.sendMessage(StringUtils.toITextComponent(
+				sender.sendMessage(StringUtils.toIText(
 						format("Already in game %s on team %s", gameName, team.getColour())));
 				gameManager.sendPlayerToBase(game, player);
 			});
 			if (!t.isPresent()) {
 				CtfTeam team = game.addPlayer(playerName);
 				gameManager.save();
-				sender.sendMessage(StringUtils.toITextComponent(
+				sender.sendMessage(StringUtils.toIText(
 						format("Joined game %s on team %s", gameName, team.getColour())));
 				gameManager.sendPlayerToBase(game, player);
 			}

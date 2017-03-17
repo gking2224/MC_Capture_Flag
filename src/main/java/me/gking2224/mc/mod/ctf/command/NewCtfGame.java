@@ -1,7 +1,7 @@
 package me.gking2224.mc.mod.ctf.command;
 
 import static java.lang.String.format;
-import static me.gking2224.mc.mod.ctf.util.StringUtils.toITextComponent;
+import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +69,7 @@ public class NewCtfGame extends CommandBase {
 				player.setSpawnPoint(game.getBaseLocation(team.getColour()), true);
 				gameManager.sendPlayerToBase(game, player);
 				gameManager.toolUpPlayer(player);
-				sender.sendMessage(toITextComponent(
+				sender.sendMessage(toIText(
 						format("Created game %s and joined team %s", game.getName(), team.getColour())));
 			}
 			catch (GameCreationException ex) {

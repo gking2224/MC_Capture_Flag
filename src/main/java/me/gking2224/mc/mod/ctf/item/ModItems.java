@@ -1,5 +1,10 @@
 package me.gking2224.mc.mod.ctf.item;
 
+import static java.util.Arrays.asList;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import me.gking2224.mc.mod.ctf.blocks.ModBlocks;
 import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
@@ -11,6 +16,8 @@ public class ModItems {
 
 	public static ItemBase RED_FLAG;
 	public static ItemBase BLUE_FLAG;
+	
+	public static Set<ItemBase> ALL_FLAGS = new HashSet<ItemBase>(asList(RED_FLAG, BLUE_FLAG));
 
 	public static void init() {
 		RED_FLAG = register(
