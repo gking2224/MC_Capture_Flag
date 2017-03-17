@@ -39,20 +39,22 @@ public class GameEventManager {
 
 	public void playerPickedUpFlag(String playerName, ItemBase item) {
 		Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
-		EntityPlayer player = world.getPlayerEntityByName(playerName);
 		g.ifPresent((game) -> {
-			Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
-			t.ifPresent((team) -> {
-				TeamColour flagColour = Flag.getFlagColour(item);
-				game.setPlayerHoldingFlag(flagColour, playerName);
-				if (flagColour != team.getColour()) {
-					broadcastTeamCapturedFlag(game, playerName, flagColour);
-					schedule(() -> moveItemFromInventoryToPlayerHand(player, item), 0);
-				}
-				else {
-					GameManager.get().broadcastToAllPlayers(game, format("Player %s tried to pick up his own flag!", playerName));
-					GameWorldManager.get().resetFlag(game, flagColour);
-				}
+			Optional<EntityPlayer> p = GameManager.get().getPlayerByName(playerName);
+			p.ifPresent(player -> {
+				Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
+				t.ifPresent((team) -> {
+					TeamColour flagColour = Flag.getFlagColour(item);
+					game.setPlayerHoldingFlag(flagColour, playerName);
+					if (flagColour != team.getColour()) {
+						broadcastTeamCapturedFlag(game, playerName, flagColour);
+						schedule(() -> moveItemFromInventoryToPlayerHand(player, item), 0);
+					}
+					else {
+						GameManager.get().broadcastToAllPlayers(game, format("Player %s tried to pick up his own flag!", playerName));
+						GameWorldManager.get().resetFlag(game, flagColour);
+					}
+				});
 			});
 		});
 	}

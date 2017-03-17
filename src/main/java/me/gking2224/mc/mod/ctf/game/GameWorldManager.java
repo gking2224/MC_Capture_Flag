@@ -8,6 +8,7 @@ import static me.gking2224.mc.mod.ctf.util.WorldUtils.offsetBlockPos;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -117,7 +118,8 @@ public class GameWorldManager {
 	}
 	
 	public void removeFlagFromPlayerInventory(String playerName, ItemBase flag) {
-		removeFlagFromPlayerInventory(world.getPlayerEntityByName(playerName), flag);
+		Optional<EntityPlayer> p = GameManager.get().getPlayerByName(playerName);
+		p.ifPresent(player -> removeFlagFromPlayerInventory(player, flag));
 	}
 
 	public void removeFlagFromPlayerInventory(EntityPlayer player, ItemBase flag) {

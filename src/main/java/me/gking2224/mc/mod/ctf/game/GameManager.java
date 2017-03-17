@@ -201,8 +201,8 @@ public class GameManager {
 
 	public void broadCastMessageToPlayer(String playerName, ITextComponent msg) {
 		System.out.printf("Sending message %s to player %s\n", msg, playerName);
-		EntityPlayer player = world.getPlayerEntityByName(playerName);
-		if (player != null) player.sendMessage(msg);
+		Optional<EntityPlayer> player = getPlayerByName(playerName);
+		player.ifPresent(p->p.sendMessage(msg));
 	}
 
 	public void broadcastToTeamPlayers(Game game, TeamColour colour, String msg) {
@@ -232,12 +232,12 @@ public class GameManager {
 
 	private void resetGame(Game game) {
 		server.addScheduledTask(() -> MinecraftForge.TERRAIN_GEN_BUS.post(new GameResetEvent(game)));
-		game.getAllPlayers().forEach( p -> {
-			EntityPlayer ep = world.getPlayerEntityByName(p);
-			if (ep != null) {
-				toolUpPlayer(ep);
-				sendPlayerToBase(game, ep);
-			}
+		game.getAllPlayers().forEach( playerName -> {
+			Optional<EntityPlayer> ep = getPlayerByName(playerName);
+			ep.ifPresent( player -> {
+				toolUpPlayer(player);
+				sendPlayerToBase(game, player);
+			});
 		});
 	}
 
@@ -275,6 +275,10 @@ public class GameManager {
 
 	public Set<String> getAllGames() {
 		return new TreeSet<String>(gameList.getGames());
+	}
+	
+	public Optional<EntityPlayer> getPlayerByName(String playerName) {
+		return Optional.ofNullable(world.getPlayerEntityByName(playerName));
 	}
 }
  
