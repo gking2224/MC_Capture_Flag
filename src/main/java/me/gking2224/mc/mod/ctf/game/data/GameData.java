@@ -7,6 +7,7 @@ import java.util.Optional;
 import me.gking2224.mc.mod.ctf.game.Bounds;
 import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
+import me.gking2224.mc.mod.ctf.game.GameOptions;
 import me.gking2224.mc.mod.ctf.util.NBTUtils;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
@@ -27,6 +28,7 @@ public class GameData extends WorldSavedData {
 	private static final String OWNER = "owner";
 	private static final String FLAG_HELD = "flagHeld";
 	private static final String DATA_NAME = "CTF_GAME_DATA_";
+	private static final String OPTIONS = "options";
 
 	private String owner;
 	private String name;
@@ -36,13 +38,15 @@ public class GameData extends WorldSavedData {
 	private Map<TeamColour, BlockPos> baseLocations = new HashMap<TeamColour, BlockPos>();
 	private Map<TeamColour, BlockPos> flagLocations = new HashMap<TeamColour, BlockPos>();
 	private Map<TeamColour, String> playerHoldingFlag = new HashMap<TeamColour, String>();
+	private GameOptions options;
 
 	public GameData() {
-		this("unknown");
+		this("unknown", GameOptions.getDefault());
 	}
-	public GameData(String name) {
+	public GameData(String name, GameOptions options) {
 		super(getDataIdentifier(name));
 		this.name = name;
+		this.options = options;
 	}
 
 	public String getOwner() {
@@ -120,6 +124,10 @@ public class GameData extends WorldSavedData {
 			boolean flagHeld = nbt.getBoolean(FLAG_HELD+i);
 			if (flagHeld) this.playerHoldingFlag.put(team.getColour(), nbt.getString(FLAG_HOLDER + i));
 		}
+		
+		String optionsStr = nbt.getString(OPTIONS);
+		System.out.printf("read game options: %s\n", optionsStr);
+		this.options = (optionsStr != null) ? new GameOptions(optionsStr) : GameOptions.getDefault();
 		System.out.printf("Read game from NBT: %s\n", this);
 	}
 
@@ -142,6 +150,9 @@ public class GameData extends WorldSavedData {
 			if (flagHolder != null) nbt.setString(FLAG_HOLDER + i, flagHolder);
 			i++;
 		}
+		String optionsStr = options.toString();
+		nbt.setString(OPTIONS, optionsStr);
+		System.out.printf("wrote game options: %s\n", optionsStr);
 		System.out.printf("Wrote game to NBT: %s\n", this);
 		return nbt;
 	}
@@ -156,10 +167,10 @@ public class GameData extends WorldSavedData {
 				owner, name, bounds, teams, score, baseLocations, flagLocations, playerHoldingFlag);
 	}
 
-	public static GameData create(World world, String name) {
+	public static GameData create(World world, String name, GameOptions options) {
 
 		MapStorage storage = world.getPerWorldStorage();
-		GameData instance = new GameData(name);
+		GameData instance = new GameData(name, options);
 		storage.setData(getDataIdentifier(name), instance);
 		System.out.printf("Stored GameData: %s\n", instance);
 		return instance;
@@ -170,5 +181,8 @@ public class GameData extends WorldSavedData {
 		GameData instance = (GameData) storage.getOrLoadData(GameData.class, getDataIdentifier(name));
 		System.out.printf("Loaded GameData: %s\n", instance);
 		return Optional.ofNullable(instance);
+	}
+	public GameOptions getOptions() {
+		return this.options;
 	}
 }

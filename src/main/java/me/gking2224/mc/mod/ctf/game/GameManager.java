@@ -55,37 +55,25 @@ public class GameManager {
 
 	public static void initialise(MinecraftServer server) {
 		if (instance != null) throw new IllegalStateException();
-//		GameFileManager.init(server);
+		instance = new GameManager(server);
 		GameWorldManager.init(server);
 		GameEventManager.init(server);
-//		instance = GameFileManager.get().readGameManagerFromFile().setServer(server);
-		instance = new GameManager(server);
 		
 	}
-	
-//	private GameManager setServer(MinecraftServer server) {
-//		this.server = server;
-//		this.world = server.getEntityWorld();
-//		return this;
-//	}
-	
-//	private List<String> gameNames = new ArrayList<String>();
-
-//	static GameManager defaultGameManager(MinecraftServer server) {
-//		return new GameManager().setServer(server);
-//	}
 
 	public static GameManager get() {
 		return instance;
 	}
 
-	public Game newGame(String n, EntityPlayer owner)
+	public Game newGame(EntityPlayer owner, GameOptions options)
 			throws GameCreationException {
 		checkOwnerPermissions(owner);
 		checkOwnerLimit(owner);
-		String name = checkGameNameUnique(n != null ? n : generateGameName());
+		String name = checkGameNameUnique(generateGameName());
 		
-		Game game = new Game(world, name, owner, getNewGameBounds());
+		Bounds newGameBounds = getNewGameBounds(options);
+		System.out.printf("NEw game bounds: %s\n", newGameBounds);
+		Game game = new Game(world, name, owner, newGameBounds, options);
 
 		MinecraftForge.TERRAIN_GEN_BUS.post(new NewGameEvent(game));
 		game.save();
@@ -95,24 +83,23 @@ public class GameManager {
 		return game;
 	}
 
-	private Bounds getNewGameBounds() {
+	private Bounds getNewGameBounds(GameOptions options) {
 
 		World world = server.getEntityWorld();
 		boolean suitable = false;
 		Bounds bounds = null;
-		int gameChunksX = 1;
-		int gameChunksZ = 1;
+		
+		int size = options.getInteger("size").orElse(1);
+		int gameChunksX = 1 * size;
+		int gameChunksZ = 2 * size;
 		
 		while (!suitable) {
-			int xBound = 10000;//(server.getMaxWorldSize() / 16) - gameChunksX;
-			int startX = world.rand.nextInt(xBound);
-			int zBound = 100000;//(server.getMaxWorldSize() / 16) - gameChunksZ;
-			int startZ = world.rand.nextInt(zBound);
+			int xBound = 10000;//server.getMaxWorldSize() - (gameChunksX*16);
+			int startX = world.rand.nextInt(xBound) *16;
+			int zBound = 10000;//server.getMaxWorldSize() - (gameChunksZ*16);
+			int startZ = world.rand.nextInt(zBound) * 16;
 					
-			ChunkLocation from = new ChunkLocation(startX, startZ);
-			ChunkLocation to = new ChunkLocation(startX + gameChunksX, startZ + gameChunksZ);
-			
-  			bounds = new Bounds(from, to);
+  			bounds = new Bounds(new BlockPos(startX, 0, startZ), new BlockPos(startX + (gameChunksX*16), 0, startZ + (gameChunksZ * 16)));
 			
 			suitable = !boundaryClashes(bounds) && GameWorldManager.get().isSuitableForGame(bounds);
 			
@@ -134,10 +121,10 @@ public class GameManager {
 	}
 
 	private boolean boundariesOverlap(Bounds bounds1, Bounds bounds2) {
-		ChunkLocation from1 = bounds1.getFrom();
-		ChunkLocation to1 = bounds1.getTo();
-		ChunkLocation from2 = bounds2.getFrom();
-		ChunkLocation to2 = bounds2.getTo();
+		BlockPos from1 = bounds1.getFrom();
+		BlockPos to1 = bounds1.getTo();
+		BlockPos from2 = bounds2.getFrom();
+		BlockPos to2 = bounds2.getTo();
 		
 		boolean fullyAbove = from2.getZ() > to1.getZ() && to2.getZ() > to1.getZ();
 		boolean fullyBelow = from2.getZ() < from1.getZ() && to2.getZ() < from1.getZ();

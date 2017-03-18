@@ -65,10 +65,12 @@ public class GameWorldManager {
 	private MinecraftServer server;
 	
 	private World world;
+	private GameManager gm;
 	
 	private GameWorldManager(MinecraftServer server) {
 		this.server = server;
 		this.world = server.getEntityWorld();
+		gm = GameManager.get();
 	}
 
 	public static void init(MinecraftServer server) {
@@ -84,7 +86,7 @@ public class GameWorldManager {
 		
 		boolean rndBool = world.rand.nextBoolean();
 
-		game.getTeamColours().forEach(colour -> createBase(game, colour, colour == TeamColour.RED && rndBool));
+		game.getTeamColours().forEach(colour -> createBase(game, colour, colour == TeamColour.RED ^ rndBool));
 		
 		resetFlags(game);
 	}
@@ -148,7 +150,6 @@ public class GameWorldManager {
 		game.setFlagBlockPosition(colour, flagPos);
 	}
 
-
 	private void createBase(Game game, TeamColour team, boolean invertZ) {
 		BlockPos refPos = getBasePos(game.getBounds(), invertZ);
 		ensureBlockGenerated(refPos);
@@ -168,8 +169,8 @@ public class GameWorldManager {
 		int refZ = refPos.getZ();
 		ensureBlockGenerated(refPos);
 		
-		for (int x = -7; x < 15; x++) {
-			for (int z = -7; z < 15; z++) {
+		for (int x = -7; x < 8; x++) {
+			for (int z = -7; z < 8; z++) {
 				BlockPos testPos = new BlockPos(refX + x, 0, refZ + z);
 				BlockPos testSurface = getSurfaceBlock(testPos);
 				System.out.printf("Testing block at %s... ", blockPosStr(testSurface));
@@ -198,11 +199,16 @@ public class GameWorldManager {
 	}
 
 	private BlockPos getBasePos(Bounds bounds, boolean invertZ) {
+		System.out.printf("Creating base for game bounds %s (size: %s)\n", bounds, bounds.getSize());
 		Random rand = world.rand;
 		int endZ = invertZ ? bounds.getFrom().getZ() : bounds.getTo().getZ();
+		System.out.printf("End z = %d\n", endZ);
 		int midPointX = bounds.getFrom().getX() + (bounds.getTo().getX() - bounds.getFrom().getX()) / 2;
-		int x = fromChunk(midPointX) + (rand.nextInt() % 15);
-		int z = fromChunk(endZ) + (rand.nextInt() % 15);
+		System.out.printf("midpointX = %d\n", midPointX);
+		int x = midPointX;
+		int z = endZ;
+
+		System.out.printf("Try to create base at %d, %d\n", x, z);
 		return adjustBasePosition(new BlockPos(x, 0, z));
 	}
 	
@@ -221,7 +227,7 @@ public class GameWorldManager {
 			cps.provideChunk(x, z);
 			System.out.printf("Force loaded chunk at %d, %d\n", x, z);
 			if (!world.isChunkGeneratedAt(x, z)) {
-				System.out.println(".. but not showing as loaded :-(");
+				System.out.println("ERROR ... but not showing as loaded :-(");
 			}
 		}
 	}
@@ -232,10 +238,10 @@ public class GameWorldManager {
 
 	private boolean checkBiomesSuitable(Bounds bounds) {
 		
-		int x1 = fromChunk(bounds.getFrom().getX());
-		int x2 = fromChunk(bounds.getTo().getX()) + 15;
-		int z1 = fromChunk(bounds.getFrom().getZ());
-		int z2 = fromChunk(bounds.getTo().getZ()) + 15;
+		int x1 = bounds.getFrom().getX();
+		int x2 = bounds.getTo().getX();
+		int z1 = bounds.getFrom().getZ();
+		int z2 = bounds.getTo().getZ();
 		
 		int xDiff = x2 - x1;
 		int zDiff = z2 = z1;
@@ -246,7 +252,6 @@ public class GameWorldManager {
 		int numUnsuitable = 0;
 		for (int x = x1; x <= x2; x += xInc) {
 			for (int z = z1; z <= z2; z += zInc) {
-				System.out.printf("Checking for suitable biome at (%d, %d)...", x, z);
 				BlockPos blockPos = getSurfaceBlock(new BlockPos(x, 0, z));
 				Biome biome = getBiome(blockPos);
 				System.out.println(biome.getBiomeName());
@@ -254,12 +259,13 @@ public class GameWorldManager {
 				numChecks++;
 			}
 		}
+		System.out.printf("Num biome-suitablility checks: %d\n", numChecks);
 		double percentUnsuitable = (numUnsuitable / numChecks)*100;
-		if (percentUnsuitable >= 0.3d) {
-			System.out.printf("Game boundary %s not suitable as %5.1f points had unsuitable biome\n", bounds, percentUnsuitable);
+		if (percentUnsuitable >= 30) {
+			System.out.printf("Game bounds %s not suitable as %5.1f points had unsuitable biome\n", bounds, percentUnsuitable);
 			return false;
 		}
-		System.out.printf("Game boundary %s suitable as only %5.1f points had unsuitable biome\n", bounds, percentUnsuitable);
+		System.out.printf("Game bounds %s suitable as only %5.1f points had unsuitable biome\n", bounds, percentUnsuitable);
 		return true;
 	}
 

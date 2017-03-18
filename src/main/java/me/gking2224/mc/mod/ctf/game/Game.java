@@ -13,6 +13,7 @@ import java.util.stream.Collector;
 
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.data.GameData;
+import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -21,9 +22,9 @@ public class Game {
 
 	private GameData gameData;
 
-	Game(World world, String name, EntityPlayer owner, Bounds bounds) {
+	Game(World world, String name, EntityPlayer owner, Bounds bounds, GameOptions options) {
 		
-		gameData = GameData.create(world, name);
+		gameData = GameData.create(world, name, options);
 		
 		gameData.setOwner(owner.getName());
 		gameData.setBounds(bounds);
@@ -164,13 +165,20 @@ public class Game {
 				gameData.isPresent() ? new Game(gameData.get()) : null);
 	}
 	
+	public GameOptions getOptions() {
+		return gameData.getOptions();
+	}
+	
 	public String toString() {
 		return format(
-				"Game[name=%s, players=[RED: %s, BLUE:%s], score=%s]",
+				"Game[name=%s, players=[RED: %s, BLUE:%s], score=%s, redBase=%s, blueBase=%s, options=%s]",
 				getName(),
 				getTeamPlayers(TeamColour.RED),
 				getTeamPlayers(TeamColour.BLUE),
-				getScore());
+				getScore(),
+				WorldUtils.toChunkLocation(getBaseLocation(TeamColour.RED)),
+				WorldUtils.toChunkLocation(getBaseLocation(TeamColour.BLUE)),
+				getOptions());
 	}
 
 	public String getFormattedScore() {

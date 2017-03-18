@@ -1,36 +1,27 @@
 package me.gking2224.mc.mod.ctf.game;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 
 public class Bounds {
-
-	@Override
-	public String toString() {
-		return String.format("[%s : %s]", from, to);
-	}
-	private ChunkLocation from;
-	private ChunkLocation to;
+	private BlockPos from;
+	private BlockPos to;
 	
 	public Bounds() {
 		
 	}
 	
-	public Bounds(ChunkLocation from, ChunkLocation to) {
-		setFrom(from);
-		setTo(to);
+	public Bounds(BlockPos from, BlockPos to) {
+		this.from = from;
+		this.to = to;
 	}
 
-	public ChunkLocation getFrom() {
+	public BlockPos getFrom() {
 		return from;
 	}
-	public void setFrom(ChunkLocation from) {
-		this.from = from;
-	}
-	public ChunkLocation getTo() {
+	public BlockPos getTo() {
 		return to;
-	}
-	public void setTo(ChunkLocation to) {
-		this.to = to;
 	}
 	
 	public static int[] toIntArray(Bounds b) {
@@ -42,9 +33,7 @@ public class Bounds {
 
 	public static Bounds readFromNBT(NBTTagCompound nbt, String key) {
 		int[] a = nbt.getIntArray(key);
-		ChunkLocation from = new ChunkLocation(a[0], a[1]);
-		ChunkLocation to = new ChunkLocation(a[2], a[3]);
-		Bounds rv = new Bounds(from, to);
+		Bounds rv = new Bounds(new BlockPos(a[0], 0, a[1]), new BlockPos(a[2], 0, a[3]));
 		return rv;
 	}
 
@@ -52,5 +41,13 @@ public class Bounds {
 		nbt.setIntArray(key, toIntArray(b));
 	}
 	
+	public Vec3i getSize() {
+		return new Vec3i(to.getX() - from.getX(), 0, to.getZ() - from.getZ());
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[%s : %s]", from, to);
+	}
 	
 }

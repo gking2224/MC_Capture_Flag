@@ -4,13 +4,15 @@ import static java.lang.String.format;
 import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameCreationException;
 import me.gking2224.mc.mod.ctf.game.GameManager;
-import me.gking2224.mc.mod.ctf.util.InventoryUtils;
+import me.gking2224.mc.mod.ctf.game.GameOptions;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -20,8 +22,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
 public class NewCtfGame extends CommandBase {
+	private static GameOptions DEFAULT_OPTIONS = GameOptions.getDefault();
+	
 	private final List<String> aliases;
-
 	protected String fullEntityName;
 	protected Entity conjuredEntity;
 	
@@ -53,7 +56,10 @@ public class NewCtfGame extends CommandBase {
 	) throws CommandException {
 
 		Entity e = sender.getCommandSenderEntity();
-		String name = args.length >= 1 ? args[0] : null;
+		GameOptions options = DEFAULT_OPTIONS;
+		if (args.length >= 1) {
+			options = options.update(args[0]);
+		}
 		
 		if (e == null) return;
 		if (e instanceof EntityPlayer) {
@@ -63,7 +69,7 @@ public class NewCtfGame extends CommandBase {
 			try {
 				GameManager gameManager = GameManager.get();
 				gameManager.playerLeaveAllGames(playerName);
-				Game game = gameManager.newGame(name, player);
+				Game game = gameManager.newGame(player, options);
 				CtfTeam team = game.addPlayer(playerName);
 				//TODO refactor join game code
 				player.setSpawnPoint(game.getBaseLocation(team.getColour()), true);
