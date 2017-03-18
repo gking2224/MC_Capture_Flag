@@ -82,7 +82,58 @@ public class GameWorldManager {
 	
 	public final static GameWorldManager get() { return instance; }
 
-	public void createGameBases(Game game) {
+	public void createGameArea(Game game) {
+		buildBases(game);
+		int redY = game.getBaseLocation(TeamColour.RED).getY();
+		int blueY = game.getBaseLocation(TeamColour.BLUE).getY();
+		
+		buildPerimeter(
+				game.getBounds(),
+				Math.min(redY, blueY) - 10,
+				Math.max(redY, blueY) + 10);
+		
+	}
+
+	private void buildPerimeter(Bounds bounds, int lowPoint, int highPoint) {
+		// LHS
+		int x = bounds.getFrom().getX();
+		WorldUtils.replaceBlocks(
+				world,
+				Blocks.AIR,
+				new Bounds(
+						new BlockPos(x, lowPoint, bounds.getFrom().getZ()),
+						new BlockPos(x, highPoint, bounds.getTo().getZ())),
+						Blocks.GLASS.getDefaultState());
+		// RHS
+		x = bounds.getTo().getX();
+		WorldUtils.replaceBlocks(
+				world,
+				Blocks.AIR,
+				new Bounds(
+						new BlockPos(x, lowPoint, bounds.getFrom().getZ()),
+						new BlockPos(x, highPoint, bounds.getTo().getZ())),
+						Blocks.GLASS.getDefaultState());
+		// FRONT
+		int z = bounds.getFrom().getZ();
+		WorldUtils.replaceBlocks(
+				world,
+				Blocks.AIR,
+				new Bounds(
+						new BlockPos(bounds.getFrom().getX(), lowPoint, z),
+						new BlockPos(bounds.getTo().getX(), highPoint, z)),
+						Blocks.GLASS.getDefaultState());
+		// FRONT
+		z = bounds.getTo().getZ();
+		WorldUtils.replaceBlocks(
+				world,
+				Blocks.AIR,
+				new Bounds(
+						new BlockPos(bounds.getFrom().getX(), lowPoint, z),
+						new BlockPos(bounds.getTo().getX(), highPoint, z)),
+						Blocks.GLASS.getDefaultState());
+	}
+
+	public void buildBases(Game game) {
 		
 		boolean rndBool = world.rand.nextBoolean();
 
@@ -163,15 +214,15 @@ public class GameWorldManager {
 		return builder.buildBase(world, refPos, colour);
 	}
 
-	private BlockPos adjustBasePosition(BlockPos refPos) {
+	private BlockPos adjustBasePosition(BlockPos refPos, boolean invertZ) {
 
 		int refX = refPos.getX();
 		int refZ = refPos.getZ();
 		ensureBlockGenerated(refPos);
 		
-		for (int x = -7; x < 8; x++) {
-			for (int z = -7; z < 8; z++) {
-				BlockPos testPos = new BlockPos(refX + x, 0, refZ + z);
+		for (int x = 3; x < 8; x++) {
+			for (int z = 3; z < 8; z++) {
+				BlockPos testPos = new BlockPos(refX + x, 0, refZ + ((invertZ)?z:z*-1));
 				BlockPos testSurface = getSurfaceBlock(testPos);
 				System.out.printf("Testing block at %s... ", blockPosStr(testSurface));
 				Block block = world.getBlockState(testSurface).getBlock();
@@ -200,7 +251,6 @@ public class GameWorldManager {
 
 	private BlockPos getBasePos(Bounds bounds, boolean invertZ) {
 		System.out.printf("Creating base for game bounds %s (size: %s)\n", bounds, bounds.getSize());
-		Random rand = world.rand;
 		int endZ = invertZ ? bounds.getFrom().getZ() : bounds.getTo().getZ();
 		System.out.printf("End z = %d\n", endZ);
 		int midPointX = bounds.getFrom().getX() + (bounds.getTo().getX() - bounds.getFrom().getX()) / 2;
@@ -209,7 +259,7 @@ public class GameWorldManager {
 		int z = endZ;
 
 		System.out.printf("Try to create base at %d, %d\n", x, z);
-		return adjustBasePosition(new BlockPos(x, 0, z));
+		return adjustBasePosition(new BlockPos(x, 0, z), invertZ);
 	}
 	
 	public int getWorldHeight(int x, int z) {
@@ -260,7 +310,7 @@ public class GameWorldManager {
 			}
 		}
 		System.out.printf("Num biome-suitablility checks: %d\n", numChecks);
-		double percentUnsuitable = (numUnsuitable / numChecks)*100;
+		double percentUnsuitable = ((double)numUnsuitable / (double)numChecks)*100;
 		if (percentUnsuitable >= 30) {
 			System.out.printf("Game bounds %s not suitable as %5.1f points had unsuitable biome\n", bounds, percentUnsuitable);
 			return false;

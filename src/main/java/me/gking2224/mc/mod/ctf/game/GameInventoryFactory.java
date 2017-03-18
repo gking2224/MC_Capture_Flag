@@ -22,6 +22,7 @@ public class GameInventoryFactory {
 			Set<ItemStack> set = new HashSet<ItemStack>();
 			set.add(new ItemStack(Items.WOODEN_SWORD, 1));
 			set.add(new ItemStack(Items.WOODEN_AXE, 1));
+			set.add(new ItemStack(Items.WOODEN_PICKAXE, 1));
 			set.add(new ItemStack(Items.WOODEN_SHOVEL, 1));
 			set.add(new ItemStack(Items.BOW, 1));
 			set.add(new ItemStack(Items.ARROW, 10));

@@ -29,7 +29,7 @@ public class EventHandlerServer extends EventHandlerCommon {
 	@SubscribeEvent
 	public void newGame(NewGameEvent event) {
 
-		GameWorldManager.get().createGameBases(event.getGame());
+		GameWorldManager.get().createGameArea(event.getGame());
 	}
 	
 	@SubscribeEvent
