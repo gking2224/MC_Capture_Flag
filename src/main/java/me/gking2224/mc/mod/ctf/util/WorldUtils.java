@@ -33,11 +33,15 @@ public class WorldUtils {
 				for (int y = bounds.getFrom().getY(); y <= bounds.getTo().getY(); y++) {
 					BlockPos pos = new BlockPos(x, y, z);
 					Block existingBlock = world.getBlockState(pos).getBlock();
-					if (getIdFromBlock(existingBlock) == getIdFromBlock(replaceBlockType)) {
+					if (replaceBlockType == null || getIdFromBlock(existingBlock) == getIdFromBlock(replaceBlockType)) {
 						world.setBlockState(pos, state);
 					}
 				}
 			}
 		}
+	}
+
+	public static void placeBlocks(World world, Bounds bounds, IBlockState state) {
+		replaceBlocks(world, null, bounds, state);
 	}
 }
