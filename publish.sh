@@ -2,29 +2,58 @@
 
 MC_SERVER=mc.gking2224.me
 FILENAME=mc-mod-ctf-1.0.jar
+BUILT_FILE=build/libs/$FILENAME
 MSM_SERVER_NAME=CaptureTheFlag1
 S3_PATH=s3://gk-minecraft/mods/ctf
-S3_OPTS="--region eu-west-2"
+S3_REGION=eu-west-2
+S3_OPTS="--region $S3_REGION"
 MSM_SERVER_MODS_DIR=/opt/msm/servers/$MSM_SERVER_NAME/mods
 
+# CLEAN UP
+if [[ -f $BUILT_FILE ]]
+then
+  echo "--- Remove old file"
+  #rm -v $BUILT_FILE
+fi
+
 # BUILD
-./gradlew build
+echo "--- Run gradle build"
+#./gradlew build
+
+if [[ ! -f $BUILT_FILE ]]
+then
+  echo "ERROR: No built file"
+  exit 1
+fi
 
 # DEPLOY LOCALLY
-cp -v build/libs/$FILENAME /Users/gk/Library/Application\ Support/minecraft/mods/
-sudo cp -v build/libs/$FILENAME /Users/edward/Library/Application\ Support/minecraft/mods/
-sudo cp -v build/libs/$FILENAME /Users/thomas/Library/Application\ Support/minecraft/mods/
+echo "--- Deploying to local users"
+for d in `find /Users -maxdepth 1 -type d`
+do
+  if [[ -d $d/Library/Application\ Support/minecraft/mods ]]
+  then
+    echo "Deploy to $d"
+    sudo cp -v $BUILT_FILE $d/Library/Application\ Support/minecraft/mods/$FILE_NAME
+  else
+    echo "No directory $d"
+  fi
+done
 
 # PUBLISH
-aws s3 cp build/libs/$FILENAME $S3_PATH/$FILENAME $S3_OPTS
+echo "--- Copying $BUILT_FILE to $S3_PATH/$FILENAME ($S3_REGION)"
+aws s3 cp $BUILT_FILE $S3_PATH/$FILENAME $S3_OPTS
 
 # STOP SERVER
-ssh -i ~/.awskey minecraft@$MC_SERVER msm $MSM_SERVER_NAME stop
+echo "--- Stop server $MSM_SERVER_NAME on $MC_SERVER"
+ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm msm $MSM_SERVER_NAME stop"
 
 # DEPLOY
-ssh -i ~/.awskey minecraft@$MC_SERVER "mkdir -p $MSM_SERVER_MODS_DIR"
-ssh -i ~/.awskey minecraft@$MC_SERVER rm $MSM_SERVER_MODS_DIR/$FILENAME
-ssh -i ~/.awskey minecraft@$MC_SERVER aws s3 cp $S3_PATH/$FILENAME $MSM_SERVER_MODS_DIR/$FILENAME $S3_OPTS
+echo "--- Deploy to $MSM_SERVER_NAME on $MC_SERVER"
+ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm; mkdir -vp $MSM_SERVER_MODS_DIR"
+ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm; rm -v $MSM_SERVER_MODS_DIR/$FILENAME"
+echo "--- Copy $S3_PATH/$FILENAME ($S3_REGION) to $MSM_SERVER_MODS_DIR/$FILENAME"
+ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm; aws s3 cp $S3_PATH/$FILENAME $MSM_SERVER_MODS_DIR/$FILENAME $S3_OPTS"
 
 # START SERVER
-ssh -i ~/.awskey minecraft@$MC_SERVER msm $MSM_SERVER_NAME start
+echo "--- Start server $MSM_SERVER_NAME on $MC_SERVER"
+ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm msm $MSM_SERVER_NAME start"
