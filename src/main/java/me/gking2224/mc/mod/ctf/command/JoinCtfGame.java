@@ -50,23 +50,22 @@ public class JoinCtfGame extends CommandBase {
 			String[] args) throws CommandException {
 		
 		Entity e = sender.getCommandSenderEntity();
-		String gameName = args[0];
+		String gameArg = (args.length != 0) ? args[0] : null; 
 		
 		if (e == null) return;
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
-			
-			GameManager gameManager = GameManager.get();
-			Optional<Game> g = gameManager.getGame(gameName);
-			Game game = g.orElseThrow(() -> new CommandException("Game %s not found", gameName));
+			Game game = getGame(player, gameArg);
+			String gameName = game.getName();
 
 			String playerName = player.getName();
+			GameManager gameManager = GameManager.get();
 			gameManager.playerLeaveAllGames(playerName);
 			Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
 			t.ifPresent((team) -> {
 				sender.sendMessage(StringUtils.toIText(
 						format("Already in game %s on team %s", gameName, team.getColour())));
-				gameManager.sendPlayerToBase(game, player);
+				//gameManager.sendPlayerToBase(game, player);
 			});
 			if (!t.isPresent()) {
 				CtfTeam team = game.addPlayer(playerName);

@@ -69,7 +69,7 @@ public class BackToBase implements ICommand {
 
 	@Override
 	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
-		return true;
+		return false;
 	}
 
 	@Override

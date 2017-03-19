@@ -52,16 +52,7 @@ public class GameInfo extends CommandBase {
 		if (e == null) return;
 		if (e instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer)e;
-			GameManager gameManager = GameManager.get();
-			Game game = null;
-			if (gameArg != null) {
-				Optional<Game> g = gameManager.getGame(gameArg);
-				game = g.orElseThrow(() -> new CommandException("Game %s not found", gameArg));
-			}
-			else {
-				Optional<Game> g = gameManager.getPlayerActiveGame(player.getName());
-				game = g.orElseThrow(() -> new CommandException("No active game and no game specified"));
-			}
+			Game game = getGame(player, gameArg);
 			sender.sendMessage(toIText(game.toString()));
 		}
 	}

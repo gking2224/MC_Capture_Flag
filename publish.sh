@@ -30,12 +30,10 @@ fi
 echo "--- Deploying to local users"
 for d in `find /Users -maxdepth 1 -type d`
 do
-  if [[ -d $d/Library/Application\ Support/minecraft/mods ]]
+  if sudo bash -c "[[ -d $d/Library/Application\ Support/minecraft/mods ]]"
   then
     echo "Deploy to $d"
     sudo cp -v $BUILT_FILE $d/Library/Application\ Support/minecraft/mods/$FILE_NAME
-  else
-    echo "No directory $d"
   fi
 done
 

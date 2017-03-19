@@ -17,6 +17,7 @@ import net.minecraft.world.storage.MapStorage;
 
 public class GameData extends WorldSavedData {
 
+	private static final String HANDICAP = "handicap";
 	private static final String FLAG_LOC = "flagLoc";
 	private static final String BASE_LOC = "baseLoc";
 	private static final String FLAG_HOLDER = "flagHolder";
@@ -39,6 +40,7 @@ public class GameData extends WorldSavedData {
 	private Map<TeamColour, BlockPos> flagLocations = new HashMap<TeamColour, BlockPos>();
 	private Map<TeamColour, String> playerHoldingFlag = new HashMap<TeamColour, String>();
 	private GameOptions options;
+	private Map<String, Integer> handicaps = new HashMap<String, Integer>();
 
 	public GameData() {
 		this("unknown", GameOptions.getDefault());
@@ -131,6 +133,9 @@ public class GameData extends WorldSavedData {
 		String optionsStr = nbt.getString(OPTIONS);
 		System.out.printf("read game options: %s\n", optionsStr);
 		this.options = (optionsStr != null) ? new GameOptions(optionsStr) : GameOptions.getDefault();
+		
+		this.teams.values().forEach(t -> t.getPlayers().forEach(p -> handicaps.put(p, nbt.getInteger(HANDICAP+p))));
+		
 		System.out.printf("Read game from NBT: %s\n", this);
 	}
 
@@ -155,7 +160,10 @@ public class GameData extends WorldSavedData {
 		}
 		String optionsStr = options.toString();
 		nbt.setString(OPTIONS, optionsStr);
-		System.out.printf("wrote game options: %s\n", optionsStr);
+		
+		handicaps.forEach((p, h) -> nbt.setInteger(HANDICAP+p, h));
+		
+
 		System.out.printf("Wrote game to NBT: %s\n", this);
 		return nbt;
 	}
@@ -187,5 +195,11 @@ public class GameData extends WorldSavedData {
 	}
 	public GameOptions getOptions() {
 		return this.options;
+	}
+	public Optional<Integer> getPlayerHandicap(String p) {
+		return Optional.ofNullable(handicaps.get(p));
+	}
+	public void setPlayerHandicap(String p, int h) {
+		handicaps.put(p, h);
 	}
 }

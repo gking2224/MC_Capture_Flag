@@ -169,6 +169,16 @@ public class Game {
 		return gameData.getOptions();
 	}
 	
+	public void setPlayerHandicap(String p, int h) {
+		gameData.setPlayerHandicap(p, h);
+		save();
+	}
+	
+	public int getPlayerHandicap(String p) {
+		Optional<Integer>h  = gameData.getPlayerHandicap(p);
+		return h.orElse(0);
+	}
+	
 	public String toString() {
 		return format(
 				"Game[name=%s, players=[RED: %s, BLUE:%s], score=%s, redBase=%s, blueBase=%s, options=%s]",
