@@ -89,8 +89,8 @@ public class GameWorldManager {
 		
 		buildPerimeter(
 				game.getBounds(),
-				Math.min(redY, blueY) - 10,
-				Math.max(redY, blueY) + 10);
+				Math.min(redY, blueY) - 2,
+				Math.max(redY, blueY) + 2);
 		
 	}
 
@@ -204,13 +204,13 @@ public class GameWorldManager {
 	private void createBase(Game game, TeamColour team, boolean invertZ) {
 		BlockPos refPos = getBasePos(game.getBounds(), invertZ);
 		ensureBlockGenerated(refPos);
-		createBaseStructure(refPos, team);
+		createBaseStructure(game, refPos, team);
 		System.out.printf("Team %s base location at %s\n", team, blockPosStr(refPos));
 		game.setBaseLocation(team, refPos);
 	}
 
-	private Bounds createBaseStructure(BlockPos refPos, TeamColour colour) {
-		BaseBuilder builder = BaseBuilderFactory.defaultBaseBuilder();
+	private Bounds createBaseStructure(Game game, BlockPos refPos, TeamColour colour) {
+		BaseBuilder builder = BaseBuilderFactory.getBaseBuilder(server, game);
 		return builder.buildBase(world, refPos, colour);
 	}
 
