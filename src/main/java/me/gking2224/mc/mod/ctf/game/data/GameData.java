@@ -43,6 +43,9 @@ public class GameData extends WorldSavedData {
 	public GameData() {
 		this("unknown", GameOptions.getDefault());
 	}
+	public GameData(String name) {
+		this(getDataIdentifier(name), null);
+	}
 	public GameData(String name, GameOptions options) {
 		super(getDataIdentifier(name));
 		this.name = name;
