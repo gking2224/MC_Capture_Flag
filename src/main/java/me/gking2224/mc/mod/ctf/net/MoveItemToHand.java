@@ -11,46 +11,49 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 public class MoveItemToHand implements IMessage {
 
-	private ItemStack itemStack;
+  public static class MoveItemToHandMessageHandler
+          implements IMessageHandler<MoveItemToHand, IMessage>
+  {
+    @Override public IMessage onMessage(MoveItemToHand msg,
+      MessageContext ctx)
+    {
+      final EntityPlayer player = Minecraft.getMinecraft().player;
+      new Thread(() -> {
+        try {
+          Thread.sleep(500);
+        } catch (final Exception e) {}
+        final int slot = player.inventory.getSlotFor(msg.getItemStack());
+        System.out.printf("%s in slot %d\n",
+                msg.getItemStack().getDisplayName(), slot);
+        // if (slot != -1) player.inventory.pickItem(slot);
+      }).start();
+      return null;
+    }
+  }
 
-	public MoveItemToHand() {
-	}
+  private ItemStack itemStack;
 
-	public MoveItemToHand(ItemStack stack) {
-		this.itemStack = stack;
-	}
+  public MoveItemToHand() {}
 
-	@Override
-	public void toBytes(ByteBuf buf) {
-		int id = Item.getIdFromItem(this.itemStack.getItem());
-		buf.writeInt(id);
-		int quantity = this.itemStack.getCount();
-		buf.writeInt(quantity);
-	}
+  public MoveItemToHand(ItemStack stack) {
+    this.itemStack = stack;
+  }
 
-	@Override
-	public void fromBytes(ByteBuf buf) {
-		int id = buf.readInt();
-		int quantity = buf.readInt();
-		
-		this.itemStack = new ItemStack(Item.getItemById(id), quantity);
-	}
+  @Override public void fromBytes(ByteBuf buf) {
+    final int id = buf.readInt();
+    final int quantity = buf.readInt();
 
-	public ItemStack getItemStack() {
-		return this.itemStack;
-	}
-	
-	public static class MoveItemToHandMessageHandler implements IMessageHandler<MoveItemToHand, IMessage> {
-		@Override
-		public IMessage onMessage(MoveItemToHand msg, MessageContext ctx) {
-			EntityPlayer player = Minecraft.getMinecraft().player;
-			new Thread(() -> {
-				try { Thread.sleep(500); } catch (Exception e) {}
-				int slot = player.inventory.getSlotFor(msg.getItemStack());
-				System.out.printf("%s in slot %d\n", msg.getItemStack().getDisplayName(), slot);
-				//if (slot != -1) player.inventory.pickItem(slot);
-			}).start();
-			return null;
-		}
-	}
+    this.itemStack = new ItemStack(Item.getItemById(id), quantity);
+  }
+
+  public ItemStack getItemStack() {
+    return this.itemStack;
+  }
+
+  @Override public void toBytes(ByteBuf buf) {
+    final int id = Item.getIdFromItem(this.itemStack.getItem());
+    buf.writeInt(id);
+    final int quantity = this.itemStack.getCount();
+    buf.writeInt(quantity);
+  }
 }

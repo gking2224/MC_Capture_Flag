@@ -44,7 +44,7 @@ aws s3 cp $BUILT_FILE $S3_PATH/$FILENAME $S3_OPTS
 
 # STOP SERVER
 echo "--- Stop server $MSM_SERVER_NAME on $MC_SERVER"
-ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=msm $MSM_SERVER_NAME say 'Server restarting for upgrade'"
+ssh -T -i ~/.awskey minecraft@$MC_SERVER TERM=msm $MSM_SERVER_NAME say "Server restarting for upgrade"
 ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm msm $MSM_SERVER_NAME stop"
 
 # DEPLOY

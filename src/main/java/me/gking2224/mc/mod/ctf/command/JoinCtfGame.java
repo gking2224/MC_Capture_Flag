@@ -19,87 +19,87 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
 public class JoinCtfGame extends CommandBase {
-	private final List<String> aliases;
+  private final List<String> aliases;
 
-	protected String fullEntityName;
-	protected Entity conjuredEntity;
-	
-	public JoinCtfGame() {
+  protected String fullEntityName;
+  protected Entity conjuredEntity;
 
-        aliases = new ArrayList<String>(); 
-        aliases.add("jg"); 
-	}
+  public JoinCtfGame() {
 
-	@Override
-	public int compareTo(ICommand o) {
-		return 0;
-	}
+    aliases = new ArrayList<String>();
+    aliases.add("jg");
+  }
 
-	@Override
-	public String getName() {
-		return "join_ctf_game";
-	}
+  @Override public int compareTo(ICommand o) {
+    return 0;
+  }
 
-	@Override
-	public List<String> getAliases() {
-		return this.aliases;
-	}
+  @Override public String getName() {
+    return "join_ctf_game";
+  }
 
-	@Override
-	protected void doExecute(MinecraftServer server, ICommandSender sender,
-			String[] args) throws CommandException {
-		
-		Entity e = sender.getCommandSenderEntity();
-		String gameArg = (args.length != 0) ? args[0] : null; 
-		
-		if (e == null) return;
-		if (e instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer)e;
-			Game game = getGame(player, gameArg);
-			String gameName = game.getName();
+  @Override public List<String> getAliases() {
+    return this.aliases;
+  }
 
-			String playerName = player.getName();
-			GameManager gameManager = GameManager.get();
-			gameManager.playerLeaveAllGames(playerName);
-			Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
-			t.ifPresent((team) -> {
-				sender.sendMessage(StringUtils.toIText(
-						format("Already in game %s on team %s", gameName, team.getColour())));
-				//gameManager.sendPlayerToBase(game, player);
-			});
-			if (!t.isPresent()) {
-				CtfTeam team = game.addPlayer(playerName);
-				gameManager.save();
-				sender.sendMessage(StringUtils.toIText(
-						format("Joined game %s on team %s", gameName, team.getColour())));
-				gameManager.sendPlayerToBase(game, player);
-			}
-		}
-	}
+  @Override protected void doExecute(MinecraftServer server,
+    ICommandSender sender, String[] args)
+      throws CommandException
+  {
 
-	@Override
-	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
-		return true;
-	}
+    Entity e = sender.getCommandSenderEntity();
+    String gameArg = (args.length != 0) ? args[0] : null;
 
-	@Override
-	public List<String> getTabCompletions(MinecraftServer server,
-			ICommandSender sender, String[] args, BlockPos targetPos) {
-		return null;
-	}
+    if (e == null) return;
+    if (e instanceof EntityPlayer) {
+      EntityPlayer player = (EntityPlayer) e;
+      Game game = getGame(player, gameArg);
+      String gameName = game.getName();
 
-	@Override
-	public boolean isUsernameIndex(String[] args, int index) {
-		return false;
-	}
+      String playerName = player.getName();
+      GameManager gameManager = GameManager.get();
+      gameManager.playerLeaveAllGames(playerName);
+      Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
+      t.ifPresent((team) -> {
+        sender.sendMessage(StringUtils.toIText(format(
+                "Already in game %s on team %s", gameName, team.getColour())));
+        // gameManager.sendPlayerToBase(game, player);
+      });
+      if (!t.isPresent()) {
+        CtfTeam team = game.addPlayer(playerName);
+        gameManager.save();
+        sender.sendMessage(StringUtils.toIText(format(
+                "Joined game %s on team %s", gameName, team.getColour())));
+        gameManager.sendPlayerToBase(game, player);
+      }
+    }
+  }
 
-	@Override
-	protected String[] getArgNames() {
-		return new String[] { "name" };
-	}
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return true;
+  }
 
-	@Override
-	protected boolean[] getMandatoryArgs() {
-		return new boolean[] { true };
-	}
+  @Override public List<String> getTabCompletions(MinecraftServer server,
+    ICommandSender sender, String[] args, BlockPos targetPos)
+  {
+    return null;
+  }
+
+  @Override public boolean isUsernameIndex(String[] args, int index) {
+    return false;
+  }
+
+  @Override protected String[] getArgNames() {
+    return new String[] {
+        "name"
+    };
+  }
+
+  @Override protected boolean[] getMandatoryArgs() {
+    return new boolean[] {
+        true
+    };
+  }
 }

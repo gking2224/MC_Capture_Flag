@@ -18,34 +18,32 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class EventHandlerCommon {
 
-	@SubscribeEvent
-	public void registerBlocks(RegistryEvent.Register<Block> event) {
-		System.out.printf("block registered: %s", event.getGenericType().getTypeName());
-		event.getRegistry().registerAll(TM1Blocks.getBlocks());
-	}
+  @SubscribeEvent public void registerBlocks(
+    RegistryEvent.Register<Block> event)
+  {
+    System.out.printf("block registered: %s",
+            event.getGenericType().getTypeName());
+    event.getRegistry().registerAll(TM1Blocks.getBlocks());
+  }
 
-	@SubscribeEvent
-	public void serverChat(ServerChatEvent event) {
-		EntityPlayer player = event.getPlayer();
-		System.out.printf("%s: %s", player.getName(), event.getMessage());
-	}
+  @SubscribeEvent public void serverChat(ServerChatEvent event) {
+    EntityPlayer player = event.getPlayer();
+    System.out.printf("%s: %s", player.getName(), event.getMessage());
+  }
 
-	@SubscribeEvent
-	public void itemPickup(EntityItemPickupEvent event) {
-		Optional<ItemBase> f = Flag.toFlag(event.getItem().getEntityItem());
-		f.ifPresent(flag -> GameEventManager.get().playerPickedUpFlag(event.getEntityPlayer().getName(), flag));
-	}
+  @SubscribeEvent public void itemPickup(EntityItemPickupEvent event) {
+    Optional<ItemBase> f = Flag.toFlag(event.getItem().getEntityItem());
+    f.ifPresent(flag -> GameEventManager.get()
+            .playerPickedUpFlag(event.getEntityPlayer().getName(), flag));
+  }
 
-	@SubscribeEvent
-	public void livingUpdate(LivingUpdateEvent event) {
-	}
+  @SubscribeEvent public void livingUpdate(LivingUpdateEvent event) {}
 
-	@SubscribeEvent
-	public void playerDied(LivingDeathEvent event) {
-		
-		Entity entity = event.getEntity();
-		if (EntityPlayer.class.isAssignableFrom(entity.getClass())) {
-			GameEventManager.get().playerDied((EntityPlayer)entity);
-		}
-	}
+  @SubscribeEvent public void playerDied(LivingDeathEvent event) {
+
+    Entity entity = event.getEntity();
+    if (EntityPlayer.class.isAssignableFrom(entity.getClass())) {
+      GameEventManager.get().playerDied((EntityPlayer) entity);
+    }
+  }
 }

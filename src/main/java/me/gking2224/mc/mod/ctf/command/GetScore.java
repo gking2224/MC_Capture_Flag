@@ -19,75 +19,69 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
 public class GetScore extends CommandBase {
-	private final List<String> aliases;
+  private final List<String> aliases;
 
-	protected String fullEntityName;
-	protected Entity conjuredEntity;
-	
-	public GetScore() {
+  protected String fullEntityName;
+  protected Entity conjuredEntity;
 
-        aliases = new ArrayList<String>(); 
-        aliases.add("gs"); 
-	}
+  public GetScore() {
 
-	@Override
-	public int compareTo(ICommand o) {
-		return 0;
-	}
+    aliases = new ArrayList<String>();
+    aliases.add("gs");
+  }
 
-	@Override
-	public String getName() {
-		return "ctf:get_score";
-	}
+  @Override public int compareTo(ICommand o) {
+    return 0;
+  }
 
-	@Override
-	public List<String> getAliases() {
-		return this.aliases;
-	}
+  @Override public String getName() {
+    return "ctf:get_score";
+  }
 
-	@Override
-	protected void doExecute(
-			MinecraftServer server, ICommandSender sender,
-			String[] args
-	) throws CommandException {
-		
-		Entity e = sender.getCommandSenderEntity();
-		
-		if (e == null) return;
-		if (e instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer)e;
-			String playerName = player.getName();
-			Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
-			g.orElseThrow(() -> new CommandException("You are not currently in a game. Use /new_ctf_game or /join_ctf_game"));
-			
-			sender.sendMessage(toIText(g.get().getFormattedScore()));
-		}
-	}
+  @Override public List<String> getAliases() {
+    return this.aliases;
+  }
 
-	@Override
-	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
-		return true;
-	}
+  @Override protected void doExecute(MinecraftServer server,
+    ICommandSender sender, String[] args)
+      throws CommandException
+  {
 
-	@Override
-	public List<String> getTabCompletions(MinecraftServer server,
-			ICommandSender sender, String[] args, BlockPos targetPos) {
-		return null;
-	}
+    Entity e = sender.getCommandSenderEntity();
 
-	@Override
-	public boolean isUsernameIndex(String[] args, int index) {
-		return false;
-	}
+    if (e == null) return;
+    if (e instanceof EntityPlayer) {
+      EntityPlayer player = (EntityPlayer) e;
+      String playerName = player.getName();
+      Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
+      g.orElseThrow(() -> new CommandException(
+              "You are not currently in a game. Use /new_ctf_game or /join_ctf_game"));
 
+      sender.sendMessage(toIText(g.get().getFormattedScore()));
+    }
+  }
 
-	@Override
-	protected boolean[] getMandatoryArgs() {
-		return new boolean[0];
-	}
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return true;
+  }
 
-	@Override
-	protected String[] getArgNames() {
-		return new String[0];
-	}
+  @Override public List<String> getTabCompletions(MinecraftServer server,
+    ICommandSender sender, String[] args, BlockPos targetPos)
+  {
+    return null;
+  }
+
+  @Override public boolean isUsernameIndex(String[] args, int index) {
+    return false;
+  }
+
+  @Override protected boolean[] getMandatoryArgs() {
+    return new boolean[0];
+  }
+
+  @Override protected String[] getArgNames() {
+    return new String[0];
+  }
 }

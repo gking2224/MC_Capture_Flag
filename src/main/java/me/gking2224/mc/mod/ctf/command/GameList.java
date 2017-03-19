@@ -17,68 +17,61 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
 public class GameList extends CommandBase {
-	private final List<String> aliases;
+  private final List<String> aliases;
 
-	public GameList() {
+  public GameList() {
 
-        aliases = new ArrayList<String>(); 
-        aliases.add("gl"); 
-	}
+    aliases = new ArrayList<String>();
+    aliases.add("gl");
+  }
 
-	@Override
-	public int compareTo(ICommand o) {
-		return 0;
-	}
+  @Override public int compareTo(ICommand o) {
+    return 0;
+  }
 
-	@Override
-	public String getName() {
-		return "ctf:game_list";
-	}
+  @Override public String getName() {
+    return "ctf:game_list";
+  }
 
-	@Override
-	public List<String> getAliases() {
-		return this.aliases;
-	}
+  @Override public List<String> getAliases() {
+    return this.aliases;
+  }
 
-	@Override
-	protected void doExecute(
-			MinecraftServer server, ICommandSender sender,
-			String[] args
-	) throws CommandException {
+  @Override protected void doExecute(MinecraftServer server,
+    ICommandSender sender, String[] args)
+      throws CommandException
+  {
 
-		Entity e = sender.getCommandSenderEntity();
-		
-		if (e == null) return;
-		if (e instanceof EntityPlayer) {
-			Set<String> games = GameManager.get().getAllGames();
-			sender.sendMessage(StringUtils.toIText(format("Games: %s", games)));
-		}
-	}
+    Entity e = sender.getCommandSenderEntity();
 
-	@Override
-	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
-		return true;
-	}
+    if (e == null) return;
+    if (e instanceof EntityPlayer) {
+      Set<String> games = GameManager.get().getAllGames();
+      sender.sendMessage(StringUtils.toIText(format("Games: %s", games)));
+    }
+  }
 
-	@Override
-	public List<String> getTabCompletions(MinecraftServer server,
-			ICommandSender sender, String[] args, BlockPos targetPos) {
-		return null;
-	}
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return true;
+  }
 
-	@Override
-	public boolean isUsernameIndex(String[] args, int index) {
-		return false;
-	}
+  @Override public List<String> getTabCompletions(MinecraftServer server,
+    ICommandSender sender, String[] args, BlockPos targetPos)
+  {
+    return null;
+  }
 
+  @Override public boolean isUsernameIndex(String[] args, int index) {
+    return false;
+  }
 
-	@Override
-	protected boolean[] getMandatoryArgs() {
-		return new boolean[0];
-	}
+  @Override protected boolean[] getMandatoryArgs() {
+    return new boolean[0];
+  }
 
-	@Override
-	protected String[] getArgNames() {
-		return new String[0];
-	}
+  @Override protected String[] getArgNames() {
+    return new String[0];
+  }
 }

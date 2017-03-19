@@ -8,25 +8,22 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 
-
 public class CommonProxy implements SidedProxy {
 
-	private EventHandlerCommon handler = new EventHandlerCommon();
+  private final EventHandlerCommon handler = new EventHandlerCommon();
 
-	@Override
-	public void registerItemRenderer(Item item, int meta, String id) {
-		
-	}
+  @Override public void init(FMLInitializationEvent event) {
+    MinecraftForge.EVENT_BUS.register(this.handler);
+    CtfNetworkHandler.registerMessages();
+  }
 
-	@Override
-	public void init(FMLInitializationEvent event) {
-		MinecraftForge.EVENT_BUS.register(handler);
-		CtfNetworkHandler.registerMessages();
-	}
+  @Override public void registerItemRenderer(Item item, int meta, String id) {
 
-	@Override
-	public void serverLoad(FMLServerStartingEvent event) {
-		GameManager.initialise(event.getServer());
-		GameManager.get().getGameCommands().forEach((cmd) -> event.registerServerCommand(cmd));
-	}
+  }
+
+  @Override public void serverLoad(FMLServerStartingEvent event) {
+    GameManager.initialise(event.getServer());
+    GameManager.get().getGameCommands()
+            .forEach((cmd) -> event.registerServerCommand(cmd));
+  }
 }

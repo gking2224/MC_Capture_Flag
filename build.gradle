@@ -7,6 +7,7 @@ buildscript {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
     }
 }
+apply plugin: 'java'
 apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
@@ -18,6 +19,39 @@ archivesBaseName = "mc-mod-ctf"
 sourceCompatibility = targetCompatibility = "1.8" // Need this here so eclipse task generates correctly.
 compileJava {
     sourceCompatibility = targetCompatibility = "1.8"
+}
+
+
+test {
+  // enable TestNG support (default is JUnit)
+//  useTestNG()
+
+  // set a system property for the test JVM(s)
+//  systemProperty 'some.prop', 'value'
+
+  // explicitly include or exclude tests
+//  include 'org/foo/**'
+//  exclude 'org/boo/**'
+
+  // show standard out and standard error of the test JVM(s) on the console
+  testLogging.showStandardStreams = true
+
+  // set heap size for the test JVM(s)
+//  minHeapSize = "128m"
+//  maxHeapSize = "512m"
+
+  // set JVM arguments for the test JVM(s)
+//  jvmArgs '-XX:MaxPermSize=256m'
+
+  // listen to events in the test execution lifecycle
+  beforeTest { descriptor ->
+	 logger.lifecycle("Running test: " + descriptor)
+  }
+
+  // listen to standard out and standard error of the test JVM(s)
+  onOutput { descriptor, event ->
+	 logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+  }
 }
 
 minecraft {
@@ -54,6 +88,8 @@ dependencies {
     // for more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+	
+	testCompile group: 'junit', name: 'junit', version: '4.12'
 
 }
 

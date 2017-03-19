@@ -17,70 +17,68 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
 public class BackToBase implements ICommand {
-	private final List<String> aliases;
+  private final List<String> aliases;
 
-	protected String fullEntityName;
-	protected Entity conjuredEntity;
-	
-	public BackToBase() {
+  protected String fullEntityName;
+  protected Entity conjuredEntity;
 
-        aliases = new ArrayList<String>(); 
-        aliases.add("btb"); 
-	}
+  public BackToBase() {
 
-	@Override
-	public int compareTo(ICommand o) {
-		return 0;
-	}
+    aliases = new ArrayList<String>();
+    aliases.add("btb");
+  }
 
-	@Override
-	public String getName() {
-		return "back_to_base";
-	}
+  @Override public int compareTo(ICommand o) {
+    return 0;
+  }
 
-	@Override
-	public String getUsage(ICommandSender sender) {
-		return "back_to_base";
-	}
+  @Override public String getName() {
+    return "back_to_base";
+  }
 
-	@Override
-	public List<String> getAliases() {
-		return this.aliases;
-	}
+  @Override public String getUsage(ICommandSender sender) {
+    return "back_to_base";
+  }
 
-	@Override
-	public void execute(MinecraftServer server, ICommandSender sender,
-			String[] args) throws CommandException {
-		Entity e = sender.getCommandSenderEntity();
-		
-		if (e == null) return;
-		if (e instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer)e;
-			String playerName = player.getName();
-			Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
-			g.orElseThrow(() -> new CommandException("No active game"));
-			
-			g.ifPresent((game) -> {
-				GameManager.get().sendPlayerToBase(game, player);
-				GameManager.get().broadcastToAllPlayers(game, format("Player %s teleported back to base\n", playerName));
-			});
-		}
-	}
+  @Override public List<String> getAliases() {
+    return this.aliases;
+  }
 
-	@Override
-	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
-		return false;
-	}
+  @Override public void execute(MinecraftServer server, ICommandSender sender,
+    String[] args)
+      throws CommandException
+  {
+    Entity e = sender.getCommandSenderEntity();
 
-	@Override
-	public List<String> getTabCompletions(MinecraftServer server,
-			ICommandSender sender, String[] args, BlockPos targetPos) {
-		return null;
-	}
+    if (e == null) return;
+    if (e instanceof EntityPlayer) {
+      EntityPlayer player = (EntityPlayer) e;
+      String playerName = player.getName();
+      Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
+      g.orElseThrow(() -> new CommandException("No active game"));
 
-	@Override
-	public boolean isUsernameIndex(String[] args, int index) {
-		return false;
-	}
+      g.ifPresent((game) -> {
+        GameManager.get().sendPlayerToBase(game, player);
+        GameManager.get().broadcastToAllPlayers(game,
+                format("Player %s teleported back to base\n", playerName));
+      });
+    }
+  }
+
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return false;
+  }
+
+  @Override public List<String> getTabCompletions(MinecraftServer server,
+    ICommandSender sender, String[] args, BlockPos targetPos)
+  {
+    return null;
+  }
+
+  @Override public boolean isUsernameIndex(String[] args, int index) {
+    return false;
+  }
 
 }

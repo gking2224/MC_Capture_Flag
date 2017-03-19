@@ -5,8 +5,7 @@ import java.util.Set;
 import net.minecraft.item.ItemStack;
 
 public interface GameInventory {
-	
-	Set<ItemStack> getGameItems();
-	
+
+  Set<ItemStack> getGameItems();
 
 }

@@ -19,82 +19,95 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class GameEventManager {
-	
-	private static GameEventManager instance = null;
 
-	public static void init(MinecraftServer server) {
-		if (instance != null) throw new IllegalStateException();
-		instance = new GameEventManager(server);
-	}
-	
-	public final static GameEventManager get() { return instance; }
-	
-	@SuppressWarnings("unused") private MinecraftServer server;
-	private World world;
-	
-	private GameEventManager(MinecraftServer server) {
-		this.server = server;
-		this.world = server.getEntityWorld();
-	}
+  private static GameEventManager instance = null;
 
-	public void playerPickedUpFlag(String playerName, ItemBase item) {
-		Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
-		g.ifPresent((game) -> {
-			Optional<EntityPlayer> p = GameManager.get().getPlayerByName(playerName);
-			p.ifPresent(player -> {
-				Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
-				t.ifPresent((team) -> {
-					TeamColour flagColour = Flag.getFlagColour(item);
-					game.setPlayerHoldingFlag(flagColour, playerName);
-					if (flagColour != team.getColour()) {
-						broadcastTeamCapturedFlag(game, playerName, flagColour);
-						schedule(() -> moveItemFromInventoryToPlayerHand(player, item), 0);
-					}
-					else {
-						GameManager.get().broadcastToAllPlayers(game, format("Player %s tried to pick up his own flag!", playerName));
-						GameWorldManager.get().resetFlag(game, flagColour);
-					}
-				});
-			});
-		});
-	}
+  public final static GameEventManager get() {
+    return instance;
+  }
 
-	private void broadcastTeamCapturedFlag(Game game, String player, TeamColour teamColour) {
-		GameManager.get().broadcastToAllPlayers(game, format("Player %s has got %s team's flag!", player, teamColour));
-	}
+  public static void init(MinecraftServer server) {
+    if (instance != null) { throw new IllegalStateException(); }
+    instance = new GameEventManager(server);
+  }
 
-	public void flagPlaced(String player, ItemBase flag, BlockPos blockPos) {
-		Optional<Game> g = GameManager.get().getPlayerActiveGame(player);
-		g.ifPresent((game) -> {
-			TeamColour flagColour = Flag.getFlagColour(flag);
-			game.setFlagBlockPosition(flagColour, blockPos);
-			System.out.printf("%s: %s flag position updated as %s\n", Thread.currentThread().getName(), flagColour, blockPos);
-			Optional<CtfTeam> t = game.getTeamForPlayer(player);
-			t.ifPresent(team -> {
-				if (!Flag.isOwnTeamFlag(flag, team)) {
-					if (GameWorldManager.get().isInHomeBase(game, team.getColour(), blockPos)) {
-						GameManager.get().gameRoundWon(game, player, team, flagColour);
-					}
-				}
-				else {
-					GameManager.get().broadcastToAllPlayers(game, format("Player %s has placed his team's flag!", player));
-				}
-			});
-		});
-	}
+  @SuppressWarnings("unused") private final MinecraftServer server;
+  private final World world;
 
-	public void schedule(Runnable r) {
-		schedule(r, -1);
-	}
+  private GameEventManager(MinecraftServer server) {
+    this.server = server;
+    this.world = server.getEntityWorld();
+  }
 
-	public void schedule(Runnable r, int delay) {
-		if (delay != -1) {
-			try { Thread.sleep(delay); } catch (Exception e) {}
-		}
-		new Thread(r).start();
-	}
+  private void broadcastTeamCapturedFlag(Game game, String player,
+    TeamColour teamColour)
+  {
+    GameManager.get().broadcastToAllPlayers(game,
+            format("Player %s has got %s team's flag!", player, teamColour));
+  }
 
-	public void playerDied(Entity entity) {
-//		GameManager.get().broadcastToAllPlayers(game, format("Player %s has placed his team's flag!", player));
-	}
+  public void flagPlaced(String player, ItemBase flag, BlockPos blockPos) {
+    final Optional<Game> g = GameManager.get().getPlayerActiveGame(player);
+    g.ifPresent((game) -> {
+      final TeamColour flagColour = Flag.getFlagColour(flag);
+      game.setFlagBlockPosition(flagColour, blockPos);
+      System.out.printf("%s: %s flag position updated as %s\n",
+              Thread.currentThread().getName(), flagColour, blockPos);
+      final Optional<CtfTeam> t = game.getTeamForPlayer(player);
+      t.ifPresent(team -> {
+        if (!Flag.isOwnTeamFlag(flag, team)) {
+          if (GameWorldManager.get().isInHomeBase(game, team.getColour(),
+                  blockPos))
+          {
+            GameManager.get().gameRoundWon(game, player, team, flagColour);
+          }
+        } else {
+          GameManager.get().broadcastToAllPlayers(game,
+                  format("Player %s has placed his team's flag!", player));
+        }
+      });
+    });
+  }
+
+  public void playerDied(Entity entity) {
+    // GameManager.get().broadcastToAllPlayers(game, format("Player %s has
+    // placed his team's flag!", player));
+  }
+
+  public void playerPickedUpFlag(String playerName, ItemBase item) {
+    final Optional<Game> g = GameManager.get().getPlayerActiveGame(playerName);
+    g.ifPresent((game) -> {
+      final Optional<EntityPlayer> p = GameManager.get()
+              .getPlayerByName(playerName);
+      p.ifPresent(player -> {
+        final Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
+        t.ifPresent((team) -> {
+          final TeamColour flagColour = Flag.getFlagColour(item);
+          game.setPlayerHoldingFlag(flagColour, playerName);
+          if (flagColour != team.getColour()) {
+            this.broadcastTeamCapturedFlag(game, playerName, flagColour);
+            this.schedule(() -> moveItemFromInventoryToPlayerHand(player, item),
+                    0);
+          } else {
+            GameManager.get().broadcastToAllPlayers(game, format(
+                    "Player %s tried to pick up his own flag!", playerName));
+            GameWorldManager.get().resetFlag(game, flagColour);
+          }
+        });
+      });
+    });
+  }
+
+  public void schedule(Runnable r) {
+    this.schedule(r, -1);
+  }
+
+  public void schedule(Runnable r, int delay) {
+    if (delay != -1) {
+      try {
+        Thread.sleep(delay);
+      } catch (final Exception e) {}
+    }
+    new Thread(r).start();
+  }
 }

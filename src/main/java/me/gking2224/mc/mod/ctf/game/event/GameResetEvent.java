@@ -5,14 +5,14 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 
 public class GameResetEvent extends Event {
 
-	private Game game;
+  private final Game game;
 
-	public GameResetEvent(Game game) {
-		this.game = game;
-	}
+  public GameResetEvent(Game game) {
+    this.game = game;
+  }
 
-	public Game getGame() {
-		return game;
-	}
+  public Game getGame() {
+    return this.game;
+  }
 
 }

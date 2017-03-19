@@ -1,7 +1,6 @@
 package me.gking2224.mc.mod.ctf.item;
 
 import me.gking2224.mc.mod.ctf.ModCaptureTheFlag;
-import me.gking2224.mc.mod.ctf.blocks.BlockBase;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
@@ -16,73 +15,75 @@ import net.minecraft.world.World;
 
 public class ItemBase extends Item {
 
-	protected String name;
-	private IBlockState placesAsBlock;
+  protected String name;
+  private IBlockState placesAsBlock;
 
-	public ItemBase(String name) {
-		this.name = name;
-		setUnlocalizedName(name);
-		setRegistryName(name);
-	}
+  public ItemBase(String name) {
+    this.name = name;
+    this.setUnlocalizedName(name);
+    this.setRegistryName(name);
+  }
 
-	public void registerItemModel() {
-		ModCaptureTheFlag.proxy.registerItemRenderer(this, 0, name);
-	}
+  public String getName() {
+    return this.name;
+  }
 
-	@Override
-	public ItemBase setCreativeTab(CreativeTabs tab) {
-		super.setCreativeTab(tab);
-		return this;
-	}
+  /**
+   * Called when a Block is right-clicked with this Item
+   */
+  @Override public EnumActionResult onItemUse(EntityPlayer player,
+    World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX,
+    float hitY, float hitZ)
+  {
+    if (this.placesAsBlock != null) {
+      return this.placeAsBlock(player, worldIn, pos, hand, facing, hitX, hitY,
+              hitZ);
+    } else {
+      return EnumActionResult.PASS;
+    }
+  }
 
-	@Override
-	public ItemBase setMaxStackSize(int size) {
-		super.setMaxStackSize(size);
-		return this;
-	}
-	
-	
-	public ItemBase setPlacesAsBlock(IBlockState blockState) {
-		this.placesAsBlock = blockState;
-		return this;
-	}
-	
-	public String getName() {
-		return name;
-	}
+  public EnumActionResult placeAsBlock(EntityPlayer player, World worldIn,
+    BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY,
+    float hitZ)
+  {
 
-    /**
-     * Called when a Block is right-clicked with this Item
-     */
-	@Override
-    public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    final boolean targetBlockReplaceable = worldIn.getBlockState(pos).getBlock()
+            .isReplaceable(worldIn, pos);
+    final BlockPos blockpos = targetBlockReplaceable ? pos : pos.offset(facing);
+    final ItemStack itemstack = player.getHeldItem(hand);
+
+    if (player.canPlayerEdit(blockpos, facing, itemstack)
+            && worldIn.mayPlace(worldIn.getBlockState(blockpos).getBlock(),
+                    blockpos, false, facing, (Entity) null)
+            && this.placesAsBlock.getBlock().canPlaceBlockAt(worldIn,
+                    blockpos))
     {
-		if (this.placesAsBlock != null) {
-			return placeAsBlock(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);
-		}
-		else return EnumActionResult.PASS;
+      itemstack.shrink(1);
+      worldIn.setBlockState(blockpos, this.placesAsBlock);
+      return EnumActionResult.SUCCESS;
+    } else {
+      return EnumActionResult.FAIL;
     }
-    
-    public EnumActionResult placeAsBlock(
-    		EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+  }
 
-        boolean targetBlockReplaceable = worldIn.getBlockState(pos).getBlock().isReplaceable(worldIn, pos);
-        BlockPos blockpos = targetBlockReplaceable ? pos : pos.offset(facing);
-        ItemStack itemstack = player.getHeldItem(hand);
+  public void registerItemModel() {
+    ModCaptureTheFlag.proxy.registerItemRenderer(this, 0, this.name);
+  }
 
-        if (
-        		player.canPlayerEdit(blockpos, facing, itemstack) &&
-        		worldIn.mayPlace(worldIn.getBlockState(blockpos).getBlock(), blockpos, false, facing, (Entity)null) &&
-        		this.placesAsBlock.getBlock().canPlaceBlockAt(worldIn, blockpos)
-		) {
-            itemstack.shrink(1);
-            worldIn.setBlockState(blockpos, this.placesAsBlock);
-            return EnumActionResult.SUCCESS;
-        }
-        else
-        {
-            return EnumActionResult.FAIL;
-        }
-    }
+  @Override public ItemBase setCreativeTab(CreativeTabs tab) {
+    super.setCreativeTab(tab);
+    return this;
+  }
+
+  @Override public ItemBase setMaxStackSize(int size) {
+    super.setMaxStackSize(size);
+    return this;
+  }
+
+  public ItemBase setPlacesAsBlock(IBlockState blockState) {
+    this.placesAsBlock = blockState;
+    return this;
+  }
 
 }

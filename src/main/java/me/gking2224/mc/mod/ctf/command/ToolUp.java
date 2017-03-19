@@ -14,72 +14,66 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
 public class ToolUp extends CommandBase {
-	private final List<String> aliases;
+  private final List<String> aliases;
 
-	protected String fullEntityName;
-	protected Entity conjuredEntity;
-	
-	public ToolUp() {
+  protected String fullEntityName;
+  protected Entity conjuredEntity;
 
-        aliases = new ArrayList<String>(); 
-        aliases.add("tu"); 
-	}
+  public ToolUp() {
 
-	@Override
-	public int compareTo(ICommand o) {
-		return 0;
-	}
+    aliases = new ArrayList<String>();
+    aliases.add("tu");
+  }
 
-	@Override
-	public String getName() {
-		return "ctf:tool_up";
-	}
+  @Override public int compareTo(ICommand o) {
+    return 0;
+  }
 
-	@Override
-	public List<String> getAliases() {
-		return this.aliases;
-	}
+  @Override public String getName() {
+    return "ctf:tool_up";
+  }
 
-	@Override
-	protected void doExecute(
-			MinecraftServer server, ICommandSender sender,
-			String[] args
-	) throws CommandException {
+  @Override public List<String> getAliases() {
+    return this.aliases;
+  }
 
-		Entity e = sender.getCommandSenderEntity();
-		
-		if (e == null) return;
-		if (e instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer)e;
-			
-			InventoryUtils.addItemsToPlayerInventory(player, GameInventoryFactory.getDefault().getGameItems());
-		}
-	}
+  @Override protected void doExecute(MinecraftServer server,
+    ICommandSender sender, String[] args)
+      throws CommandException
+  {
 
-	@Override
-	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
-		return true;
-	}
+    Entity e = sender.getCommandSenderEntity();
 
-	@Override
-	public List<String> getTabCompletions(MinecraftServer server,
-			ICommandSender sender, String[] args, BlockPos targetPos) {
-		return null;
-	}
+    if (e == null) return;
+    if (e instanceof EntityPlayer) {
+      EntityPlayer player = (EntityPlayer) e;
 
-	@Override
-	public boolean isUsernameIndex(String[] args, int index) {
-		return false;
-	}
+      InventoryUtils.addItemsToPlayerInventory(player,
+              GameInventoryFactory.getDefault().getGameItems());
+    }
+  }
 
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return true;
+  }
 
-	@Override
-	protected boolean[] getMandatoryArgs() {
-		return new boolean[0];
-	}
+  @Override public List<String> getTabCompletions(MinecraftServer server,
+    ICommandSender sender, String[] args, BlockPos targetPos)
+  {
+    return null;
+  }
 
-	@Override
-	protected String[] getArgNames() {
-		return new String[0];
-	}
+  @Override public boolean isUsernameIndex(String[] args, int index) {
+    return false;
+  }
+
+  @Override protected boolean[] getMandatoryArgs() {
+    return new boolean[0];
+  }
+
+  @Override protected String[] getArgNames() {
+    return new String[0];
+  }
 }

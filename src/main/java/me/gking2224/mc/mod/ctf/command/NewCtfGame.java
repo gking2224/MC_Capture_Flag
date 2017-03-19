@@ -22,92 +22,88 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
 public class NewCtfGame extends CommandBase {
-	private static GameOptions DEFAULT_OPTIONS = GameOptions.getDefault();
-	
-	private final List<String> aliases;
-	protected String fullEntityName;
-	protected Entity conjuredEntity;
-	
-	public NewCtfGame() {
+  private static GameOptions DEFAULT_OPTIONS = GameOptions.getDefault();
 
-        aliases = new ArrayList<String>(); 
-        aliases.add("ng"); 
-	}
+  private final List<String> aliases;
+  protected String fullEntityName;
+  protected Entity conjuredEntity;
 
-	@Override
-	public int compareTo(ICommand o) {
-		return 0;
-	}
+  public NewCtfGame() {
 
-	@Override
-	public String getName() {
-		return "new_ctf_game";
-	}
+    aliases = new ArrayList<String>();
+    aliases.add("ng");
+  }
 
-	@Override
-	public List<String> getAliases() {
-		return this.aliases;
-	}
+  @Override public int compareTo(ICommand o) {
+    return 0;
+  }
 
-	@Override
-	protected void doExecute(
-			MinecraftServer server, ICommandSender sender,
-			String[] args
-	) throws CommandException {
+  @Override public String getName() {
+    return "new_ctf_game";
+  }
 
-		Entity e = sender.getCommandSenderEntity();
-		GameOptions options = DEFAULT_OPTIONS;
-		if (args.length >= 1) {
-			options = options.update(args[0]);
-		}
-		
-		if (e == null) return;
-		if (e instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer)e;
-			String playerName = player.getName();
-			
-			try {
-				GameManager gameManager = GameManager.get();
-				gameManager.playerLeaveAllGames(playerName);
-				Game game = gameManager.newGame(player, options);
-				CtfTeam team = game.addPlayer(playerName);
-				//TODO refactor join game code
-				player.setSpawnPoint(game.getBaseLocation(team.getColour()), true);
-				gameManager.sendPlayerToBase(game, player);
-				gameManager.toolUpPlayer(player);
-				sender.sendMessage(toIText(
-						format("Created game %s and joined team %s", game.getName(), team.getColour())));
-			}
-			catch (GameCreationException ex) {
-				throw new CommandException(ex.getMessage());
-			}
-		}
-	}
+  @Override public List<String> getAliases() {
+    return this.aliases;
+  }
 
-	@Override
-	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
-		return true;
-	}
+  @Override protected void doExecute(MinecraftServer server,
+    ICommandSender sender, String[] args)
+      throws CommandException
+  {
 
-	@Override
-	public List<String> getTabCompletions(MinecraftServer server,
-			ICommandSender sender, String[] args, BlockPos targetPos) {
-		return null;
-	}
+    Entity e = sender.getCommandSenderEntity();
+    GameOptions options = DEFAULT_OPTIONS;
+    if (args.length >= 1) {
+      options = options.update(args[0]);
+    }
 
-	@Override
-	public boolean isUsernameIndex(String[] args, int index) {
-		return false;
-	}
+    if (e == null) return;
+    if (e instanceof EntityPlayer) {
+      EntityPlayer player = (EntityPlayer) e;
+      String playerName = player.getName();
 
+      try {
+        GameManager gameManager = GameManager.get();
+        gameManager.playerLeaveAllGames(playerName);
+        Game game = gameManager.newGame(player, options);
+        CtfTeam team = game.addPlayer(playerName);
+        // TODO refactor join game code
+        player.setSpawnPoint(game.getBaseLocation(team.getColour()), true);
+        gameManager.sendPlayerToBase(game, player);
+        gameManager.toolUpPlayer(player);
+        sender.sendMessage(toIText(format("Created game %s and joined team %s",
+                game.getName(), team.getColour())));
+      } catch (GameCreationException ex) {
+        throw new CommandException(ex.getMessage());
+      }
+    }
+  }
 
-	@Override
-	protected boolean[] getMandatoryArgs() {
-		return new boolean[] { false, false };
-	}
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return true;
+  }
 
-	@Override
-	protected String[] getArgNames() {
-		return new String[] { "name", "options" };
-	}
+  @Override public List<String> getTabCompletions(MinecraftServer server,
+    ICommandSender sender, String[] args, BlockPos targetPos)
+  {
+    return null;
+  }
+
+  @Override public boolean isUsernameIndex(String[] args, int index) {
+    return false;
+  }
+
+  @Override protected boolean[] getMandatoryArgs() {
+    return new boolean[] {
+        false, false
+    };
+  }
+
+  @Override protected String[] getArgNames() {
+    return new String[] {
+        "name", "options"
+    };
+  }
 }

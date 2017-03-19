@@ -5,14 +5,14 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 
 public class NewGameEvent extends Event {
 
-	private Game game;
+  private final Game game;
 
-	public NewGameEvent(Game game) {
-		this.game = game;
-	}
+  public NewGameEvent(Game game) {
+    this.game = game;
+  }
 
-	public Game getGame() {
-		return this.game;
-	}
+  public Game getGame() {
+    return this.game;
+  }
 
 }

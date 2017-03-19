@@ -6,10 +6,10 @@ import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 
 public interface SidedProxy {
 
-	void registerItemRenderer(Item item, int meta, String id);
+  void init(FMLInitializationEvent event);
 
-	void init(FMLInitializationEvent event);
+  void registerItemRenderer(Item item, int meta, String id);
 
-	void serverLoad(FMLServerStartingEvent event);
+  void serverLoad(FMLServerStartingEvent event);
 
 }

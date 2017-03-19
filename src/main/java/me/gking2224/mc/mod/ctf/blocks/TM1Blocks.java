@@ -4,8 +4,8 @@ import net.minecraft.block.Block;
 
 public class TM1Blocks {
 
-	public static Block[] getBlocks() {
-		return new Block[] {};
-	}
+  public static Block[] getBlocks() {
+    return new Block[] {};
+  }
 
 }

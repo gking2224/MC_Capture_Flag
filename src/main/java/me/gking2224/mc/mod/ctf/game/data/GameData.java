@@ -17,189 +17,205 @@ import net.minecraft.world.storage.MapStorage;
 
 public class GameData extends WorldSavedData {
 
-	private static final String HANDICAP = "handicap";
-	private static final String FLAG_LOC = "flagLoc";
-	private static final String BASE_LOC = "baseLoc";
-	private static final String FLAG_HOLDER = "flagHolder";
-	private static final String SCORE = "score";
-	private static final String TEAM = "team";
-	private static final String NUM_TEAMS = "num_teams";
-	private static final String BOUNDS = "bounds";
-	private static final String NAME = "name";
-	private static final String OWNER = "owner";
-	private static final String FLAG_HELD = "flagHeld";
-	private static final String DATA_NAME = "CTF_GAME_DATA_";
-	private static final String OPTIONS = "options";
+  private static final String HANDICAP = "handicap";
+  private static final String FLAG_LOC = "flagLoc";
+  private static final String BASE_LOC = "baseLoc";
+  private static final String FLAG_HOLDER = "flagHolder";
+  private static final String SCORE = "score";
+  private static final String TEAM = "team";
+  private static final String NUM_TEAMS = "num_teams";
+  private static final String BOUNDS = "bounds";
+  private static final String NAME = "name";
+  private static final String OWNER = "owner";
+  private static final String FLAG_HELD = "flagHeld";
+  private static final String DATA_NAME = "CTF_GAME_DATA_";
+  private static final String OPTIONS = "options";
 
-	private String owner;
-	private String name;
-	private Bounds bounds;
-	private Map<TeamColour, CtfTeam> teams = new HashMap<TeamColour, CtfTeam>();
-	private Map<TeamColour, Integer> score = new HashMap<TeamColour, Integer>();
-	private Map<TeamColour, BlockPos> baseLocations = new HashMap<TeamColour, BlockPos>();
-	private Map<TeamColour, BlockPos> flagLocations = new HashMap<TeamColour, BlockPos>();
-	private Map<TeamColour, String> playerHoldingFlag = new HashMap<TeamColour, String>();
-	private GameOptions options;
-	private Map<String, Integer> handicaps = new HashMap<String, Integer>();
+  public static GameData create(World world, String name, GameOptions options) {
 
-	public GameData() {
-		this("unknown", GameOptions.getDefault());
-	}
-	public GameData(String name) {
-		this(getDataIdentifier(name), null);
-	}
-	public GameData(String name, GameOptions options) {
-		super(getDataIdentifier(name));
-		this.name = name;
-		this.options = options;
-	}
+    final MapStorage storage = world.getPerWorldStorage();
+    final GameData instance = new GameData(name, options);
+    storage.setData(getDataIdentifier(name), instance);
+    System.out.printf("Stored GameData: %s\n", instance);
+    return instance;
+  }
 
-	public String getOwner() {
-		return owner;
-	}
+  public static Optional<GameData> get(World world, String name) {
+    final MapStorage storage = world.getPerWorldStorage();
+    final GameData instance = (GameData) storage.getOrLoadData(GameData.class,
+            getDataIdentifier(name));
+    System.out.printf("Loaded GameData: %s\n", instance);
+    return Optional.ofNullable(instance);
+  }
 
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
+  private static String getDataIdentifier(String name) {
+    return DATA_NAME + name;
+  }
 
-	public String getName() {
-		return name;
-	}
+  private String owner;
+  private String name;
+  private Bounds bounds;
+  private Map<TeamColour, CtfTeam> teams = new HashMap<TeamColour, CtfTeam>();
+  private Map<TeamColour, Integer> score = new HashMap<TeamColour, Integer>();
+  private Map<TeamColour, BlockPos> baseLocations = new HashMap<TeamColour, BlockPos>();
+  private Map<TeamColour, BlockPos> flagLocations = new HashMap<TeamColour, BlockPos>();
 
-	public Bounds getBounds() {
-		return bounds;
-	}
+  private Map<TeamColour, String> playerHoldingFlag = new HashMap<TeamColour, String>();
 
-	public void setBounds(Bounds bounds) {
-		this.bounds = bounds;
-	}
+  private GameOptions options;
 
-	public Map<TeamColour, CtfTeam> getTeams() {
-		return teams;
-	}
+  private final Map<String, Integer> handicaps = new HashMap<String, Integer>();
 
-	public void setTeams(Map<TeamColour, CtfTeam> teams) {
-		this.teams = teams;
-	}
+  public GameData() {
+    this("unknown", GameOptions.getDefault());
+  }
 
-	public Map<TeamColour, Integer> getScore() {
-		return score;
-	}
+  public GameData(String name) {
+    this(getDataIdentifier(name), null);
+  }
 
-	public void setScore(Map<TeamColour, Integer> score) {
-		this.score = score;
-	}
+  public GameData(String name, GameOptions options) {
+    super(getDataIdentifier(name));
+    this.name = name;
+    this.options = options;
+  }
 
-	public Map<TeamColour, BlockPos> getBaseLocations() {
-		return baseLocations;
-	}
+  public Map<TeamColour, BlockPos> getBaseLocations() {
+    return this.baseLocations;
+  }
 
-	public void setBaseLocations(Map<TeamColour, BlockPos> baseLocations) {
-		this.baseLocations = baseLocations;
-	}
+  public Bounds getBounds() {
+    return this.bounds;
+  }
 
-	public Map<TeamColour, BlockPos> getFlagLocations() {
-		return flagLocations;
-	}
+  public Map<TeamColour, BlockPos> getFlagLocations() {
+    return this.flagLocations;
+  }
 
-	public void setFlagLocations(Map<TeamColour, BlockPos> flagLocations) {
-		this.flagLocations = flagLocations;
-	}
+  public String getName() {
+    return this.name;
+  }
 
-	public Map<TeamColour, String> getPlayerHoldingFlag() {
-		return playerHoldingFlag;
-	}
+  public GameOptions getOptions() {
+    return this.options;
+  }
 
-	public void setPlayerHoldingFlag(Map<TeamColour, String> playerHoldingFlag) {
-		this.playerHoldingFlag = playerHoldingFlag;
-	}
+  public String getOwner() {
+    return this.owner;
+  }
 
-	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		this.owner = nbt.getString(OWNER);
-		this.name = nbt.getString(NAME);
-		this.bounds = Bounds.readFromNBT(nbt, BOUNDS);
-		int numTeams = nbt.getInteger(NUM_TEAMS);
-		for (int i = 0; i < numTeams; i++) {
-			CtfTeam team = CtfTeam.readFromNBT(nbt, TEAM + i);
-			this.teams.put(team.getColour(), team);
-			this.score.put(team.getColour(), nbt.getInteger(SCORE + i));
-			this.baseLocations.put(team.getColour(), NBTUtils.getBlockPos(nbt, BASE_LOC + i));
-			this.flagLocations.put(team.getColour(), NBTUtils.getBlockPos(nbt, FLAG_LOC + i));
-			boolean flagHeld = nbt.getBoolean(FLAG_HELD+i);
-			if (flagHeld) this.playerHoldingFlag.put(team.getColour(), nbt.getString(FLAG_HOLDER + i));
-		}
-		
-		String optionsStr = nbt.getString(OPTIONS);
-		System.out.printf("read game options: %s\n", optionsStr);
-		this.options = (optionsStr != null) ? new GameOptions(optionsStr) : GameOptions.getDefault();
-		
-		this.teams.values().forEach(t -> t.getPlayers().forEach(p -> handicaps.put(p, nbt.getInteger(HANDICAP+p))));
-		
-		System.out.printf("Read game from NBT: %s\n", this);
-	}
+  public Optional<Integer> getPlayerHandicap(String p) {
+    return Optional.ofNullable(this.handicaps.get(p));
+  }
 
-	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt.setString(OWNER, owner);
-		nbt.setString(NAME, name);
-		Bounds.writeToNBT(nbt, BOUNDS, bounds);
-		nbt.setInteger(NUM_TEAMS, teams.size());
-		int i = 0;
-		for (CtfTeam t : teams.values()) {
+  public Map<TeamColour, String> getPlayerHoldingFlag() {
+    return this.playerHoldingFlag;
+  }
 
-			CtfTeam.writeToNBT(nbt, TEAM + i, t);
-			TeamColour colour = t.getColour();
-			nbt.setInteger(SCORE + i, score.get(colour));
-			NBTUtils.setBlockPos(nbt, BASE_LOC + i, baseLocations.get(colour));
-			NBTUtils.setBlockPos(nbt, FLAG_LOC + i, flagLocations.get(colour));
-			String flagHolder = playerHoldingFlag.get(colour);
-			nbt.setBoolean(FLAG_HELD+i, flagHolder != null);
-			if (flagHolder != null) nbt.setString(FLAG_HOLDER + i, flagHolder);
-			i++;
-		}
-		String optionsStr = options.toString();
-		nbt.setString(OPTIONS, optionsStr);
-		
-		handicaps.forEach((p, h) -> nbt.setInteger(HANDICAP+p, h));
-		
+  public Map<TeamColour, Integer> getScore() {
+    return this.score;
+  }
 
-		System.out.printf("Wrote game to NBT: %s\n", this);
-		return nbt;
-	}
-	
-	private static String getDataIdentifier(String name) {
-		return DATA_NAME+name;
-	}
-	
-	@Override
-	public String toString() {
-		return String.format("GameData:[owner=%s; name=%s; bounds=%s; teams=%s; score=%s; baseLocations=%s; flagLocations=%s; playerHoldingFlag=%s]",
-				owner, name, bounds, teams, score, baseLocations, flagLocations, playerHoldingFlag);
-	}
+  public Map<TeamColour, CtfTeam> getTeams() {
+    return this.teams;
+  }
 
-	public static GameData create(World world, String name, GameOptions options) {
+  @Override public void readFromNBT(NBTTagCompound nbt) {
+    this.owner = nbt.getString(OWNER);
+    this.name = nbt.getString(NAME);
+    this.bounds = Bounds.readFromNBT(nbt, BOUNDS);
+    final int numTeams = nbt.getInteger(NUM_TEAMS);
+    for (int i = 0; i < numTeams; i++) {
+      final CtfTeam team = CtfTeam.readFromNBT(nbt, TEAM + i);
+      this.teams.put(team.getColour(), team);
+      this.score.put(team.getColour(), nbt.getInteger(SCORE + i));
+      this.baseLocations.put(team.getColour(),
+              NBTUtils.getBlockPos(nbt, BASE_LOC + i));
+      this.flagLocations.put(team.getColour(),
+              NBTUtils.getBlockPos(nbt, FLAG_LOC + i));
+      final boolean flagHeld = nbt.getBoolean(FLAG_HELD + i);
+      if (flagHeld) {
+        this.playerHoldingFlag.put(team.getColour(),
+                nbt.getString(FLAG_HOLDER + i));
+      }
+    }
 
-		MapStorage storage = world.getPerWorldStorage();
-		GameData instance = new GameData(name, options);
-		storage.setData(getDataIdentifier(name), instance);
-		System.out.printf("Stored GameData: %s\n", instance);
-		return instance;
-	}
+    final String optionsStr = nbt.getString(OPTIONS);
+    System.out.printf("read game options: %s\n", optionsStr);
+    this.options = (optionsStr != null) ? new GameOptions(optionsStr)
+            : GameOptions.getDefault();
 
-	public static Optional<GameData> get(World world, String name) {
-		MapStorage storage = world.getPerWorldStorage();
-		GameData instance = (GameData) storage.getOrLoadData(GameData.class, getDataIdentifier(name));
-		System.out.printf("Loaded GameData: %s\n", instance);
-		return Optional.ofNullable(instance);
-	}
-	public GameOptions getOptions() {
-		return this.options;
-	}
-	public Optional<Integer> getPlayerHandicap(String p) {
-		return Optional.ofNullable(handicaps.get(p));
-	}
-	public void setPlayerHandicap(String p, int h) {
-		handicaps.put(p, h);
-	}
+    this.teams.values().forEach(t -> t.getPlayers()
+            .forEach(p -> this.handicaps.put(p, nbt.getInteger(HANDICAP + p))));
+
+    System.out.printf("Read game from NBT: %s\n", this);
+  }
+
+  public void setBaseLocations(Map<TeamColour, BlockPos> baseLocations) {
+    this.baseLocations = baseLocations;
+  }
+
+  public void setBounds(Bounds bounds) {
+    this.bounds = bounds;
+  }
+
+  public void setFlagLocations(Map<TeamColour, BlockPos> flagLocations) {
+    this.flagLocations = flagLocations;
+  }
+
+  public void setOwner(String owner) {
+    this.owner = owner;
+  }
+
+  public void setPlayerHandicap(String p, int h) {
+    this.handicaps.put(p, h);
+  }
+
+  public void setPlayerHoldingFlag(Map<TeamColour, String> playerHoldingFlag) {
+    this.playerHoldingFlag = playerHoldingFlag;
+  }
+
+  public void setScore(Map<TeamColour, Integer> score) {
+    this.score = score;
+  }
+
+  public void setTeams(Map<TeamColour, CtfTeam> teams) {
+    this.teams = teams;
+  }
+
+  @Override public String toString() {
+    return String.format(
+            "GameData:[owner=%s; name=%s; bounds=%s; teams=%s; score=%s; baseLocations=%s; flagLocations=%s; playerHoldingFlag=%s]",
+            this.owner, this.name, this.bounds, this.teams, this.score,
+            this.baseLocations, this.flagLocations, this.playerHoldingFlag);
+  }
+
+  @Override public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+    nbt.setString(OWNER, this.owner);
+    nbt.setString(NAME, this.name);
+    Bounds.writeToNBT(nbt, BOUNDS, this.bounds);
+    nbt.setInteger(NUM_TEAMS, this.teams.size());
+    int i = 0;
+    for (final CtfTeam t : this.teams.values()) {
+
+      CtfTeam.writeToNBT(nbt, TEAM + i, t);
+      final TeamColour colour = t.getColour();
+      nbt.setInteger(SCORE + i, this.score.get(colour));
+      NBTUtils.setBlockPos(nbt, BASE_LOC + i, this.baseLocations.get(colour));
+      NBTUtils.setBlockPos(nbt, FLAG_LOC + i, this.flagLocations.get(colour));
+      final String flagHolder = this.playerHoldingFlag.get(colour);
+      nbt.setBoolean(FLAG_HELD + i, flagHolder != null);
+      if (flagHolder != null) {
+        nbt.setString(FLAG_HOLDER + i, flagHolder);
+      }
+      i++;
+    }
+    final String optionsStr = this.options.toString();
+    nbt.setString(OPTIONS, optionsStr);
+
+    this.handicaps.forEach((p, h) -> nbt.setInteger(HANDICAP + p, h));
+
+    System.out.printf("Wrote game to NBT: %s\n", this);
+    return nbt;
+  }
 }

@@ -12,67 +12,60 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
 public class ListGames extends CommandBase {
-	private final List<String> aliases;
-	
-	public ListGames() {
+  private final List<String> aliases;
 
-        aliases = new ArrayList<String>(); 
-        aliases.add("lg"); 
-	}
+  public ListGames() {
 
-	@Override
-	public int compareTo(ICommand o) {
-		return 0;
-	}
+    aliases = new ArrayList<String>();
+    aliases.add("lg");
+  }
 
-	@Override
-	public String getName() {
-		return "ctf:list_games";
-	}
+  @Override public int compareTo(ICommand o) {
+    return 0;
+  }
 
-	@Override
-	public List<String> getAliases() {
-		return this.aliases;
-	}
+  @Override public String getName() {
+    return "ctf:list_games";
+  }
 
-	@Override
-	protected void doExecute(
-			MinecraftServer server, ICommandSender sender,
-			String[] args
-	) throws CommandException {
+  @Override public List<String> getAliases() {
+    return this.aliases;
+  }
 
-		Entity e = sender.getCommandSenderEntity();
-		
-		if (e == null) return;
-		if (e instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer)e;
-		}
-	}
+  @Override protected void doExecute(MinecraftServer server,
+    ICommandSender sender, String[] args)
+      throws CommandException
+  {
 
-	@Override
-	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
-		return true;
-	}
+    Entity e = sender.getCommandSenderEntity();
 
-	@Override
-	public List<String> getTabCompletions(MinecraftServer server,
-			ICommandSender sender, String[] args, BlockPos targetPos) {
-		return null;
-	}
+    if (e == null) return;
+    if (e instanceof EntityPlayer) {
+      EntityPlayer player = (EntityPlayer) e;
+    }
+  }
 
-	@Override
-	public boolean isUsernameIndex(String[] args, int index) {
-		return false;
-	}
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return true;
+  }
 
+  @Override public List<String> getTabCompletions(MinecraftServer server,
+    ICommandSender sender, String[] args, BlockPos targetPos)
+  {
+    return null;
+  }
 
-	@Override
-	protected boolean[] getMandatoryArgs() {
-		return new boolean[0];
-	}
+  @Override public boolean isUsernameIndex(String[] args, int index) {
+    return false;
+  }
 
-	@Override
-	protected String[] getArgNames() {
-		return new String[0];
-	}
+  @Override protected boolean[] getMandatoryArgs() {
+    return new boolean[0];
+  }
+
+  @Override protected String[] getArgNames() {
+    return new String[0];
+  }
 }
