@@ -77,6 +77,34 @@ public class GameManager {
     this.save();
   }
 
+  private boolean allowAttackWithProbability(double probability) {
+    final float randomVal = this.world.rand.nextFloat();
+    return randomVal <= probability;
+  }
+
+  public boolean allowPlayerToAttackedPlayer(EntityPlayer attacker,
+    EntityPlayer attackee)
+  {
+    final String attackerName = attacker.getName();
+    final Optional<Game> g1 = this.getPlayerActiveGame(attackerName);
+    if (!g1.isPresent()) { return false; }
+    final String attackeeName = attackee.getName();
+    final Optional<Game> g2 = this.getPlayerActiveGame(attackeeName);
+    if (!g2.isPresent()) { return false; }
+    final Game game = g1.get();
+
+    if (game != g2.get()) { return false; }
+
+    final Optional<CtfTeam> teamAter = game.getTeamForPlayer(attackerName);
+    final Optional<CtfTeam> teamAtee = game.getTeamForPlayer(attackeeName);
+    if (!teamAter.isPresent() || !teamAtee.isPresent()) { return false; }
+    final int sAter = game.getScore().get(teamAter.get().getColour());
+    final int sAtee = game.getScore().get(teamAtee.get().getColour());
+
+    return this.allowAttackWithProbability(
+            this.getAllowHitProbability(sAter - sAtee));
+  }
+
   private boolean boundariesOverlap(Bounds bounds1, Bounds bounds2) {
     final BlockPos f1 = bounds1.getFrom();
     final BlockPos to1 = bounds1.getTo();
@@ -177,6 +205,10 @@ public class GameManager {
             .collect(Collectors.toSet());
   }
 
+  private double getAllowHitProbability(int sDiff) {
+    return Math.min(10, Math.max(0, 10.0d - sDiff)) / 10;
+  }
+
   public Optional<Game> getGame(String name) {
     Game game = null;
     if (this.games.containsKey(name)) {
@@ -266,9 +298,11 @@ public class GameManager {
   }
 
   public void playerLeaveAllGames(String playerName) {
-    this.games.values().stream()
-            .filter(g -> g.getAllPlayers().contains(playerName))
-            .forEach(g -> g.removePlayer(playerName));
+    this.games.values().stream().filter(g -> {
+      return g.getAllPlayers().contains(playerName);
+    }).forEach(g -> {
+      g.removePlayer(playerName);
+    });
   }
 
   private void resetGame(Game game) {

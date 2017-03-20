@@ -16,10 +16,13 @@ import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -51,6 +54,28 @@ public class EventHandlerServer extends EventHandlerCommon {
   @SubscribeEvent public void newGame(NewGameEvent event) {
 
     GameWorldManager.get().createGameArea(event.getGame());
+  }
+
+  @SubscribeEvent public void onDamage(LivingHurtEvent event) {
+    final EntityLivingBase entity = event.getEntityLiving();
+    if (entity == null) { return; }
+    if (EntityPlayer.class.isAssignableFrom(entity.getClass())) {
+      final EntityPlayer attackee = (EntityPlayer) entity;
+      final Entity source = event.getSource().getEntity();
+      if (source == null) { return; }
+      if (EntityPlayer.class.isAssignableFrom(source.getClass())) {
+        final EntityPlayer attacker = (EntityPlayer) source;
+
+        final GameManager gameManager = GameManager.get();
+
+        if (!gameManager.allowPlayerToAttackedPlayer(attacker, attackee)) {
+          event.setCanceled(true);
+          System.out.printf("%s prevented from attacking %s\n", attacker,
+                  attackee);
+        }
+      }
+
+    }
   }
 
   @SubscribeEvent public void resetGame(GameResetEvent event) {
