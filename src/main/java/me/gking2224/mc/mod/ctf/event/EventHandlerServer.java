@@ -14,7 +14,6 @@ import me.gking2224.mc.mod.ctf.game.event.GameResetEvent;
 import me.gking2224.mc.mod.ctf.game.event.NewGameEvent;
 import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
-import me.gking2224.mc.mod.ctf.util.StringUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -26,9 +25,9 @@ public class EventHandlerServer extends EventHandlerCommon {
 
   @SubscribeEvent public void itemPlaced(RightClickBlock event) {
     System.out.println("itemPlaced");
-    EntityPlayer player = event.getEntityPlayer();
-    Vec3d hitVec = event.getHitVec();
-    Optional<ItemBase> f = Flag.toFlag(event.getItemStack());
+    final EntityPlayer player = event.getEntityPlayer();
+    final Vec3d hitVec = event.getHitVec();
+    final Optional<ItemBase> f = Flag.toFlag(event.getItemStack());
     f.ifPresent(flag -> GameEventManager.get().flagPlaced(player.getName(),
             flag, new BlockPos((int) hitVec.xCoord, (int) hitVec.yCoord,
                     (int) hitVec.zCoord)));
@@ -46,17 +45,17 @@ public class EventHandlerServer extends EventHandlerCommon {
   }
 
   @SubscribeEvent public void resetGame(PlayerRespawnEvent event) {
-    EntityPlayer player = event.player;
-    GameManager gameManager = GameManager.get();
-    String playerName = player.getName();
-    Optional<Game> g = gameManager.getPlayerActiveGame(playerName);
+    final EntityPlayer player = event.player;
+    final GameManager gameManager = GameManager.get();
+    final String playerName = player.getName();
+    final Optional<Game> g = gameManager.getPlayerActiveGame(playerName);
     g.ifPresent(game -> {
-      Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
+      final Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
       t.ifPresent(team -> {
-        int respawnDelay = game.getOptions().getInteger("respawnDelay")
+        final int respawnDelay = game.getOptions().getInteger("respawnDelay")
                 .orElse(10);
         gameManager.broadCastMessageToPlayer(playerName,
-                toIText(format("Going back to %sbase in 10 seconds",
+                toIText(format("Going back to %s base in 10 seconds",
                         team.getColour().toString())));
         gameManager.toolUpPlayer(player);
         GameEventManager.get().schedule(

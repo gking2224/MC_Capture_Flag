@@ -55,8 +55,13 @@ public class GameWorldManager {
   private static final List<Integer> BASE_BIOME_BLACKLIST = new ArrayList<Integer>();
   private static final int BIOME_ID_OCEAN = 0;
   private static final int BIOME_ID_DEEP_OCEAN = 24;
-
+  private static final int BIOME_ID_EXTREME_HILLS = 3;
   private static final int BIOME_ID_COLD_BEACH = 26;
+  private static final int SAND = 12;
+  private static final int DIRT = 3;
+  private static final int GRAVEL = 13;
+  private static final int FLOWING_WATER = 8;
+  private static final int STILL_WATER = 9;
 
   static {
     FLAG_BLOCK_WHITELIST.add(Block.getIdFromBlock(Blocks.DIRT));
@@ -70,6 +75,7 @@ public class GameWorldManager {
     BASE_BIOME_BLACKLIST.add(BIOME_ID_OCEAN);
     BASE_BIOME_BLACKLIST.add(BIOME_ID_COLD_BEACH);
     BASE_BIOME_BLACKLIST.add(BIOME_ID_DEEP_OCEAN);
+    BASE_BIOME_BLACKLIST.add(BIOME_ID_EXTREME_HILLS);
   }
 
   private static GameWorldManager instance = null;
@@ -123,7 +129,7 @@ public class GameWorldManager {
     }
     final Biome b = this.getBiome(refPos);
     System.out.printf(
-            "Could not find suitable block for base, hope for the best - you're in %s!\n",
+            "Could not find suitable block for base, - you're in %s. Good luck!\n",
             b.getBiomeName());
     return this.getSurfaceBlock(refPos);
   }
@@ -215,13 +221,33 @@ public class GameWorldManager {
     return true;
   }
 
+  private IBlockState convertAmbientBlock(IBlockState ambientBlock) {
+    final int blockId = Block.getIdFromBlock(ambientBlock.getBlock());
+    switch (blockId) {
+    case SAND:
+      return Blocks.SANDSTONE.getDefaultState();
+    case DIRT:
+      return Blocks.GRASS.getDefaultState();
+    case GRAVEL:
+      return Blocks.STONE.getDefaultState();
+    case STILL_WATER:
+    case FLOWING_WATER:
+      return Blocks.SANDSTONE.getDefaultState();
+    default:
+      return ambientBlock;
+    }
+  }
+
   private void createBase(Game game, BaseBuilder builder, TeamColour team,
     boolean invertZ)
   {
-    final BlockPos refPos = this.getBasePos(game.getBounds(), invertZ);
+    final Bounds gameBounds = game.getBounds();
+    final BlockPos refPos = this.getBasePos(gameBounds, invertZ);
     this.ensureBlockGenerated(refPos);
-    final IBlockState ambientBlock = this.world
-            .getBlockState(offset(refPos, new BlockPos(0, -1, 0)));
+    System.out.printf("%s game Zs: %d->%d; base Zs: %d\n", team,
+            gameBounds.getFrom().getZ(), gameBounds.getTo().getZ(),
+            refPos.getZ());
+    final IBlockState ambientBlock = this.getAmbientBlock(refPos);
     this.createBaseStructure(game, builder, refPos, team, ambientBlock,
             invertZ);
     System.out.printf("Team %s base location at %s\n", team,
@@ -276,6 +302,11 @@ public class GameWorldManager {
         System.out.println("ERROR ... but not showing as loaded :-(");
       }
     }
+  }
+
+  private IBlockState getAmbientBlock(final BlockPos refPos) {
+    return this.convertAmbientBlock(
+            this.world.getBlockState(offset(refPos, new BlockPos(0, -1, 0))));
   }
 
   private BlockPos getBasePos(Bounds bounds, boolean invertZ) {

@@ -221,8 +221,10 @@ public class GameManager {
       final int zBound = 100000;// server.getMaxWorldSize() - (gameChunksZ*16);
       final int startZ = world.rand.nextInt(zBound) * 16;
 
-      bounds = new Bounds(new BlockPos(startX, 0, startZ), new BlockPos(
-              startX + (gameChunksX * 16), 0, startZ + (gameChunksZ * 16)));
+      final BlockPos gameAreaFrom = new BlockPos(startX, 0, startZ);
+      final BlockPos gameAreaTo = new BlockPos(startX + (gameChunksX * 16), 0,
+              startZ + (gameChunksZ * 16));
+      bounds = new Bounds(gameAreaFrom, gameAreaTo);
 
       final GameWorldManager gwm = GameWorldManager.get();
       suitable = !this.boundaryClashes(bounds) && gwm.isSuitableForGame(bounds);

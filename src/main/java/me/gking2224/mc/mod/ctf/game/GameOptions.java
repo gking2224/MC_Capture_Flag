@@ -13,10 +13,6 @@ public class GameOptions {
   private static final char SEPARATOR_CHAR = ';';
   private static final GameOptions DEFAULT = new GameOptions();
 
-  static {
-    DEFAULT.setOption("size", 1);
-  }
-
   public static GameOptions getDefault() {
     return DEFAULT;
   }
