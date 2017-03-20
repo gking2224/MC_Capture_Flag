@@ -32,7 +32,7 @@ public class GameEventManager {
   }
 
   @SuppressWarnings("unused") private final MinecraftServer server;
-  private final World world;
+  @SuppressWarnings("unused") private final World world;
 
   private GameEventManager(MinecraftServer server) {
     this.server = server;
@@ -83,11 +83,11 @@ public class GameEventManager {
         final Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
         t.ifPresent((team) -> {
           final TeamColour flagColour = Flag.getFlagColour(item);
-          game.setPlayerHoldingFlag(flagColour, playerName);
           if (flagColour != team.getColour()) {
             this.broadcastTeamCapturedFlag(game, playerName, flagColour);
             this.schedule(() -> moveItemFromInventoryToPlayerHand(player, item),
                     0);
+            game.setPlayerHoldingFlag(flagColour, playerName);
           } else {
             GameManager.get().broadcastToAllPlayers(game, format(
                     "Player %s tried to pick up his own flag!", playerName));

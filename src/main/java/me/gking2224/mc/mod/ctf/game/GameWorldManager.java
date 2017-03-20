@@ -1,5 +1,6 @@
 package me.gking2224.mc.mod.ctf.game;
 
+import static java.lang.Math.max;
 import static java.lang.String.format;
 import static me.gking2224.mc.mod.ctf.game.GameWorldManager.WorldMetrics.toChunk;
 import static me.gking2224.mc.mod.ctf.util.StringUtils.blockPosStr;
@@ -16,6 +17,7 @@ import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.base.BaseBuilder;
 import me.gking2224.mc.mod.ctf.game.base.BaseBuilderFactory;
+import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
 import me.gking2224.mc.mod.ctf.item.ModItems;
@@ -80,6 +82,8 @@ public class GameWorldManager {
 
   private static GameWorldManager instance = null;
 
+  private static final int MIN_INSET = 10;
+
   public final static GameWorldManager get() {
     return instance;
   }
@@ -92,7 +96,6 @@ public class GameWorldManager {
   private final MinecraftServer server;
 
   private final World world;
-
   @SuppressWarnings("unused") private final GameManager gm;
 
   private GameWorldManager(MinecraftServer server) {
@@ -128,9 +131,8 @@ public class GameWorldManager {
       }
     }
     final Biome b = this.getBiome(refPos);
-    System.out.printf(
-            "Could not find suitable block for base, - you're in %s. Good luck!\n",
-            b.getBiomeName());
+    System.out.printf("Could not find suitable block for base,"
+            + " - you're in %s. Good luck!\n", b.getBiomeName());
     return this.getSurfaceBlock(refPos);
   }
 
@@ -211,12 +213,14 @@ public class GameWorldManager {
     final double percentUnsuitable = (numUnsuitable2 / numChecks2) * 100;
     if (percentUnsuitable >= 30) {
       System.out.printf(
-              "Game bounds %s not suitable as %5.1f points had unsuitable biome\n",
+              "Game bounds %s not suitable as %5.1f"
+                      + "points had unsuitable biome\n",
               bounds, percentUnsuitable);
       return false;
     }
     System.out.printf(
-            "Game bounds %s suitable as only %5.1f points had unsuitable biome\n",
+            "Game bounds %s suitable as only %5.1f"
+                    + "points had unsuitable biome\n",
             bounds, percentUnsuitable);
     return true;
   }
@@ -312,12 +316,15 @@ public class GameWorldManager {
   private BlockPos getBasePos(Bounds bounds, boolean invertZ) {
     System.out.printf("Creating base for game bounds %s (size: %s)\n", bounds,
             bounds.getSize());
-    final int endZ = invertZ ? bounds.getFrom().getZ() : bounds.getTo().getZ();
-    System.out.printf("End z = %d\n", endZ);
-    final int midPointX = bounds.getFrom().getX()
-            + (bounds.getTo().getX() - bounds.getFrom().getX()) / 2;
-    System.out.printf("midpointX = %d\n", midPointX);
-    final int x = midPointX;
+    final double zRatio = 0.1;
+    final int w = bounds.getWidth();
+    final int d = bounds.getDepth();
+    final int xInset = this.world.rand.nextInt(w - 2 * MIN_INSET) + MIN_INSET;
+    final int zInset = max(MIN_INSET,
+            this.world.rand.nextInt((int) (d * zRatio)));
+    final int endZ = invertZ ? bounds.getFrom().getZ() + zInset
+            : bounds.getTo().getZ() - zInset;
+    final int x = bounds.getFrom().getX() + xInset;
     final int z = endZ;
 
     System.out.printf("Try to create base at %d, %d\n", x, z);
@@ -400,7 +407,9 @@ public class GameWorldManager {
   public void removeFlagFromPlayerInventory(String playerName, ItemBase flag) {
     final Optional<EntityPlayer> p = GameManager.get()
             .getPlayerByName(playerName);
-    p.ifPresent(player -> this.removeFlagFromPlayerInventory(player, flag));
+
+    p.ifPresent(player -> GameEventManager.get()
+            .schedule(() -> this.removeFlagFromPlayerInventory(player, flag)));
   }
 
   public void removeFlagsFromPlayerInventories(Game game) {
