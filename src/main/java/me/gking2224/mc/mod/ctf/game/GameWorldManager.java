@@ -213,13 +213,13 @@ public class GameWorldManager {
     final double percentUnsuitable = (numUnsuitable2 / numChecks2) * 100;
     if (percentUnsuitable >= 30) {
       System.out.printf(
-              "Game bounds %s not suitable as %5.1f"
+              "Game bounds %s not suitable as %5.0f "
                       + "points had unsuitable biome\n",
               bounds, percentUnsuitable);
       return false;
     }
     System.out.printf(
-            "Game bounds %s suitable as only %5.1f"
+            "Game bounds %s suitable as %5.0f "
                     + "points had unsuitable biome\n",
             bounds, percentUnsuitable);
     return true;

@@ -29,37 +29,6 @@ import net.minecraft.util.math.BlockPos;
 
 public class BuildConfigFileLoader {
 
-  private static class CommentedLine {
-
-    public static BuildConfigFileLoader.CommentedLine parse(String line) {
-      final int idx = line.indexOf("#");
-      String comment = null;
-      String content = line;
-      if (idx != 1) {
-        comment = line.substring(idx);
-        content = line.substring(0, idx - 1);
-      }
-      return new CommentedLine(content, comment);
-    }
-
-    private final String content;
-
-    private final String comment;
-
-    public CommentedLine(String content, String comment) {
-      this.content = content;
-      this.comment = comment;
-    }
-
-    public String getComment() {
-      return this.comment;
-    }
-
-    public String getContent() {
-      return this.content;
-    }
-  }
-
   private static final String BASES_DIR_NAME = "bases";
   private static final String SUFFIX = ".dat";
   private static final String TEAM = "team";
@@ -103,33 +72,17 @@ public class BuildConfigFileLoader {
     return this.teamColours.get(team);
   }
 
-  private BuildInstruction instructionFromLine(String line) {
-    BuildInstruction rv;
-    final BuildConfigFileLoader.CommentedLine commentedLine = CommentedLine
-            .parse(line);
-    final List<String> tokens = Arrays
-            .asList(StringUtils.split(commentedLine.getContent()));
-    final int[] coords = tokens.subList(0, 6).stream()
-            .mapToInt(Integer::parseInt).toArray();
-    final BlockPos from = new BlockPos(coords[0], coords[2], coords[4]);
-    final BlockPos to = new BlockPos(coords[1], coords[3], coords[5]);
-    final IBlockState state = this
-            .readBlockState(tokens.subList(6, tokens.size()));
-    rv = new BuildInstruction(new Bounds(from, to), state,
-            commentedLine.getComment());
-    return rv;
-  }
-
   public List<BuildInstruction> load() {
-    final List<BuildInstruction> rv = new ArrayList<BuildInstruction>();
     final File f = this.validateFile();
+
+    final List<BuildInstruction> rv = new ArrayList<BuildInstruction>();
     BufferedReader br = null;
     try {
       br = new BufferedReader(new FileReader(f));
       String line = null;
       while ((line = br.readLine()) != null) {
-
-        final Optional<BuildInstruction> pl = this.processLine(line);
+        final Optional<BuildInstruction> pl = this.processLine(line.trim(),
+                rv.size() + 1);
         pl.ifPresent(l -> rv.add(l));
       }
       try {
@@ -141,12 +94,30 @@ public class BuildConfigFileLoader {
     return rv;
   }
 
-  private Optional<BuildInstruction> processLine(String line) {
+  private BuildInstruction parseLine(String line, int lineNumber) {
+    BuildInstruction rv;
+    final CommentedLine commentedLine = CommentedLine.parse(line);
+    final List<String> tokens = Arrays
+            .asList(StringUtils.split(commentedLine.getContent()));
+    final int[] coords = tokens.subList(0, 6).stream()
+            .mapToInt(Integer::parseInt).toArray();
+    final BlockPos from = new BlockPos(coords[0], coords[2], coords[4]);
+    final BlockPos to = new BlockPos(coords[1], coords[3], coords[5]);
+    final IBlockState state = this
+            .readBlockState(tokens.subList(6, tokens.size()));
+    rv = new BuildInstruction(new Bounds(from, to), state,
+            commentedLine.getComment(), lineNumber);
+    return rv;
+  }
+
+  private Optional<BuildInstruction> processLine(String line, int lineNumber) {
     BuildInstruction rv = null;
+    System.out.printf("Reading base config file, line %d: %s\n", lineNumber,
+            line);
     if (line.startsWith(TEAM)) {
       this.processTeamColour(line);
     } else if (!line.startsWith("#")) {
-      rv = this.instructionFromLine(line);
+      rv = this.parseLine(line, lineNumber);
     }
     return Optional.ofNullable(rv);
   }
@@ -161,8 +132,10 @@ public class BuildConfigFileLoader {
 
   private IBlockState readBlockState(List<String> subList) {
     final String name = subList.get(0);
-    if (name.matches("[0-9*]")) {
-      return Block.getStateById(Integer.parseInt(name));
+    if (name.matches("[0-9]*")) {
+
+      final int stateId = Integer.parseInt(name);
+      return Block.getStateById(stateId);
     } else if (AMBIENT.equals(name)) {
       return AMBIENT_PLACEHOLDER;
     } else if (TEAM.equals(name)) {

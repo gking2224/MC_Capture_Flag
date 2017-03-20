@@ -39,11 +39,8 @@ public class ConfigBaseBuilder implements BaseBuilder {
     }
 
     @Override public BiConsumer<MutableBounds, BuildInstruction> accumulator() {
-      return (MutableBounds cb, BuildInstruction bi) -> {
-        System.out.println(bi.getComment());
-        placeBlocks(this.world, offset(this.refPos, bi.getBounds()),
-                bi.getBlockState());
-      };
+      return (MutableBounds cb, BuildInstruction bi) -> placeBlocks(this.world,
+              offset(this.refPos, bi.getBounds()), bi.getBlockState());
     }
 
     @Override public Set<java.util.stream.Collector.Characteristics> characteristics() {
@@ -69,11 +66,15 @@ public class ConfigBaseBuilder implements BaseBuilder {
     private final Bounds bounds;
     private final IBlockState state;
     private final String comment;
+    private final int lineNumber;
 
-    public BuildInstruction(Bounds bounds, IBlockState state, String comment) {
+    public BuildInstruction(Bounds bounds, IBlockState state, String comment,
+            int lineNumber)
+    {
       this.bounds = bounds;
       this.state = state;
       this.comment = comment;
+      this.lineNumber = lineNumber;
     }
 
     public IBlockState getBlockState() {
@@ -88,18 +89,22 @@ public class ConfigBaseBuilder implements BaseBuilder {
       return this.comment;
     }
 
+    public int getLineNumber() {
+      return this.lineNumber;
+    }
+
     @Override public String toString() {
       return String.format("{%s: %s}", this.bounds, this.state);
     }
 
     public BuildInstruction updateBlock(IBlockState newBlock) {
-      return new BuildInstruction(this.getBounds(), newBlock,
-              this.getComment());
+      return new BuildInstruction(this.getBounds(), newBlock, this.getComment(),
+              this.getLineNumber());
     }
 
     public BuildInstruction updateBounds(Bounds newBounds) {
       return new BuildInstruction(newBounds, this.getBlockState(),
-              this.getComment());
+              this.getComment(), this.getLineNumber());
     }
 
   }

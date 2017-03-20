@@ -54,7 +54,7 @@ ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm rm -v $MSM_SERVER_MODS_DIR/
 echo "--- Copy $S3_PATH/$FILENAME ($S3_REGION) to $MSM_SERVER_MODS_DIR/$FILENAME"
 ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm aws s3 cp $S3_PATH/$FILENAME $MSM_SERVER_MODS_DIR/$FILENAME $S3_OPTS"
 echo "--- Copy base .dat files"
-ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm aws s3 cp --recursive $S3_PATH/bases MSM_SERVER_BASES_DIR $S3_OPTS"
+ssh -T -i ~/.awskey minecraft@$MC_SERVER "TERM=xterm aws s3 cp --recursive $S3_PATH/bases $MSM_SERVER_BASES_DIR $S3_OPTS"
 
 # START SERVER
 echo "--- Start server $MSM_SERVER_NAME on $MC_SERVER"

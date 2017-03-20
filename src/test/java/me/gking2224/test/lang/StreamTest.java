@@ -58,6 +58,8 @@ public class StreamTest {
 
     System.out.println(35 + (11 << 12));
     System.out.println(35 + (14 << 12));
+    System.out.println(50 + (1 << 12));
+    System.out.println(50 + (2 << 12));
     // Bounds b2 = config.stream().collect(new MyCollector());
   }
 
