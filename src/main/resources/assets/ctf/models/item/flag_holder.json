@@ -1,0 +1,6 @@
+{
+    "parent": "ctf:item/flag",
+    "textures": {
+        "layer0": "blocks/planks_oak"
+    }
+}

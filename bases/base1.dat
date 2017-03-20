@@ -1,0 +1,15 @@
+# This is an awesome base
+# by Graham
+# just a test, really
+team blue 45091
+team red 57379
+-2  2  0  2 -2  2 0       # internal air
+-3  3 -1 -1 -3  3 team    # floor
+-3  3  3  3 -3  3 team    # ceiling
+-3 -3  0  3 -3  3 team    # left wall
+ 3  3  0  3 -3  3 team    # right wall
+-3  3  0  3  3  3 team    # back wall
+-3  3  0  3 -3 -3 ambient # front wall
+-2  2  0  2 -4 -4 ambient # camoflague1
+-1  1  0  1 -5 -5 ambient # camoflague1
+-1 -1  0  1 -5 -3 0       # door

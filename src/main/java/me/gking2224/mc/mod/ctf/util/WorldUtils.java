@@ -23,9 +23,11 @@ public class WorldUtils {
   public static Bounds invertZ(Bounds b) {
     final int fromZ = b.getFrom().getZ() * -1;
     final int toZ = b.getTo().getZ() * -1;
-    return new Bounds(
-            new BlockPos(b.getFrom().getX(), b.getFrom().getY(), fromZ),
-            new BlockPos(b.getTo().getX(), b.getTo().getY(), toZ));
+    final Bounds inverted = new Bounds(
+            new BlockPos(b.getFrom().getX(), b.getFrom().getY(), toZ),
+            new BlockPos(b.getTo().getX(), b.getTo().getY(), fromZ));
+    System.out.printf("Inverted z from %s to %s\n", b, inverted);
+    return inverted;
   }
 
   public static Bounds maximumBounds(Bounds b1, Bounds b2) {

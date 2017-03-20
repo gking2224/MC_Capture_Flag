@@ -1,0 +1,12 @@
+{
+    "forge_marker": 1,
+    "defaults": {
+        "model": "ctf:flag_holder",
+        "textures": {
+            "all": "blocks/planks_oak"
+        }
+    },
+    "variants": {
+        "normal": [{}]
+    }
+}

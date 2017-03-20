@@ -8,12 +8,26 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class ModBlocks {
 
   public static PlacedFlag PLACED_FLAG;
+  public static FlagHolder FLAG_HOLDER;
 
   public static void init() {
     PLACED_FLAG = (PlacedFlag) register(new PlacedFlag("placed_flag")
             .setCreativeTab(CreativeTabs.MATERIALS).setIsOpaque(false));
+    FLAG_HOLDER = (FlagHolder) register(new FlagHolder("flag_holder")
+            .setCreativeTab(CreativeTabs.MATERIALS).setIsOpaque(false));
   }
 
+  public static void postItemsInit() {}
+
+  private static <T extends Block> T register(T block) {
+    final ItemBlock itemBlock = new ItemBlock(block);
+    itemBlock.setRegistryName(block.getRegistryName());
+    return register(block, itemBlock);
+  }
+
+  /**
+   * TODO: change this
+   */
   private static <T extends Block> T register(T block, ItemBlock itemBlock) {
     GameRegistry.register(block);
     GameRegistry.register(itemBlock);
@@ -24,13 +38,5 @@ public class ModBlocks {
 
     return block;
   }
-
-  private static <T extends Block> T register(T block) {
-    ItemBlock itemBlock = new ItemBlock(block);
-    itemBlock.setRegistryName(block.getRegistryName());
-    return register(block, itemBlock);
-  }
-
-  public static void postItemsInit() {}
 
 }
