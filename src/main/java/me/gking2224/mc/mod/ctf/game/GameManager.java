@@ -32,6 +32,7 @@ import me.gking2224.mc.mod.ctf.item.ItemBase;
 import me.gking2224.mc.mod.ctf.net.CanMovePlayerToPosition;
 import me.gking2224.mc.mod.ctf.net.CtfNetworkHandler;
 import me.gking2224.mc.mod.ctf.util.InventoryUtils;
+import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -313,8 +314,9 @@ public class GameManager {
   }
 
   private void movePlayerToPosition(EntityPlayer player, final int x,
-    final int y, final int z)
+    final int z)
   {
+    final int y = WorldUtils.getWorldHeight(this.world, x, z) + 1;
     CtfNetworkHandler.INSTANCE.sendTo(new CanMovePlayerToPosition(x, y, z),
             (EntityPlayerMP) player);
     player.setPosition(x, y, z);
@@ -328,7 +330,7 @@ public class GameManager {
     final String name = this.checkGameNameUnique(this.generateGameName());
 
     final Bounds newGameBounds = this.getNewGameBounds(options);
-    System.out.printf("NEw game bounds: %s\n", newGameBounds);
+    System.out.printf("New game bounds: %s\n", newGameBounds);
     final Game game = new Game(this.world, name, owner, newGameBounds, options);
 
     MinecraftForge.TERRAIN_GEN_BUS.post(new NewGameEvent(game));
@@ -364,8 +366,14 @@ public class GameManager {
   }
 
   public void playerRejoinGame(EntityPlayer player, Game game) {
-    this.sendPlayerToBase(game, player);
-    this.toolUpPlayer(player);
+    this.broadcastToAllPlayers(game,
+            format("%s rejoined game", player.getName()));
+    this.sendPlayerToRandomPointInOwnHalf(game, player);
+    if (game.getOptions().getBoolean(GameOption.TOOL_UP_ON_RESPAWN)
+            .orElse(true))
+    {
+      this.toolUpPlayer(player);
+    }
     this.unFreezePlayerOut(player);
   }
 
@@ -394,11 +402,32 @@ public class GameManager {
       System.out.printf("Sending %s to %s base at %s\n", name, colour,
               baseLocation);
       final int x = baseLocation.getX() + 2, z = baseLocation.getZ() + 2;
-      final int y = gwm.getWorldHeight(x, z) + 1;
 
-      this.movePlayerToPosition(player, x, y, z);
+      this.movePlayerToPosition(player, x, z);
     });
 
+  }
+
+  public void sendPlayerToRandomPointInOwnHalf(Game game, EntityPlayer player) {
+    final Optional<CtfTeam> t = game.getTeamForPlayer(player.getName());
+    t.ifPresent(team -> {
+      final Bounds gameBounds = game.getBounds();
+      final int gameWidth = gameBounds.getWidth();
+      final int gameDepth = gameBounds.getDepth();
+      final boolean invertZ = ((game.getBaseLocation(TeamColour.RED)
+              .getZ() < game.getBaseLocation(TeamColour.BLUE).getZ())
+              && team.getColour() == TeamColour.BLUE);
+      {
+        final int x = this.world.rand.nextInt(gameWidth);
+        final int z = this.world.rand.nextInt(gameDepth / 2);
+        final int zz = (invertZ) ? gameDepth - z : z;
+        final BlockPos offset = new BlockPos(x, 0, zz);
+        final BlockPos pos = WorldUtils.offset(gameBounds.getFrom(), offset);
+        this.movePlayerToPosition(player, pos.getX(), pos.getZ());
+        this.broadcastToTeamPlayers(game, team.getColour(),
+                format("%s rejoined game at %s", player.getName(), pos));
+      }
+    });
   }
 
   public void toolUpPlayer(EntityPlayer p) {

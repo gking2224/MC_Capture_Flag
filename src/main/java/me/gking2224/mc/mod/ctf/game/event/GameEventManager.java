@@ -14,7 +14,6 @@ import me.gking2224.mc.mod.ctf.game.GameWorldManager;
 import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
@@ -64,11 +63,6 @@ public class GameEventManager {
         }
       });
     });
-  }
-
-  public void playerDied(Entity entity) {
-    // gm.broadcastToAllPlayers(game, format("Player %s has
-    // placed his team's flag!", player));
   }
 
   public void playerPickedUpFlag(String playerName, ItemBase item) {

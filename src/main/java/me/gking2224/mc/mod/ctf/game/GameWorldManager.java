@@ -2,7 +2,6 @@ package me.gking2224.mc.mod.ctf.game;
 
 import static java.lang.Math.max;
 import static java.lang.String.format;
-import static me.gking2224.mc.mod.ctf.game.GameWorldManager.WorldMetrics.toChunk;
 import static me.gking2224.mc.mod.ctf.util.StringUtils.blockPosStr;
 import static me.gking2224.mc.mod.ctf.util.WorldUtils.offset;
 
@@ -32,7 +31,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.IChunkProvider;
 
 public class GameWorldManager {
 
@@ -112,13 +110,14 @@ public class GameWorldManager {
 
     final int refX = refPos.getX();
     final int refZ = refPos.getZ();
-    this.ensureBlockGenerated(refPos);
+    WorldUtils.ensureBlockGenerated(this.world, refPos);
 
     for (int x = 7; x < 15; x++) {
       for (int z = 7; z < 15; z++) {
         final BlockPos testPos = new BlockPos(refX + x, 0,
                 refZ + ((invertZ) ? z : z * -1));
-        final BlockPos testSurface = this.getSurfaceBlock(testPos);
+        final BlockPos testSurface = WorldUtils.getSurfaceBlock(this.world,
+                testPos);
         System.out.printf("Testing block at %s... ", blockPosStr(testSurface));
         final Block block = this.world.getBlockState(testSurface).getBlock();
         final Biome b = this.getBiome(testSurface);
@@ -137,7 +136,7 @@ public class GameWorldManager {
     final Biome b = this.getBiome(refPos);
     System.out.printf("Could not find suitable block for base,"
             + " - you're in %s. Good luck!\n", b.getBiomeName());
-    return this.getSurfaceBlock(refPos);
+    return WorldUtils.getSurfaceBlock(this.world, refPos);
   }
 
   public void buildBases(Game game) {
@@ -214,7 +213,8 @@ public class GameWorldManager {
     for (int x = x1; x <= x2; x += xInc) {
       for (int z = z1; z <= z2; z += zInc) {
         numChecks++;
-        final BlockPos blockPos = this.getSurfaceBlock(new BlockPos(x, 0, z));
+        final BlockPos blockPos = WorldUtils.getSurfaceBlock(this.world,
+                new BlockPos(x, 0, z));
         final Biome biome = this.getBiome(blockPos);
         System.out.println(biome.getBiomeName());
         if (!this.isSuitableBiome(biome)) {
@@ -262,7 +262,7 @@ public class GameWorldManager {
   {
     final Bounds gameBounds = game.getBounds();
     final BlockPos refPos = this.getBasePos(gameBounds, invertZ);
-    this.ensureBlockGenerated(refPos);
+    WorldUtils.ensureBlockGenerated(this.world, refPos);
     System.out.printf("%s game Zs: %d->%d; base Zs: %d\n", team,
             gameBounds.getFrom().getZ(), gameBounds.getTo().getZ(),
             refPos.getZ());
@@ -295,25 +295,10 @@ public class GameWorldManager {
       {
           teamColour, pos
       });
-      final IBlockState current = this.getBlockAt(pos);
+      final IBlockState current = WorldUtils.getBlockAt(this.world, pos);
       System.out.printf("%s: Check block at position %s: %s\n",
               Thread.currentThread().getName(), pos, current);
       this.world.destroyBlock(pos, false);
-    }
-  }
-
-  private void ensureBlockGenerated(BlockPos pos) {
-    this.ensureChunkGenerated(toChunk(pos.getX()), toChunk(pos.getZ()));
-  }
-
-  private void ensureChunkGenerated(int x, int z) {
-    if (!this.world.isChunkGeneratedAt(x, z)) {
-      final IChunkProvider cps = this.world.getChunkProvider();
-      cps.provideChunk(x, z);
-      System.out.printf("Force loaded chunk at %d, %d\n", x, z);
-      if (!this.world.isChunkGeneratedAt(x, z)) {
-        System.out.println("ERROR ... but not showing as loaded :-(");
-      }
     }
   }
 
@@ -346,22 +331,6 @@ public class GameWorldManager {
       System.out.printf("ERROR: chunk not loaded at %s\n", blockPos);
     }
     return this.world.getBiome(blockPos);
-  }
-
-  private IBlockState getBlockAt(BlockPos pos) {
-    this.ensureBlockGenerated(pos);
-    return this.world.getBlockState(pos);
-  }
-
-  private BlockPos getSurfaceBlock(BlockPos pos) {
-    final int x = pos.getX();
-    final int z = pos.getZ();
-    return new BlockPos(x, this.getWorldHeight(x, z) - 1, z);
-  }
-
-  public int getWorldHeight(int x, int z) {
-    this.ensureChunkGenerated(toChunk(x), toChunk(z));
-    return this.world.getHeight(x, z);
   }
 
   public boolean isInHomeBase(Game game, TeamColour colour, BlockPos blockPos) {

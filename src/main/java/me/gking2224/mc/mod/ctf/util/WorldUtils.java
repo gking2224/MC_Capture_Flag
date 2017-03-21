@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 
 public class WorldUtils {
 
@@ -15,9 +16,48 @@ public class WorldUtils {
     return Math.abs(p1 - p2);
   }
 
+  // public static void ensureBlockGenerated(World world, int x, int z) {
+  // ensureBlockGenerated(toChunk(x), toChunk(z));
+  // }
+
+  public static void ensureBlockGenerated(World world, BlockPos pos) {
+    if (!world.isBlockLoaded(pos)) {
+      final Chunk c = world.getChunkFromBlockCoords(pos);
+      // final IChunkProvider cps = world.getChunkProvider();
+      // final int chunkX = toChunk(pos.getX());
+      // final int chunkZ = toChunk(pos.getZ());
+      // cps.provideChunk(chunkX, chunkZ);
+      // System.out.printf("Force loaded chunk at %d, %d\n", chunkX, chunkZ);
+      if (!world.isBlockLoaded(pos)) {
+        System.out.println("ERROR ... but not showing as loaded :-(");
+      }
+    }
+  }
+
+  public static IBlockState getBlockAt(World world, BlockPos pos) {
+    ensureBlockGenerated(world, pos);
+    return world.getBlockState(pos);
+  }
+
   public static BlockPos getDelta(BlockPos p1, BlockPos p2) {
     return new BlockPos(delta(p1.getX(), p2.getX()),
             delta(p1.getY(), p2.getY()), delta(p1.getZ(), p2.getZ()));
+  }
+
+  public static BlockPos getSurfaceBlock(World world, BlockPos pos) {
+    final int x = pos.getX();
+    final int z = pos.getZ();
+    return new BlockPos(x, getWorldHeight(world, x, z) - 1, z);
+  }
+
+  public static int getWorldHeight(World world, BlockPos pos) {
+    ensureBlockGenerated(world, pos);
+    final int y = world.getHeight(pos.getX(), pos.getZ());
+    return y;
+  }
+
+  public static int getWorldHeight(World world, int x, int z) {
+    return getWorldHeight(world, new BlockPos(x, 0, z));
   }
 
   public static Bounds invertZ(Bounds b) {
@@ -86,4 +126,15 @@ public class WorldUtils {
   public static ChunkLocation toChunkLocation(BlockPos pos) {
     return new ChunkLocation(pos.getX() / 16, pos.getZ() / 16);
   }
+
+  // private void ensureChunkGenerated(int x, int z) {
+  // if (!this.world.isChunkGeneratedAt(x, z)) {
+  // final IChunkProvider cps = this.world.getChunkProvider();
+  // cps.provideChunk(x, z);
+  // System.out.printf("Force loaded chunk at %d, %d\n", x, z);
+  // if (!this.world.isChunkGeneratedAt(x, z)) {
+  // System.out.println("ERROR ... but not showing as loaded :-(");
+  // }
+  // }
+  // }
 }
