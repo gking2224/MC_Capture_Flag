@@ -11,7 +11,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 public class MoveItemToHand implements IMessage {
 
-  public static class MoveItemToHandMessageHandler
+  public static class Handler
           implements IMessageHandler<MoveItemToHand, IMessage>
   {
     @Override public IMessage onMessage(MoveItemToHand msg,

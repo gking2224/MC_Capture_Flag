@@ -1,11 +1,7 @@
 package me.gking2224.mc.mod.ctf.event;
 
-import static java.lang.String.format;
-import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
-
 import java.util.Optional;
 
-import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
 import me.gking2224.mc.mod.ctf.game.GameWorldManager;
@@ -78,30 +74,19 @@ public class EventHandlerServer extends EventHandlerCommon {
     }
   }
 
-  @SubscribeEvent public void resetGame(GameResetEvent event) {
-
-    GameEventManager.get().schedule(
-            () -> GameWorldManager.get().resetFlags(event.getGame()), 1000);
-  }
-
-  @SubscribeEvent public void resetGame(PlayerRespawnEvent event) {
+  @SubscribeEvent public void playerRespawned(PlayerRespawnEvent event) {
     final EntityPlayer player = event.player;
     final GameManager gameManager = GameManager.get();
     final String playerName = player.getName();
     final Optional<Game> g = gameManager.getPlayerActiveGame(playerName);
     g.ifPresent(game -> {
-      final Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
-      t.ifPresent(team -> {
-        final int respawnDelay = game.getOptions().getInteger("respawnDelay")
-                .orElse(10);
-        gameManager.broadCastMessageToPlayer(playerName,
-                toIText(format("Going back to %s base in 10 seconds",
-                        team.getColour().toString())));
-        gameManager.toolUpPlayer(player);
-        GameEventManager.get().schedule(
-                () -> gameManager.sendPlayerToBase(game, player), respawnDelay);
-        ;
-      });
+      GameEventManager.get().playerRespawned(player, game);
     });
+  }
+
+  @SubscribeEvent public void resetGame(GameResetEvent event) {
+
+    GameEventManager.get().schedule(
+            () -> GameWorldManager.get().resetFlags(event.getGame()), 1);
   }
 }

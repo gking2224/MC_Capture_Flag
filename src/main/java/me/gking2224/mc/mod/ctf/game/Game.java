@@ -117,7 +117,7 @@ public class Game {
     save();
   }
 
-  public void setFlagBlockPosition(TeamColour colour, BlockPos blockPos) {
+  public void updateFlagBlockPosition(TeamColour colour, BlockPos blockPos) {
     gameData.getFlagLocations().put(colour, blockPos);
     gameData.getPlayerHoldingFlag().remove(colour);
     save();

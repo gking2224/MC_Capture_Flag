@@ -86,10 +86,6 @@ public class GameOptions {
     return new GameOptions(mergedOptions);
   }
 
-  private void setOption(String key, Object value) {
-    this.options.put(key, value);
-  }
-
   @Override public String toString() {
     if (this.internalString == null) {
       final StringBuffer buf = new StringBuffer();

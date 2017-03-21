@@ -33,6 +33,25 @@ public class Bounds {
     this.to = to;
   }
 
+  public Bounds(int fx, int fy, int fz, int tx, int ty, int tz) {
+
+    this(new BlockPos(fx, fy, fz), new BlockPos(tx, ty, tz));
+  }
+
+  @Override public boolean equals(Object obj) {
+    if (this == obj) { return true; }
+    if (obj == null) { return false; }
+    if (this.getClass() != obj.getClass()) { return false; }
+    final Bounds other = (Bounds) obj;
+    if (this.from == null) {
+      if (other.from != null) { return false; }
+    } else if (!this.from.equals(other.from)) { return false; }
+    if (this.to == null) {
+      if (other.to != null) { return false; }
+    } else if (!this.to.equals(other.to)) { return false; }
+    return true;
+  }
+
   public int getDepth() {
     return this.getTo().getZ() - this.getFrom().getZ();
   }
@@ -52,6 +71,14 @@ public class Bounds {
 
   public int getWidth() {
     return this.getTo().getX() - this.getFrom().getX();
+  }
+
+  @Override public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((this.from == null) ? 0 : this.from.hashCode());
+    result = prime * result + ((this.to == null) ? 0 : this.to.hashCode());
+    return result;
   }
 
   @Override public String toString() {

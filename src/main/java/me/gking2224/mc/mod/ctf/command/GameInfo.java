@@ -4,10 +4,8 @@ import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import me.gking2224.mc.mod.ctf.game.Game;
-import me.gking2224.mc.mod.ctf.game.GameManager;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -21,20 +19,18 @@ public class GameInfo extends CommandBase {
 
   public GameInfo() {
 
-    aliases = new ArrayList<String>();
-    aliases.add("gi");
+    this.aliases = new ArrayList<String>();
+    this.aliases.add("gi");
+  }
+
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return true;
   }
 
   @Override public int compareTo(ICommand o) {
     return 0;
-  }
-
-  @Override public String getName() {
-    return "ctf:game_info";
-  }
-
-  @Override public List<String> getAliases() {
-    return this.aliases;
   }
 
   @Override protected void doExecute(MinecraftServer server,
@@ -42,21 +38,35 @@ public class GameInfo extends CommandBase {
       throws CommandException
   {
 
-    Entity e = sender.getCommandSenderEntity();
-    String gameArg = (args.length != 0) ? args[0] : null;
+    final Entity e = sender.getCommandSenderEntity();
+    final String gameArg = (args.length != 0) ? args[0] : null;
 
-    if (e == null) return;
+    if (e == null) { return; }
     if (e instanceof EntityPlayer) {
-      EntityPlayer player = (EntityPlayer) e;
-      Game game = getGame(player, gameArg);
+      final EntityPlayer player = (EntityPlayer) e;
+      final Game game = this.getGame(player, gameArg);
       sender.sendMessage(toIText(game.toString()));
     }
   }
 
-  @Override public boolean checkPermission(MinecraftServer server,
-    ICommandSender sender)
-  {
-    return true;
+  @Override public List<String> getAliases() {
+    return this.aliases;
+  }
+
+  @Override protected String[] getArgNames() {
+    return new String[] {
+        "game"
+    };
+  }
+
+  @Override protected boolean[] getMandatoryArgs() {
+    return new boolean[] {
+        true
+    };
+  }
+
+  @Override public String getName() {
+    return "ctf:game_info";
   }
 
   @Override public List<String> getTabCompletions(MinecraftServer server,
@@ -67,17 +77,5 @@ public class GameInfo extends CommandBase {
 
   @Override public boolean isUsernameIndex(String[] args, int index) {
     return false;
-  }
-
-  @Override protected boolean[] getMandatoryArgs() {
-    return new boolean[] {
-        true
-    };
-  }
-
-  @Override protected String[] getArgNames() {
-    return new String[] {
-        "game"
-    };
   }
 }

@@ -39,9 +39,9 @@ public class WorldUtils {
             new BlockPos(Math.min(from1.getX(), from2.getX()),
                     Math.min(from1.getY(), from2.getY()),
                     Math.min(from1.getZ(), from2.getZ())),
-            new BlockPos(Math.min(to1.getX(), to2.getX()),
-                    Math.min(to1.getY(), to2.getY()),
-                    Math.min(to1.getZ(), to2.getZ())));
+            new BlockPos(Math.max(to1.getX(), to2.getX()),
+                    Math.max(to1.getY(), to2.getY()),
+                    Math.max(to1.getZ(), to2.getZ())));
   }
 
   public static BlockPos offset(BlockPos refPos, BlockPos offset) {

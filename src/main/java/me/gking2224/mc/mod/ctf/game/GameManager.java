@@ -1,9 +1,11 @@
 package me.gking2224.mc.mod.ctf.game;
 
 import static java.lang.String.format;
+import static me.gking2224.mc.mod.ctf.util.InventoryUtils.moveItemFromInventoryToPlayerHand;
 import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +14,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import me.gking2224.mc.mod.ctf.command.BackToBase;
 import me.gking2224.mc.mod.ctf.command.CurrentGame;
@@ -25,9 +28,13 @@ import me.gking2224.mc.mod.ctf.game.data.GameList;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import me.gking2224.mc.mod.ctf.game.event.GameResetEvent;
 import me.gking2224.mc.mod.ctf.game.event.NewGameEvent;
+import me.gking2224.mc.mod.ctf.item.ItemBase;
+import me.gking2224.mc.mod.ctf.net.CanMovePlayerToPosition;
+import me.gking2224.mc.mod.ctf.net.CtfNetworkHandler;
 import me.gking2224.mc.mod.ctf.util.InventoryUtils;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -43,6 +50,8 @@ public class GameManager {
           .getLogger(GameManager.class.getName());
 
   private static GameManager instance = null;
+  private static GameEventManager gem;
+  private static GameWorldManager gwm;
 
   public static GameManager get() {
     return instance;
@@ -51,9 +60,8 @@ public class GameManager {
   public static void initialise(MinecraftServer server) {
     if (instance != null) { throw new IllegalStateException(); }
     instance = new GameManager(server);
-    GameWorldManager.init(server);
-    GameEventManager.init(server);
-
+    gwm = GameWorldManager.init(server, instance);
+    gem = GameEventManager.init(server, instance);
   }
 
   private transient MinecraftServer server;
@@ -63,6 +71,7 @@ public class GameManager {
   private final GameList gameList;
 
   private Map<String, Game> games = null;
+  private final Set<String> frozenPlayers = new HashSet<String>();
 
   private GameManager(MinecraftServer server) {
     this.server = server;
@@ -77,9 +86,15 @@ public class GameManager {
     this.save();
   }
 
+  private Stream<Game> allGamesWithPlayer(String playerName) {
+    return this.games.values().stream().filter(g -> {
+      return g.getAllPlayers().contains(playerName);
+    });
+  }
+
   private boolean allowAttackWithProbability(double probability) {
     final float randomVal = this.world.rand.nextFloat();
-    return randomVal <= probability;
+    return randomVal <= (probability / 2);
   }
 
   public boolean allowPlayerToAttackedPlayer(EntityPlayer attacker,
@@ -180,6 +195,22 @@ public class GameManager {
     // TODO Auto-generated method stub
   }
 
+  public void clientChunkGenerated(EntityPlayer playerEntity) {
+
+    // TODO Auto-generated method stub
+
+  }
+
+  public void completeMovePlayerToPosition(EntityPlayer player, final int x,
+    final int y, final int z)
+  {
+    player.setPosition(x, y, z);
+  }
+
+  public void freezePlayerOut(EntityPlayer player) {
+    this.frozenPlayers.add(player.getName());
+  }
+
   public void gameRoundWon(Game game, String player, CtfTeam team,
     TeamColour capturedFlagColour)
   {
@@ -258,7 +289,6 @@ public class GameManager {
               startZ + (gameChunksZ * 16));
       bounds = new Bounds(gameAreaFrom, gameAreaTo);
 
-      final GameWorldManager gwm = GameWorldManager.get();
       suitable = !this.boundaryClashes(bounds) && gwm.isSuitableForGame(bounds);
 
     }
@@ -274,8 +304,20 @@ public class GameManager {
     return Optional.ofNullable(this.world.getPlayerEntityByName(playerName));
   }
 
+  public boolean isPlayerFrozen(String playerName) {
+    return this.frozenPlayers.contains(playerName);
+  }
+
   public void log(String msg) {
     this.server.sendMessage(toIText(msg));
+  }
+
+  private void movePlayerToPosition(EntityPlayer player, final int x,
+    final int y, final int z)
+  {
+    CtfNetworkHandler.INSTANCE.sendTo(new CanMovePlayerToPosition(x, y, z),
+            (EntityPlayerMP) player);
+    player.setPosition(x, y, z);
   }
 
   public Game newGame(EntityPlayer owner, GameOptions options)
@@ -298,11 +340,33 @@ public class GameManager {
   }
 
   public void playerLeaveAllGames(String playerName) {
-    this.games.values().stream().filter(g -> {
-      return g.getAllPlayers().contains(playerName);
-    }).forEach(g -> {
-      g.removePlayer(playerName);
-    });
+    this.allGamesWithPlayer(playerName)
+            .forEach(g -> g.removePlayer(playerName));
+  }
+
+  public void playerLeaveAllGamesExcept(String playerName, String gameName) {
+    this.allGamesWithPlayer(playerName).filter(g -> !gameName.equals(gameName))
+            .forEach(g -> g.removePlayer(playerName));
+  }
+
+  public void playerPickedUpOpponentFlag(String playerName, ItemBase item,
+    Game game, EntityPlayer player, CtfTeam team, final TeamColour flagColour)
+  {
+    this.broadcastToAllPlayers(game, format("Player %s has got %s team's flag!",
+            player, team.getColour()));
+    gem.schedule(() -> moveItemFromInventoryToPlayerHand(player, item));
+    game.setPlayerHoldingFlag(flagColour, playerName);
+  }
+
+  public void playerPlacedOwnFlag(String player, Game game) {
+    this.broadcastToAllPlayers(game,
+            format("Player %s has placed his team's flag!", player));
+  }
+
+  public void playerRejoinGame(EntityPlayer player, Game game) {
+    this.sendPlayerToBase(game, player);
+    this.toolUpPlayer(player);
+    this.unFreezePlayerOut(player);
   }
 
   private void resetGame(Game game) {
@@ -324,10 +388,15 @@ public class GameManager {
   public void sendPlayerToBase(Game game, EntityPlayer player) {
     final Optional<CtfTeam> t = game.getTeamForPlayer(player.getName());
     t.ifPresent(team -> {
-      final BlockPos baseLocation = game.getBaseLocation(team.getColour());
+      final TeamColour colour = team.getColour();
+      final BlockPos baseLocation = game.getBaseLocation(colour);
+      final String name = player.getName();
+      System.out.printf("Sending %s to %s base at %s\n", name, colour,
+              baseLocation);
       final int x = baseLocation.getX() + 2, z = baseLocation.getZ() + 2;
-      final int y = GameWorldManager.get().getWorldHeight(x, z) + 1;
-      player.setPosition(x, y, z);
+      final int y = gwm.getWorldHeight(x, z) + 1;
+
+      this.movePlayerToPosition(player, x, y, z);
     });
 
   }
@@ -335,5 +404,9 @@ public class GameManager {
   public void toolUpPlayer(EntityPlayer p) {
     InventoryUtils.setPlayerInventory(p,
             GameInventoryFactory.getDefault().getGameItems());
+  }
+
+  public void unFreezePlayerOut(EntityPlayer player) {
+    this.frozenPlayers.remove(player.getName());
   }
 }

@@ -46,6 +46,9 @@ public class GameWorldManager {
     }
   }
 
+  private static final IBlockState DEFAULT_PERIMITER = Blocks.BARRIER
+          .getDefaultState();
+
   private static Logger LOGGER = Logger.getLogger(GameManager.class.getName());
   private static final IBlockState RED_FLAG = PlacedFlag
           .withColour(PlacedFlag.EnumFlagColour.RED);
@@ -88,9 +91,10 @@ public class GameWorldManager {
     return instance;
   }
 
-  public static void init(MinecraftServer server) {
+  public static GameWorldManager init(MinecraftServer server, GameManager gm) {
     if (instance != null) { throw new IllegalStateException(); }
-    instance = new GameWorldManager(server);
+    instance = new GameWorldManager(server, gm);
+    return instance;
   }
 
   private final MinecraftServer server;
@@ -98,10 +102,10 @@ public class GameWorldManager {
   private final World world;
   @SuppressWarnings("unused") private final GameManager gm;
 
-  private GameWorldManager(MinecraftServer server) {
+  private GameWorldManager(MinecraftServer server, GameManager gm) {
     this.server = server;
     this.world = server.getEntityWorld();
-    this.gm = GameManager.get();
+    this.gm = gm;
   }
 
   private BlockPos adjustBasePosition(BlockPos refPos, boolean invertZ) {
@@ -148,11 +152,6 @@ public class GameWorldManager {
     this.resetFlags(game);
   }
 
-  private void buildPerimeter(Bounds bounds, int lowPoint, int highPoint) {
-    this.buildPerimeter(bounds, lowPoint, highPoint,
-            Blocks.BARRIER.getDefaultState());
-  }
-
   private void buildPerimeter(Bounds bounds, int lowPoint, int highPoint,
     IBlockState state)
   {
@@ -180,6 +179,22 @@ public class GameWorldManager {
             new Bounds(new BlockPos(bounds.getFrom().getX(), lowPoint, z),
                     new BlockPos(bounds.getTo().getX(), highPoint, z)),
             state);
+  }
+
+  private void buildPerimiter(Game game) {
+    final Optional<String> o = game.getOptions()
+            .getString(GameOption.PERIMITER);
+    o.ifPresent(option -> {
+      IBlockState material = Block.getBlockFromName(option).getDefaultState();
+      if (material == null) {
+        System.out.printf("Perimiter material %s not found\n", option);
+        material = DEFAULT_PERIMITER;
+      }
+      final int redY = game.getBaseLocation(TeamColour.RED).getY();
+      final int blueY = game.getBaseLocation(TeamColour.BLUE).getY();
+      this.buildPerimeter(game.getBounds(), Math.min(redY, blueY) - 20,
+              Math.max(redY, blueY) + 20, material);
+    });
   }
 
   private boolean checkBiomesSuitable(Bounds bounds) {
@@ -268,13 +283,7 @@ public class GameWorldManager {
 
   public void createGameArea(Game game) {
     this.buildBases(game);
-    final int redY = game.getBaseLocation(TeamColour.RED).getY();
-    final int blueY = game.getBaseLocation(TeamColour.BLUE).getY();
-    if (game.getOptions().getBoolean("perimiter").orElse(true)) {
-      this.buildPerimeter(game.getBounds(), Math.min(redY, blueY) - 20,
-              Math.max(redY, blueY) + 20);
-    }
-
+    this.buildPerimiter(game);
   }
 
   public void deletePlacedFlag(Game game, TeamColour teamColour) {
@@ -372,14 +381,14 @@ public class GameWorldManager {
   private void placeFlag(Game game, TeamColour colour, IBlockState flag) {
     final BlockPos flagPos = offset(game.getBaseLocation(colour), 0, 1, 0);
     this.world.setBlockState(flagPos, flag);
-    game.setFlagBlockPosition(colour, flagPos);
+    game.updateFlagBlockPosition(colour, flagPos);
   }
 
   private void placeFlagHolder(Game game, TeamColour colour) {
     final IBlockState block = ModBlocks.FLAG_HOLDER.getDefaultState();
     final BlockPos flagPos = game.getBaseLocation(colour);
     this.world.setBlockState(flagPos, block);
-    game.setFlagBlockPosition(colour, flagPos);
+    game.updateFlagBlockPosition(colour, flagPos);
   }
 
   public void removeFlagFromAllPlayerInventories(Game game, ItemBase flag) {

@@ -4,9 +4,7 @@ import static java.lang.String.format;
 import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import me.gking2224.mc.mod.ctf.game.CtfTeam;
 import me.gking2224.mc.mod.ctf.game.Game;
@@ -30,20 +28,18 @@ public class NewCtfGame extends CommandBase {
 
   public NewCtfGame() {
 
-    aliases = new ArrayList<String>();
-    aliases.add("ng");
+    this.aliases = new ArrayList<String>();
+    this.aliases.add("ng");
+  }
+
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return true;
   }
 
   @Override public int compareTo(ICommand o) {
     return 0;
-  }
-
-  @Override public String getName() {
-    return "new_ctf_game";
-  }
-
-  @Override public List<String> getAliases() {
-    return this.aliases;
   }
 
   @Override protected void doExecute(MinecraftServer server,
@@ -51,38 +47,52 @@ public class NewCtfGame extends CommandBase {
       throws CommandException
   {
 
-    Entity e = sender.getCommandSenderEntity();
+    final Entity e = sender.getCommandSenderEntity();
     GameOptions options = DEFAULT_OPTIONS;
     if (args.length >= 1) {
       options = options.update(args[0]);
     }
 
-    if (e == null) return;
+    if (e == null) { return; }
     if (e instanceof EntityPlayer) {
-      EntityPlayer player = (EntityPlayer) e;
-      String playerName = player.getName();
+      final EntityPlayer player = (EntityPlayer) e;
+      final String playerName = player.getName();
 
       try {
-        GameManager gameManager = GameManager.get();
+        final GameManager gameManager = GameManager.get();
         gameManager.playerLeaveAllGames(playerName);
-        Game game = gameManager.newGame(player, options);
-        CtfTeam team = game.addPlayer(playerName);
+        final Game game = gameManager.newGame(player, options);
+        final CtfTeam team = game.addPlayer(playerName);
         // TODO refactor join game code
         player.setSpawnPoint(game.getBaseLocation(team.getColour()), true);
         gameManager.sendPlayerToBase(game, player);
         gameManager.toolUpPlayer(player);
         sender.sendMessage(toIText(format("Created game %s and joined team %s",
                 game.getName(), team.getColour())));
-      } catch (GameCreationException ex) {
+      } catch (final GameCreationException ex) {
         throw new CommandException(ex.getMessage());
       }
     }
   }
 
-  @Override public boolean checkPermission(MinecraftServer server,
-    ICommandSender sender)
-  {
-    return true;
+  @Override public List<String> getAliases() {
+    return this.aliases;
+  }
+
+  @Override protected String[] getArgNames() {
+    return new String[] {
+        "name", "options"
+    };
+  }
+
+  @Override protected boolean[] getMandatoryArgs() {
+    return new boolean[] {
+        false, false
+    };
+  }
+
+  @Override public String getName() {
+    return "new_ctf_game";
   }
 
   @Override public List<String> getTabCompletions(MinecraftServer server,
@@ -93,17 +103,5 @@ public class NewCtfGame extends CommandBase {
 
   @Override public boolean isUsernameIndex(String[] args, int index) {
     return false;
-  }
-
-  @Override protected boolean[] getMandatoryArgs() {
-    return new boolean[] {
-        false, false
-    };
-  }
-
-  @Override protected String[] getArgNames() {
-    return new String[] {
-        "name", "options"
-    };
   }
 }

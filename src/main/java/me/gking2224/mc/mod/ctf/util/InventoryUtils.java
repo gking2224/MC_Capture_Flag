@@ -30,9 +30,6 @@ public class InventoryUtils {
     Item item)
   {
 
-    // ItemStack fromInv = removeAllSimilarItemsFromPlayerInventory(player,
-    // item);
-
     final ItemStack fromHand = player.getHeldItemMainhand();
     System.out.printf("%s has %s in his hand\n", player.getName(),
             fromHand.getDisplayName());
