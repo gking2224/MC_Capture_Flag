@@ -91,11 +91,12 @@ public class WorldUtils {
     int z)
   {
     BlockPos pos = getSurfaceBlock(world, x, z);
-    System.out.printf("Get nearest teleport location to %s\n", pos);
+    System.out.println(
+            String.format("Get nearest teleport location to %s\n", pos));
     while (!suitableForTeleport(world, pos)) {
       pos = tryDifferentTeleportLocation(world, pos);
     }
-    System.out.printf("Using %s\n", pos);
+    System.out.println(String.format("Using %s\n", pos));
     return pos;
   }
 
@@ -123,7 +124,8 @@ public class WorldUtils {
     final Bounds inverted = new Bounds(
             new BlockPos(b.getFrom().getX(), b.getFrom().getY(), toZ),
             new BlockPos(b.getTo().getX(), b.getTo().getY(), fromZ));
-    System.out.printf("Inverted z from %s to %s\n", b, inverted);
+    System.out
+            .println(String.format("Inverted z from %s to %s\n", b, inverted));
     return inverted;
   }
 
@@ -158,7 +160,7 @@ public class WorldUtils {
   public static void placeBlocks(World world, Bounds bounds,
     IBlockState state)
   {
-    System.out.printf("placeBlocks %s at %s\n", state, bounds);
+    System.out.println(String.format("placeBlocks %s at %s\n", state, bounds));
     replaceBlocks(world, null, bounds, state);
   }
 
@@ -193,15 +195,15 @@ public class WorldUtils {
     {
       if (Blocks.AIR == blockAt.getBlock()) {
         if (Blocks.AIR == blockAbove.getBlock()) {
-          System.out.printf("Can teleport to %s (%s|%s|%s)\n", pos,
-                  blockBelow.getBlock(), blockAt.getBlock(),
-                  blockAbove.getBlock());
+          System.out.println(String.format("Can teleport to %s (%s|%s|%s)\n",
+                  pos, blockBelow.getBlock(), blockAt.getBlock(),
+                  blockAbove.getBlock()));
           return true;
         }
       }
     }
-    System.out.printf("Not teleporting to %s (%s|%s|%s)\n", pos,
-            blockBelow.getBlock(), blockAt.getBlock(), blockAbove.getBlock());
+    System.out.println(String.format("Not teleporting to %s (%s|%s|%s)\n", pos,
+            blockBelow.getBlock(), blockAt.getBlock(), blockAbove.getBlock()));
     return false;
   }
 

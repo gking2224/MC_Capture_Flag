@@ -23,8 +23,8 @@ public class MoveItemToHand implements IMessage {
           Thread.sleep(500);
         } catch (final Exception e) {}
         final int slot = player.inventory.getSlotFor(msg.getItemStack());
-        System.out.printf("%s in slot %d\n",
-                msg.getItemStack().getDisplayName(), slot);
+        System.out.println(String.format("%s in slot %d\n", 
+                msg.getItemStack().getDisplayName(), slot));
         // if (slot != -1) player.inventory.pickItem(slot);
       }).start();
       return null;

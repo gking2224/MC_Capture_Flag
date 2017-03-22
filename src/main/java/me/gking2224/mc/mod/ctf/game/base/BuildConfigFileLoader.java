@@ -112,8 +112,8 @@ public class BuildConfigFileLoader {
 
   private Optional<BuildInstruction> processLine(String line, int lineNumber) {
     BuildInstruction rv = null;
-    System.out.printf("Reading base config file, line %d: %s\n", lineNumber,
-            line);
+    System.out.println(String.format("Reading base config file, line %d: %s\n", lineNumber, 
+            line));
     if (line.startsWith(TEAM)) {
       this.processTeamColour(line);
     } else if (!line.startsWith("#")) {

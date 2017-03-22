@@ -23,9 +23,9 @@ public class GameList extends WorldSavedData {
     if (instance == null) {
       instance = new GameList();
       storage.setData(DATA_NAME, instance);
-      System.out.printf("Stored new GameList: %s\n", instance);
+      System.out.println(String.format("Stored new GameList: %s\n",  instance));
     } else {
-      System.out.printf("Loaded GameList: %s\n", instance);
+      System.out.println(String.format("Loaded GameList: %s\n",  instance));
     }
     return instance;
   }

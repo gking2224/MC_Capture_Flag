@@ -87,8 +87,8 @@ public class CtfNetworkHandler {
     // final Class<? extends IMessageHandler<REQ, RES>> handlerOrDummy =
     // dummyIfNotSide(
     // sideOn, sideToRegister, messageClass, handlerClass);
-    System.out.printf("Registering %s to handle %s\n", handlerClass.getName(),
-            messageClass.getName());
+    System.out.println(String.format("Registering %s to handle %s\n", handlerClass.getName(), 
+            messageClass.getName()));
 
     INSTANCE.registerMessage(handlerClass, messageClass, discriminator++,
             sideOn);

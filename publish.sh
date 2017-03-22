@@ -14,7 +14,7 @@ MSM_SERVER_MODS_DIR=$MSM_SERVER_DIR/mods
 MSM_SERVER_BASES_DIR=$MSM_SERVER_DIR/bases
 
 echo "This script uses sudo - be prepared to enter your password"
-
+sudo ls > /dev/null 2>&1
 # BUILD
 echo "--- Run gradle build"
 ./gradlew clean build

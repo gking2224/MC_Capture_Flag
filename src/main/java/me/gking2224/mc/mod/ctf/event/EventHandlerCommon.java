@@ -37,13 +37,13 @@ public class EventHandlerCommon {
   @SubscribeEvent public void registerBlocks(
     RegistryEvent.Register<Block> event)
   {
-    System.out.printf("block registered: %s",
-            event.getGenericType().getTypeName());
+    System.out.println(String.format("block registered: %s", 
+            event.getGenericType().getTypeName()));
     event.getRegistry().registerAll(TM1Blocks.getBlocks());
   }
 
   @SubscribeEvent public void serverChat(ServerChatEvent event) {
     final EntityPlayer player = event.getPlayer();
-    System.out.printf("%s: %s", player.getName(), event.getMessage());
+    System.out.println(String.format("%s: %s", player.getName(),  event.getMessage()));
   }
 }

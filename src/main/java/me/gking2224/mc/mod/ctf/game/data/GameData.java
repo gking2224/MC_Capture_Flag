@@ -36,7 +36,7 @@ public class GameData extends WorldSavedData {
     final MapStorage storage = world.getPerWorldStorage();
     final GameData instance = new GameData(name, options);
     storage.setData(getDataIdentifier(name), instance);
-    System.out.printf("Stored GameData: %s\n", instance);
+    System.out.println(String.format("Stored GameData: %s\n",  instance));
     return instance;
   }
 
@@ -44,7 +44,7 @@ public class GameData extends WorldSavedData {
     final MapStorage storage = world.getPerWorldStorage();
     final GameData instance = (GameData) storage.getOrLoadData(GameData.class,
             getDataIdentifier(name));
-    System.out.printf("Loaded GameData: %s\n", instance);
+    System.out.println(String.format("Loaded GameData: %s\n",  instance));
     return Optional.ofNullable(instance);
   }
 
@@ -141,14 +141,14 @@ public class GameData extends WorldSavedData {
     }
 
     final String optionsStr = nbt.getString(OPTIONS);
-    System.out.printf("read game options: %s\n", optionsStr);
+    System.out.println(String.format("read game options: %s\n",  optionsStr));
     this.options = (optionsStr != null) ? new GameOptions(optionsStr)
             : GameOptions.getDefault();
 
     this.teams.values().forEach(t -> t.getPlayers()
             .forEach(p -> this.handicaps.put(p, nbt.getInteger(HANDICAP + p))));
 
-    System.out.printf("Read game from NBT: %s\n", this);
+    System.out.println(String.format("Read game from NBT: %s\n",  this));
   }
 
   public void setBaseLocations(Map<TeamColour, BlockPos> baseLocations) {
@@ -215,7 +215,7 @@ public class GameData extends WorldSavedData {
 
     this.handicaps.forEach((p, h) -> nbt.setInteger(HANDICAP + p, h));
 
-    System.out.printf("Wrote game to NBT: %s\n", this);
+    System.out.println(String.format("Wrote game to NBT: %s\n",  this));
     return nbt;
   }
 }

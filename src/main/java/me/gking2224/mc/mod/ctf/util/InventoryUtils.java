@@ -31,8 +31,8 @@ public class InventoryUtils {
   {
 
     final ItemStack fromHand = player.getHeldItemMainhand();
-    System.out.printf("%s has %s in his hand\n", player.getName(),
-            fromHand.getDisplayName());
+    System.out.println(String.format("%s has %s in his hand\n",
+            player.getName(), fromHand.getDisplayName()));
     addItemsToPlayerInventory(player, Collections.singleton(fromHand));
 
     CtfNetworkHandler.INSTANCE.sendTo(new MoveItemToHand(new ItemStack(item)),
@@ -42,7 +42,6 @@ public class InventoryUtils {
   public static ItemStack removeAllSimilarItemsFromPlayerInventory(
     EntityPlayer player, Item item)
   {
-
     int count = 0;
     final InventoryPlayer inventory = player.inventory;
     final int itemId = Item.getIdFromItem(item);

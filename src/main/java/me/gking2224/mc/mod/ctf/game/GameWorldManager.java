@@ -118,24 +118,28 @@ public class GameWorldManager {
                 refZ + ((invertZ) ? z : z * -1));
         final BlockPos testSurface = WorldUtils.getSurfaceBlock(this.world,
                 testPos);
-        System.out.printf("Testing block at %s... ", blockPosStr(testSurface));
+        System.out.println(String.format("Testing block at %s... ",
+                blockPosStr(testSurface)));
         final Block block = this.world.getBlockState(testSurface).getBlock();
         final Biome b = this.getBiome(testSurface);
-        System.out.printf("biome %s... ", b.getBiomeName());
+        System.out.println(String.format("biome %s... ", b.getBiomeName()));
         if (!FLAG_BLOCK_WHITELIST.contains(Block.getIdFromBlock(block))) {
-          // System.out.printf("not creating base on block %s\n",
+          // System.out.println(String.format("not creating base on block %s\n",
           // block.getLocalizedName());
         } else {
-          System.out.printf("creating base on block %s\n",
-                  block.getLocalizedName());
+          System.out.println(String.format("creating base on block %s\n",
+                  block.getLocalizedName()));
           return testSurface;
         }
 
       }
     }
     final Biome b = this.getBiome(refPos);
-    System.out.printf("Could not find suitable block for base,"
-            + " - you're in %s. Good luck!\n", b.getBiomeName());
+    System.out
+            .println(String.format(
+                    "Could not find suitable block for base,"
+                            + " - you're in %s. Good luck!\n",
+                    b.getBiomeName()));
     return WorldUtils.getSurfaceBlock(this.world, refPos);
   }
 
@@ -186,7 +190,8 @@ public class GameWorldManager {
     o.ifPresent(option -> {
       IBlockState material = Block.getBlockFromName(option).getDefaultState();
       if (material == null) {
-        System.out.printf("Perimiter material %s not found\n", option);
+        System.out.println(
+                String.format("Perimiter material %s not found\n", option));
         material = DEFAULT_PERIMITER;
       }
       final int redY = game.getBaseLocation(TeamColour.RED).getY();
@@ -222,7 +227,8 @@ public class GameWorldManager {
         }
       }
     }
-    System.out.printf("Num biome-suitablility checks: %d\n", numChecks);
+    System.out.println(
+            String.format("Num biome-suitablility checks: %d\n", numChecks));
     final double numUnsuitable2 = numUnsuitable;
     final double numChecks2 = numChecks;
     final double percentUnsuitable = (numUnsuitable2 / numChecks2) * 100;
@@ -263,14 +269,14 @@ public class GameWorldManager {
     final Bounds gameBounds = game.getBounds();
     final BlockPos refPos = this.getBasePos(gameBounds, invertZ);
     WorldUtils.ensureBlockGenerated(this.world, refPos);
-    System.out.printf("%s game Zs: %d->%d; base Zs: %d\n", team,
+    System.out.println(String.format("%s game Zs: %d->%d; base Zs: %d\n", team,
             gameBounds.getFrom().getZ(), gameBounds.getTo().getZ(),
-            refPos.getZ());
+            refPos.getZ()));
     final IBlockState ambientBlock = this.getAmbientBlock(refPos);
     this.createBaseStructure(game, builder, refPos, team, ambientBlock,
             invertZ);
-    System.out.printf("Team %s base location at %s\n", team,
-            blockPosStr(refPos));
+    System.out.println(String.format("Team %s base location at %s\n", team,
+            blockPosStr(refPos)));
     game.setBaseLocation(team, refPos);
   }
 
@@ -296,8 +302,8 @@ public class GameWorldManager {
           teamColour, pos
       });
       final IBlockState current = WorldUtils.getBlockAt(this.world, pos);
-      System.out.printf("%s: Check block at position %s: %s\n",
-              Thread.currentThread().getName(), pos, current);
+      System.out.println(String.format("%s: Check block at position %s: %s\n",
+              Thread.currentThread().getName(), pos, current));
       this.world.destroyBlock(pos, false);
     }
   }
@@ -308,8 +314,9 @@ public class GameWorldManager {
   }
 
   private BlockPos getBasePos(Bounds bounds, boolean invertZ) {
-    System.out.printf("Creating base for game bounds %s (size: %s)\n", bounds,
-            bounds.getSize());
+    System.out.println(
+            String.format("Creating base for game bounds %s (size: %s)\n",
+                    bounds, bounds.getSize()));
     final double zRatio = 0.1;
     final int w = bounds.getWidth();
     final int d = bounds.getDepth();
@@ -321,14 +328,15 @@ public class GameWorldManager {
     final int x = bounds.getFrom().getX() + xInset;
     final int z = endZ;
 
-    System.out.printf("Try to create base at %d, %d\n", x, z);
+    System.out.println(String.format("Try to create base at %d, %d\n", x, z));
     return this.adjustBasePosition(new BlockPos(x, 0, z), invertZ);
   }
 
   private Biome getBiome(BlockPos blockPos) {
     final Chunk c = this.world.getChunkFromBlockCoords(blockPos);
     if (!c.isLoaded()) {
-      System.out.printf("ERROR: chunk not loaded at %s\n", blockPos);
+      System.out.println(
+              String.format("ERROR: chunk not loaded at %s\n", blockPos));
     }
     return this.world.getBiome(blockPos);
   }

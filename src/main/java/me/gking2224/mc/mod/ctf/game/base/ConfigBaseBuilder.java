@@ -121,11 +121,11 @@ public class ConfigBaseBuilder implements BaseBuilder {
   @Override public Bounds buildBase(BlockPos refPos, TeamColour team,
     IBlockState ambientBlock, boolean invertZ)
   {
-    System.out.printf("Build base for %s at %s\n", team, refPos);
+    System.out.println(String.format("Build base for %s at %s\n", team,  refPos));
     final List<BuildInstruction> config = this.loader
             .getConfig(team, ambientBlock).stream()
             .map(i -> this.invertZ(i, invertZ)).collect(Collectors.toList());
-    System.out.printf("Use build instructions: %s\n", config);
+    System.out.println(String.format("Use build instructions: %s\n",  config));
     return config.stream().collect(new BaseCollector(this.world, refPos));
   }
 

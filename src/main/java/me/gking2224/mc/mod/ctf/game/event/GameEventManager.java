@@ -48,8 +48,8 @@ public class GameEventManager {
     g.ifPresent((game) -> {
       final TeamColour flagColour = Flag.getFlagColour(flag);
       game.updateFlagBlockPosition(flagColour, blockPos);
-      System.out.printf("%s: %s flag position updated as %s\n",
-              Thread.currentThread().getName(), flagColour, blockPos);
+      System.out.println(String.format("%s: %s flag position updated as %s\n", 
+              Thread.currentThread().getName(), flagColour, blockPos));
       final Optional<CtfTeam> t = game.getTeamForPlayer(player);
       t.ifPresent(team -> {
         if (!Flag.isOwnTeamFlag(flag, team)) {
@@ -116,6 +116,8 @@ public class GameEventManager {
     t.ifPresent(team -> {
       final int respawnDelay = game.getOptions()
               .getInteger(GameOption.RESPAWN_DELAY).orElse(10);
+      System.out.println(String.format("Rejoin game %s in team %s in %d seconds\n", 
+              game.getName(), team.getColour(), respawnDelay));
       this.gm.freezePlayerOut(player);
       this.gm.broadCastMessageToPlayer(playerName,
               toIText(format("Going back to %s base in 10 seconds",
