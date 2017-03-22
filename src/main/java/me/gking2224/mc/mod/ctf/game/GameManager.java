@@ -316,10 +316,11 @@ public class GameManager {
   private void movePlayerToPosition(EntityPlayer player, final int x,
     final int z)
   {
-    final int y = WorldUtils.getWorldHeight(this.world, x, z) + 1;
-    CtfNetworkHandler.INSTANCE.sendTo(new CanMovePlayerToPosition(x, y, z),
+    final BlockPos pos = WorldUtils
+            .getNearestSuitableTeleportLocation(this.world, x, z);
+    CtfNetworkHandler.INSTANCE.sendTo(new CanMovePlayerToPosition(pos),
             (EntityPlayerMP) player);
-    player.setPosition(x, y, z);
+    player.setPosition(pos.getX(), pos.getY(), pos.getZ());
   }
 
   public Game newGame(EntityPlayer owner, GameOptions options)

@@ -69,21 +69,21 @@ public class GameEventManager {
     final Optional<Game> g = this.gm.getPlayerActiveGame(playerName);
     g.ifPresent((game) -> {
       final Optional<EntityPlayer> p = this.gm.getPlayerByName(playerName);
-      p.ifPresent(player -> {
-        final Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
-        t.ifPresent((team) -> {
-          final TeamColour flagColour = Flag.getFlagColour(item);
-          if (flagColour != team.getColour()) {
-            this.gm.playerPickedUpOpponentFlag(playerName, item, game, player,
-                    team, flagColour);
-          } else {
-            this.gm.broadcastToAllPlayers(game, format(
-                    "Player %s tried to pick up his own flag!", playerName));
-            GameWorldManager.get().resetFlag(game, flagColour);
-          }
-        });
-      });
+      final Optional<CtfTeam> t = game.getTeamForPlayer(playerName);
+      if (p.isPresent() && t.isPresent()) {
+        final TeamColour flagColour = Flag.getFlagColour(item);
+        final CtfTeam team = t.get();
+        if (flagColour != team.getColour()) {
+          this.gm.playerPickedUpOpponentFlag(playerName, item, game, p.get(),
+                  team, flagColour);
+        } else {
+          this.gm.broadcastToAllPlayers(game, format(
+                  "Player %s tried to pick up his own flag!", playerName));
+          GameWorldManager.get().resetFlag(game, flagColour);
+        }
+      }
     });
+
   }
 
   public void playerRequestedJoinGame(EntityPlayer player,

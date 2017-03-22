@@ -32,7 +32,6 @@ public class ServerProxy extends CommonProxy {
   @Override public void init(FMLInitializationEvent event) {
     super.init(event);
     final EventHandlerServer handler = new EventHandlerServer();
-    MinecraftForge.EVENT_BUS.register(handler);
     MinecraftForge.TERRAIN_GEN_BUS.register(handler);
   }
 

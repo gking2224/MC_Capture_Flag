@@ -3,6 +3,7 @@ package me.gking2224.mc.mod.ctf.net;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ChunkProviderClient;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -33,6 +34,10 @@ public class CanMovePlayerToPosition implements IMessage {
   private int z;
 
   public CanMovePlayerToPosition() {}
+
+  public CanMovePlayerToPosition(BlockPos pos) {
+    this(pos.getX(), pos.getY(), pos.getZ());
+  }
 
   public CanMovePlayerToPosition(int x, int y, int z) {
     this.x = x;
