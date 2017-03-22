@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import me.gking2224.mc.mod.ctf.ModCaptureTheFlag;
+import me.gking2224.mc.mod.ctf.event.EventHandlerCommon;
 import me.gking2224.mc.mod.ctf.net.CanMovePlayerToPosition;
 import me.gking2224.mc.mod.ctf.net.MoveItemToHand;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -22,6 +23,12 @@ public class ClientProxy extends CommonProxy {
     handledMessages.put(MoveItemToHand.class, MoveItemToHand.Handler.class);
     handledMessages.put(CanMovePlayerToPosition.class,
             CanMovePlayerToPosition.Handler.class);
+  }
+
+  private static final EventHandlerCommon handler = new EventHandlerCommon();
+
+  @Override protected EventHandlerCommon getEventHandler() {
+    return handler;
   }
 
   @Override public Map<Class<? extends IMessage>, Class<? extends IMessageHandler<? extends IMessage, ? extends IMessage>>> getHandledMessages() {

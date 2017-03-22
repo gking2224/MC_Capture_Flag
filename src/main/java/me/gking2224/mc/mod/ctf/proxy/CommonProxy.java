@@ -30,7 +30,7 @@ public abstract class CommonProxy implements CtfSidedProxy {
     messageClasses.add(MoveItemToHand.class);
   }
 
-  private final EventHandlerCommon handler = new EventHandlerCommon();
+  protected abstract EventHandlerCommon getEventHandler();
 
   @Override public Class<? extends IMessageHandler<? extends IMessage, ? extends IMessage>> getHandlerClassForMessage(
     Class<? extends IMessage> messageClas)
@@ -45,7 +45,7 @@ public abstract class CommonProxy implements CtfSidedProxy {
   protected abstract Side getSide();
 
   @Override public void init(FMLInitializationEvent event) {
-    MinecraftForge.EVENT_BUS.register(this.handler);
+    MinecraftForge.EVENT_BUS.register(this.getEventHandler());
     this.initNetworkMessages();
   }
 

@@ -3,6 +3,7 @@ package me.gking2224.mc.mod.ctf.proxy;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.gking2224.mc.mod.ctf.event.EventHandlerCommon;
 import me.gking2224.mc.mod.ctf.event.EventHandlerServer;
 import me.gking2224.mc.mod.ctf.game.GameManager;
 import me.gking2224.mc.mod.ctf.net.Response;
@@ -17,8 +18,14 @@ public class ServerProxy extends CommonProxy {
 
   private static final Map<Class<? extends IMessage>, Class<? extends IMessageHandler<? extends IMessage, ? extends IMessage>>> handledMessages = new HashMap<Class<? extends IMessage>, Class<? extends IMessageHandler<? extends IMessage, ? extends IMessage>>>();
 
+  private static final EventHandlerServer handler = new EventHandlerServer();
+
   static {
     handledMessages.put(Response.class, Response.Handler.class);
+  }
+
+  @Override protected EventHandlerCommon getEventHandler() {
+    return handler;
   }
 
   @Override public Map<Class<? extends IMessage>, Class<? extends IMessageHandler<? extends IMessage, ? extends IMessage>>> getHandledMessages() {
@@ -31,7 +38,6 @@ public class ServerProxy extends CommonProxy {
 
   @Override public void init(FMLInitializationEvent event) {
     super.init(event);
-    final EventHandlerServer handler = new EventHandlerServer();
     MinecraftForge.TERRAIN_GEN_BUS.register(handler);
   }
 
