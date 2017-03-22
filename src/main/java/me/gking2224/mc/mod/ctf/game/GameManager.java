@@ -46,6 +46,11 @@ public class GameManager {
 
   private static final int MIN_WIDTH_CHUNKS = 2;
   private static final int MIN_LENGTH_CHUNKS = 3;
+  private static final Integer SIZE_XS = 1;
+  private static final Integer SIZE_S = 3;
+  private static final Integer SIZE_L = 9;
+  private static final Integer SIZE_XL = 15;
+  private static final Integer SIZE_M = 5;
 
   @SuppressWarnings("unused") private static Logger LOGGER = Logger
           .getLogger(GameManager.class.getName());
@@ -273,7 +278,7 @@ public class GameManager {
     boolean suitable = false;
     Bounds bounds = null;
 
-    final int size = options.getInteger("size").orElse(1);
+    final int size = this.getSize(options);
     final int gameChunksX = MIN_WIDTH_CHUNKS * size;
     final int gameChunksZ = MIN_LENGTH_CHUNKS * size;
 
@@ -305,12 +310,38 @@ public class GameManager {
     return Optional.ofNullable(this.world.getPlayerEntityByName(playerName));
   }
 
+  private Integer getSize(GameOptions options) {
+    final String sizeOption = options.getString("size").orElse("m");
+    return this.mapSizeToInt(sizeOption);
+  }
+
   public boolean isPlayerFrozen(String playerName) {
     return this.frozenPlayers.contains(playerName);
   }
 
   public void log(String msg) {
     this.server.sendMessage(toIText(msg));
+  }
+
+  private Integer mapSizeToInt(String sizeOption) {
+    switch (sizeOption) {
+    case "XS":
+    case "xs":
+      return SIZE_XS;
+    case "S":
+    case "s":
+      return SIZE_S;
+    case "L":
+    case "l":
+      return SIZE_L;
+    case "XL":
+    case "xl":
+      return SIZE_XL;
+    case "M":
+    case "m":
+    default:
+      return SIZE_M;
+    }
   }
 
   private void movePlayerToPosition(EntityPlayer player, final int x,
