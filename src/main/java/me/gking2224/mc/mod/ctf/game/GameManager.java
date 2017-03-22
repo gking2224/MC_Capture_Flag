@@ -259,6 +259,11 @@ public class GameManager {
     return Optional.ofNullable(game);
   }
 
+  public Optional<Game> getGameByOwner(EntityPlayer owner) {
+    return this.games.values().stream()
+            .filter(g -> g.getOwner().equals(owner.getName())).findFirst();
+  }
+
   public List<ICommand> getGameCommands() {
     final List<ICommand> rv = new Vector<ICommand>();
     rv.add(new BackToBase());

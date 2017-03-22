@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.gking2224.mc.mod.ctf.game.Game;
+import me.gking2224.mc.mod.ctf.game.GameManager;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
@@ -43,12 +44,27 @@ public class JoinCtfGame extends CommandBase {
     final Entity e = sender.getCommandSenderEntity();
     final String gameArg = (args.length != 0) ? args[0] : null;
 
+    final GameManager gm = GameManager.get();
+    Game game = null;
+
     if (e == null) { return; }
     if (e instanceof EntityPlayer) {
       final EntityPlayer player = (EntityPlayer) e;
-      final Game game = this.getGame(player, gameArg);
+      if (gameArg == null) {
+        game = gm.getPlayerActiveGame(player.getName()).orElseThrow(
+                () -> new CommandException("You are not in a game"));
+      } else {
 
-      GameEventManager.get().playerRequestedJoinGame(player, sender, game);
+        final EntityPlayer owner = server.getEntityWorld()
+                .getPlayerEntityByName(gameArg);
+
+        if (owner == null) { throw new CommandException("%s not known",
+                gameArg); }
+
+        game = gm.getGameByOwner(owner).orElseThrow(() -> new CommandException(
+                "No game found owned by %s", owner.getName()));
+        GameEventManager.get().playerRequestedJoinGame(player, sender, game);
+      }
     }
   }
 
@@ -58,7 +74,7 @@ public class JoinCtfGame extends CommandBase {
 
   @Override protected String[] getArgNames() {
     return new String[] {
-        "name"
+        "owner"
     };
   }
 
@@ -79,6 +95,6 @@ public class JoinCtfGame extends CommandBase {
   }
 
   @Override public boolean isUsernameIndex(String[] args, int index) {
-    return false;
+    return index == 0;
   }
 }

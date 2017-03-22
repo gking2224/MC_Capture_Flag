@@ -169,6 +169,10 @@ public class Game {
     return gameData.getName();
   }
 
+  public String getOwner() {
+    return gameData.getOwner();
+  }
+
   public static Optional<Game> load(World world, String name) {
     Optional<GameData> gameData = GameData.get(world, name);
     return Optional
