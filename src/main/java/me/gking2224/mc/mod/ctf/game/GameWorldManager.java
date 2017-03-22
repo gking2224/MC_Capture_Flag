@@ -343,7 +343,7 @@ public class GameWorldManager {
 
   public boolean isInHomeBase(Game game, TeamColour colour, BlockPos blockPos) {
     final BlockPos pos = game.getBaseLocation(colour);
-    final BlockPos delta = WorldUtils.getDelta(pos, blockPos);
+    final BlockPos delta = WorldUtils.getDelta(pos, blockPos, true);
     return (delta.getX() <= 3 && delta.getY() <= 3 && delta.getZ() <= 3);
   }
 

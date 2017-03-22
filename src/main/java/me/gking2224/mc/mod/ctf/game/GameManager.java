@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import me.gking2224.mc.mod.ctf.command.BackToBase;
+import me.gking2224.mc.mod.ctf.command.BaseDirections;
 import me.gking2224.mc.mod.ctf.command.CurrentGame;
 import me.gking2224.mc.mod.ctf.command.GameInfo;
 import me.gking2224.mc.mod.ctf.command.GetScore;
@@ -163,7 +164,8 @@ public class GameManager {
   }
 
   public void broadCastMessageToPlayer(String playerName, ITextComponent msg) {
-    System.out.println(String.format("Sending message %s to player %s\n", msg,  playerName));
+    System.out.println(String.format("Sending message %s to player %s\n", msg,
+            playerName));
     final Optional<EntityPlayer> player = this.getPlayerByName(playerName);
     player.ifPresent(p -> p.sendMessage(msg));
   }
@@ -250,11 +252,11 @@ public class GameManager {
     Game game = null;
     if (this.games.containsKey(name)) {
       game = this.games.get(name);
-      System.out.println(String.format("Got cached game: %s\n",  game));
+      System.out.println(String.format("Got cached game: %s\n", game));
     } else if (this.gameList.contains(name)) {
       game = Game.load(this.world, name).orElse(null);
       this.games.put(name, game);
-      System.out.println(String.format("Loaded game: %s\n",  game));
+      System.out.println(String.format("Loaded game: %s\n", game));
     }
     return Optional.ofNullable(game);
   }
@@ -269,6 +271,7 @@ public class GameManager {
     rv.add(new GameInfo());
     rv.add(new ToolUp());
     rv.add(new GetScore());
+    rv.add(new BaseDirections());
     return rv;
   }
 
@@ -284,7 +287,7 @@ public class GameManager {
 
     while (!suitable) {
       final int worldsize = this.server.getMaxWorldSize();
-      System.out.println(String.format("max world size: %d\n",  worldsize));
+      System.out.println(String.format("max world size: %d\n", worldsize));
       final int xBound = 100000;// server.getMaxWorldSize() - (gameChunksX*16);
       final int startX = world.rand.nextInt(xBound) * 16;
       final int zBound = 100000;// server.getMaxWorldSize() - (gameChunksZ*16);
@@ -362,7 +365,7 @@ public class GameManager {
     final String name = this.checkGameNameUnique(this.generateGameName());
 
     final Bounds newGameBounds = this.getNewGameBounds(options);
-    System.out.println(String.format("New game bounds: %s\n",  newGameBounds));
+    System.out.println(String.format("New game bounds: %s\n", newGameBounds));
     final Game game = new Game(this.world, name, owner, newGameBounds, options);
 
     MinecraftForge.TERRAIN_GEN_BUS.post(new NewGameEvent(game));
@@ -431,8 +434,8 @@ public class GameManager {
       final TeamColour colour = team.getColour();
       final BlockPos baseLocation = game.getBaseLocation(colour);
       final String name = player.getName();
-      System.out.println(String.format("Sending %s to %s base at %s\n", name, colour, 
-              baseLocation));
+      System.out.println(String.format("Sending %s to %s base at %s\n", name,
+              colour, baseLocation));
       final int x = baseLocation.getX() + 2, z = baseLocation.getZ() + 2;
 
       this.movePlayerToPosition(player, x, z);

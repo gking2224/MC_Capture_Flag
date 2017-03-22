@@ -45,8 +45,9 @@ public class WorldUtils {
     CAN_TELEPORT_ABOVE_BLOCKS.add(Block.getIdFromBlock(Blocks.WATER));
   }
 
-  private static int delta(int p1, int p2) {
-    return Math.abs(p1 - p2);
+  private static int delta(int p1, int p2, boolean absolute) {
+    final int d = p1 - p2;
+    return absolute ? Math.abs(d) : d;
   }
 
   public static void ensureBlockGenerated(World world, BlockPos pos) {
@@ -64,8 +65,13 @@ public class WorldUtils {
   }
 
   public static BlockPos getDelta(BlockPos p1, BlockPos p2) {
-    return new BlockPos(delta(p1.getX(), p2.getX()),
-            delta(p1.getY(), p2.getY()), delta(p1.getZ(), p2.getZ()));
+    return getDelta(p1, p2, false);
+  }
+
+  public static BlockPos getDelta(BlockPos p1, BlockPos p2, boolean absolute) {
+    return new BlockPos(delta(p1.getX(), p2.getX(), absolute),
+            delta(p1.getY(), p2.getY(), absolute),
+            delta(p1.getZ(), p2.getZ(), absolute));
   }
 
   private static MoveAction getMoveAction(IBlockState blockAt) {

@@ -1,5 +1,6 @@
 package me.gking2224.mc.mod.ctf.game;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,6 +10,10 @@ public class CtfTeam {
 
   public static enum TeamColour {
     RED("red"), BLUE("blue");
+
+    public static Set<TeamColour> all() {
+      return new HashSet<TeamColour>(Arrays.asList(BLUE, RED));
+    }
 
     public static TeamColour fromString(String s) {
       if ("red".equals(s)) {
