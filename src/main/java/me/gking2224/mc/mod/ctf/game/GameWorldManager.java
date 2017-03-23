@@ -280,6 +280,7 @@ public class GameWorldManager {
             blockPosStr(refPos)));
     game.setBaseLocation(team, refPos);
     game.setChestLocation(team, bd.getChestLocation());
+    game.setOppFlagLocation(team, bd.getOppFlagLocation());
   }
 
   private BaseDescription createBaseStructure(Game game, BaseBuilder builder,

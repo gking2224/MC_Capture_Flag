@@ -244,9 +244,8 @@ public class GameManager {
   public void gameRoundWon(Game game, String player, CtfTeam team,
     TeamColour capturedFlagColour)
   {
-    this.broadcastToAllPlayers(game,
-            format("Player %s won the round for team %s!", player,
-                    team.getColour(), capturedFlagColour));
+    this.broadcastToAllPlayers(game, format("%s won the round for team %s!",
+            player, team.getColour(), capturedFlagColour));
     game.incrementScore(team.getColour()); // to new method
     this.broadcastScore(game);
     this.resetGame(game);
@@ -342,6 +341,20 @@ public class GameManager {
     return this.mapSizeToInt(sizeOption);
   }
 
+  public boolean isOppFlagPlaced(Game game, BlockPos placed, ItemBase flag,
+    CtfTeam team)
+  {
+
+    final Optional<BlockPos> oppFlagHolder = game
+            .getOppFlagLocation(team.getColour());
+    if (oppFlagHolder.isPresent()) {
+      return WorldUtils.isBlockAbove(placed, oppFlagHolder.get());
+    } else {
+      return GameWorldManager.get().isInHomeBase(game, team.getColour(),
+              placed);
+    }
+  }
+
   public boolean isPlayerFrozen(String playerName) {
     return this.frozenPlayers.contains(playerName);
   }
@@ -369,7 +382,7 @@ public class GameManager {
     default:
       return SIZE_M;
     }
-  }
+  };
 
   private void movePlayerToPosition(EntityPlayer player, final int x,
     final int z)
@@ -378,7 +391,7 @@ public class GameManager {
     CtfNetworkHandler.INSTANCE.sendTo(new CanMovePlayerToPosition(pos),
             (EntityPlayerMP) player);
     player.setPosition(pos.getX(), pos.getY(), pos.getZ());
-  };
+  }
 
   public Game newGame(EntityPlayer owner, String config)
     throws GameCreationException

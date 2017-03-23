@@ -270,6 +270,11 @@ public class WorldUtils {
     return inverted;
   }
 
+  public static boolean isBlockAbove(BlockPos pos, BlockPos beneath) {
+    final BlockPos delta = getDelta(pos, beneath);
+    return (delta.getX() == 0 && delta.getZ() == 0 && delta.getY() == 1);
+  }
+
   public static Bounds maximumBounds(Bounds b1, Bounds b2) {
     final BlockPos from1 = b1.getFrom();
     final BlockPos from2 = b2.getFrom();

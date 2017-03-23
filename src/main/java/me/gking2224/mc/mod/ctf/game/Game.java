@@ -112,6 +112,10 @@ public class Game {
     return this.gameData.getName();
   }
 
+  public Optional<BlockPos> getOppFlagLocation(TeamColour team) {
+    return Optional.ofNullable(this.gameData.getOppFlagLocations().get(team));
+  }
+
   public GameOptions getOptions() {
     return this.gameData.getOptions();
   }
@@ -195,6 +199,11 @@ public class Game {
 
   public void setChestLocation(TeamColour team, BlockPos chestLocation) {
     this.gameData.getChestLocations().put(team, chestLocation);
+    this.save();
+  }
+
+  public void setOppFlagLocation(TeamColour team, BlockPos oppFlagLocation) {
+    this.gameData.getOppFlagLocations().put(team, oppFlagLocation);
     this.save();
   }
 

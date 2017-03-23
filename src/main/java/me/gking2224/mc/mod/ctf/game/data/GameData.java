@@ -31,6 +31,7 @@ public class GameData extends WorldSavedData {
   private static final String DATA_NAME = "CTF_GAME_DATA_";
   private static final String OPTIONS = "options";
   private static final String CHEST_LOC = "chestLoc";
+  private static final String OPP_FLAG_LOC = "oppFlagLoc";
 
   public static GameData create(World world, String name, GameOptions options) {
 
@@ -67,6 +68,7 @@ public class GameData extends WorldSavedData {
   private GameOptions options;
 
   private final Map<String, Integer> handicaps = new HashMap<String, Integer>();
+  private final Map<TeamColour, BlockPos> oppFlagLocations = new HashMap<TeamColour, BlockPos>();
 
   public GameData() {
     this("unknown", GameOptions.getDefault());
@@ -100,6 +102,10 @@ public class GameData extends WorldSavedData {
 
   public String getName() {
     return this.name;
+  }
+
+  public Map<TeamColour, BlockPos> getOppFlagLocations() {
+    return this.oppFlagLocations;
   }
 
   public GameOptions getOptions() {
@@ -141,6 +147,8 @@ public class GameData extends WorldSavedData {
               NBTUtils.getBlockPos(nbt, FLAG_LOC + i));
       this.chestLocations.put(team.getColour(),
               NBTUtils.getBlockPos(nbt, CHEST_LOC + i));
+      this.oppFlagLocations.put(team.getColour(),
+              NBTUtils.getBlockPos(nbt, OPP_FLAG_LOC + i));
       final boolean flagHeld = nbt.getBoolean(FLAG_HELD + i);
       if (flagHeld) {
         this.playerHoldingFlag.put(team.getColour(),
@@ -193,9 +201,10 @@ public class GameData extends WorldSavedData {
 
   @Override public String toString() {
     return String.format(
-            "GameData:[owner=%s; name=%s; bounds=%s; teams=%s; score=%s; baseLocations=%s; flagLocations=%s; playerHoldingFlag=%s]",
+            "GameData:[owner=%s; name=%s; bounds=%s; teams=%s; score=%s; baseLocations=%s; flagLocations=%s; playerHoldingFlag=%s; chestLocations=%s; oppFlagHolderLocations=%s]",
             this.owner, this.name, this.bounds, this.teams, this.score,
-            this.baseLocations, this.flagLocations, this.playerHoldingFlag);
+            this.baseLocations, this.flagLocations, this.playerHoldingFlag,
+            this.chestLocations, this.oppFlagLocations);
   }
 
   @Override public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
@@ -212,6 +221,8 @@ public class GameData extends WorldSavedData {
       NBTUtils.setBlockPos(nbt, BASE_LOC + i, this.baseLocations.get(colour));
       NBTUtils.setBlockPos(nbt, FLAG_LOC + i, this.flagLocations.get(colour));
       NBTUtils.setBlockPos(nbt, CHEST_LOC + i, this.chestLocations.get(colour));
+      NBTUtils.setBlockPos(nbt, OPP_FLAG_LOC + i,
+              this.oppFlagLocations.get(colour));
       final String flagHolder = this.playerHoldingFlag.get(colour);
       nbt.setBoolean(FLAG_HELD + i, flagHolder != null);
       if (flagHolder != null) {

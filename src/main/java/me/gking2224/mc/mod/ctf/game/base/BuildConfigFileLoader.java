@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import me.gking2224.mc.mod.ctf.blocks.ModBlocks;
 import me.gking2224.mc.mod.ctf.game.Bounds;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.Game;
@@ -37,10 +38,19 @@ public class BuildConfigFileLoader {
     }
   }
 
+  public static class OppFlagHolderBuildInstruction extends BuildInstruction {
+
+    public OppFlagHolderBuildInstruction(BuildInstruction i) {
+      super(i.getBounds(), ModBlocks.FLAG_HOLDER.getDefaultState(),
+              i.getComment(), i.getLineNumber());
+    }
+  }
+
   private static final String BASES_DIR_NAME = "bases";
   private static final String SUFFIX = ".dat";
   private static final String TEAM = "team";
   private static final String CHEST = "chest";
+  private static final String OPP_FLAG_HOLDER = "oppflag";
 
   private static final String AMBIENT = "ambient";
   private static final IBlockState TEAM_PLACEHOLDER = new NullBlockState(TEAM);
@@ -48,6 +58,8 @@ public class BuildConfigFileLoader {
           AMBIENT);
   private static final IBlockState CHEST_PLACEHOLDER = new NullBlockState(
           CHEST);
+  private static final IBlockState OPP_FLAG_PLACEHOLDER = new NullBlockState(
+          OPP_FLAG_HOLDER);
   private final MinecraftServer server;
   @SuppressWarnings("unused") private final Game game;
 
@@ -74,6 +86,8 @@ public class BuildConfigFileLoader {
         return i.updateBlock(ambientBlock);
       } else if (i.getBlockState() == CHEST_PLACEHOLDER) {
         return new HomeChestBuildInstruction(i);
+      } else if (i.getBlockState() == OPP_FLAG_PLACEHOLDER) {
+        return new OppFlagHolderBuildInstruction(i);
       } else {
         return i;
       }
@@ -154,6 +168,8 @@ public class BuildConfigFileLoader {
       return TEAM_PLACEHOLDER;
     } else if (CHEST.equals(name)) {
       return CHEST_PLACEHOLDER;
+    } else if (OPP_FLAG_HOLDER.equals(name)) {
+      return OPP_FLAG_PLACEHOLDER;
     } else {
       return Blocks.WOOL.getDefaultState();
     }

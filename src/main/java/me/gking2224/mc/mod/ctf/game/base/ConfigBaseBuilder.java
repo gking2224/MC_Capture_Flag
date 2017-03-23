@@ -19,6 +19,7 @@ import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.MutableBounds;
 import me.gking2224.mc.mod.ctf.game.base.BuildConfigFileLoader.HomeChestBuildInstruction;
+import me.gking2224.mc.mod.ctf.game.base.BuildConfigFileLoader.OppFlagHolderBuildInstruction;
 import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.server.MinecraftServer;
@@ -34,11 +35,13 @@ public class ConfigBaseBuilder implements BaseBuilder {
     private final BlockPos refPos;
     private final World world;
     private BlockPos chestPos;
+    private BlockPos oppFlagPos;
 
     public BaseCollector(World world, BlockPos refPos) {
       this.refPos = refPos;
       this.world = world;
       this.chestPos = null;
+      this.oppFlagPos = null;
     }
 
     @Override public BiConsumer<MutableBounds, BuildInstruction> accumulator() {
@@ -58,6 +61,9 @@ public class ConfigBaseBuilder implements BaseBuilder {
       if (bi instanceof HomeChestBuildInstruction) {
 
         this.chestPos = bi.getBounds().getFrom();
+      } else if (bi instanceof OppFlagHolderBuildInstruction) {
+
+        this.oppFlagPos = bi.getBounds().getFrom();
       }
     }
 
@@ -71,8 +77,13 @@ public class ConfigBaseBuilder implements BaseBuilder {
     }
 
     @Override public Function<MutableBounds, BaseDescription> finisher() {
-      return i -> new BaseDescription(i.toImmutable(), this.chestPos == null
-              ? null : offset(this.refPos, this.chestPos));
+      return i -> {
+        final BlockPos chestPos = this.chestPos == null ? null
+                : offset(this.refPos, this.chestPos);
+        final BlockPos oppFlagPos = this.oppFlagPos == null ? null
+                : offset(this.refPos, this.oppFlagPos);
+        return new BaseDescription(i.toImmutable(), chestPos, oppFlagPos);
+      };
     }
 
     @Override public Supplier<MutableBounds> supplier() {
