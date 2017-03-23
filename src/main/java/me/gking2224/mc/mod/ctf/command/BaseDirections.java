@@ -6,6 +6,7 @@ import static me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour.RED;
 import static me.gking2224.mc.mod.ctf.game.GameOption.OPPONENT_BASE_DIRECTIONS;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -22,6 +23,20 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
 public class BaseDirections extends CommandBase {
+
+  /**
+   * Check if the given ICommandSender has permission to execute this command
+   * 
+   * @param server
+   *          The server instance
+   * @param sender
+   *          The ICommandSender to check permissions on
+   */
+  @Override public boolean checkPermission(MinecraftServer server,
+    ICommandSender sender)
+  {
+    return true;
+  }
 
   @Override protected void doExecute(MinecraftServer server,
     ICommandSender sender, String[] args)
@@ -54,10 +69,8 @@ public class BaseDirections extends CommandBase {
 
   }
 
-  @Override protected String[] getArgNames() {
-    return new String[] {
-        "base"
-    };
+  @Override public List<String> getAliases() {
+    return Collections.singletonList("bd");
   }
 
   private String getDirectionsToBaseRelativeToPlayer(TeamColour team,
@@ -86,14 +99,7 @@ public class BaseDirections extends CommandBase {
     return format("approx. %s chunks", rounded + random);
   }
 
-  @Override protected boolean[] getMandatoryArgs() {
-    return new boolean[] {
-        false
-    };
-  }
-
   @Override public String getName() {
     return "base_directions";
   }
-
 }

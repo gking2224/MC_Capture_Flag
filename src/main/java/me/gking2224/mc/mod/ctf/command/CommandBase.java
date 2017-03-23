@@ -31,7 +31,9 @@ public abstract class CommandBase extends net.minecraft.command.CommandBase {
             player.getName());
   }
 
-  protected abstract String[] getArgNames();
+  protected String[] getArgNames() {
+    return new String[0];
+  }
 
   private String getArgUsageString() {
     final StringBuilder sb = new StringBuilder();
@@ -65,7 +67,9 @@ public abstract class CommandBase extends net.minecraft.command.CommandBase {
     return game;
   }
 
-  protected abstract boolean[] getMandatoryArgs();
+  protected boolean[] getMandatoryArgs() {
+    return new boolean[0];
+  }
 
   @Override public final String getUsage(ICommandSender sender) {
     return this.getName() + this.getArgUsageString();
