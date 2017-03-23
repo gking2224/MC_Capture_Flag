@@ -21,6 +21,7 @@ import me.gking2224.mc.mod.ctf.command.BackToBase;
 import me.gking2224.mc.mod.ctf.command.BaseDirections;
 import me.gking2224.mc.mod.ctf.command.CurrentGame;
 import me.gking2224.mc.mod.ctf.command.GameInfo;
+import me.gking2224.mc.mod.ctf.command.GetGameConfiguration;
 import me.gking2224.mc.mod.ctf.command.GetScore;
 import me.gking2224.mc.mod.ctf.command.JoinCtfGame;
 import me.gking2224.mc.mod.ctf.command.NewCtfGame;
@@ -293,6 +294,7 @@ public class GameManager {
     rv.add(new GetScore());
     rv.add(new BaseDirections());
     rv.add(new SaveGameConfiguration());
+    rv.add(new GetGameConfiguration());
     return rv;
   }
 
