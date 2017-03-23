@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,8 +24,10 @@ import me.gking2224.mc.mod.ctf.command.GameInfo;
 import me.gking2224.mc.mod.ctf.command.GetScore;
 import me.gking2224.mc.mod.ctf.command.JoinCtfGame;
 import me.gking2224.mc.mod.ctf.command.NewCtfGame;
+import me.gking2224.mc.mod.ctf.command.SaveGameConfiguration;
 import me.gking2224.mc.mod.ctf.command.ToolUp;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
+import me.gking2224.mc.mod.ctf.game.data.GameConfigData;
 import me.gking2224.mc.mod.ctf.game.data.GameList;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import me.gking2224.mc.mod.ctf.game.event.GameResetEvent;
@@ -219,6 +222,11 @@ public class GameManager {
     this.frozenPlayers.add(player.getName());
   }
 
+  private Supplier<GameCreationException> gameConfigNotFound(String config) {
+    return () -> new GameCreationException("Configuration %s not found",
+            config);
+  }
+
   public void gameRoundWon(Game game, String player, CtfTeam team,
     TeamColour capturedFlagColour)
   {
@@ -272,6 +280,7 @@ public class GameManager {
     rv.add(new ToolUp());
     rv.add(new GetScore());
     rv.add(new BaseDirections());
+    rv.add(new SaveGameConfiguration());
     return rv;
   }
 
@@ -357,12 +366,13 @@ public class GameManager {
     player.setPosition(pos.getX(), pos.getY(), pos.getZ());
   }
 
-  public Game newGame(EntityPlayer owner, GameOptions options)
+  public Game newGame(EntityPlayer owner, String config)
     throws GameCreationException
   {
     this.checkOwnerPermissions(owner);
     this.checkOwnerLimit(owner);
     final String name = this.checkGameNameUnique(this.generateGameName());
+    final GameOptions options = this.newGameOptions(config);
 
     final Bounds newGameBounds = this.getNewGameBounds(options);
     System.out.println(String.format("New game bounds: %s\n", newGameBounds));
@@ -374,6 +384,14 @@ public class GameManager {
     this.save();
 
     return game;
+  }
+
+  private GameOptions newGameOptions(String config)
+    throws GameCreationException
+  {
+    return (config == null) ? GameOptions.getDefault()
+            : GameConfigData.get(this.world, config)
+                    .orElseThrow(this.gameConfigNotFound(config)).getOptions();
   }
 
   public void playerLeaveAllGames(String playerName) {

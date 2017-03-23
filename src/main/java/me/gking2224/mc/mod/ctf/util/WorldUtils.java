@@ -28,7 +28,7 @@ public class WorldUtils {
                     "south-west",
                     225), WEST("west", 270), NORTH_WEST("north-west", 315);
 
-    public static final double HEADING_MIDPOINT = 45 / 2;
+    public static final double HEADING_MIDPOINT = Math.ceil(45 / 2);
 
     public static Set<Direction> all() {
       return new HashSet<Direction>(Arrays.asList(NORTH, SOUTH, EAST, WEST,

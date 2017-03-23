@@ -48,10 +48,7 @@ public class NewCtfGame extends CommandBase {
   {
 
     final Entity e = sender.getCommandSenderEntity();
-    GameOptions options = DEFAULT_OPTIONS;
-    if (args.length >= 1) {
-      options = options.update(args[0]);
-    }
+    final String config = (args.length == 1) ? args[0] : null;
 
     if (e == null) { return; }
     if (e instanceof EntityPlayer) {
@@ -61,7 +58,7 @@ public class NewCtfGame extends CommandBase {
       try {
         final GameManager gameManager = GameManager.get();
         gameManager.playerLeaveAllGames(playerName);
-        final Game game = gameManager.newGame(player, options);
+        final Game game = gameManager.newGame(player, config);
         final CtfTeam team = game.addPlayer(playerName);
         // TODO refactor join game code
         player.setSpawnPoint(game.getBaseLocation(team.getColour()), true);

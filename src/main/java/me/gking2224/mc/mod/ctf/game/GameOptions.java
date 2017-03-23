@@ -43,6 +43,7 @@ public class GameOptions {
   }
 
   public GameOptions(String optionsStr) {
+    this.internalString = optionsStr;
     this.options = parseOptionsString(optionsStr);
   }
 
