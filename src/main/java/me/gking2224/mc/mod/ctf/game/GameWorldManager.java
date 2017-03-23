@@ -16,6 +16,7 @@ import me.gking2224.mc.mod.ctf.blocks.PlacedFlag;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.base.BaseBuilder;
 import me.gking2224.mc.mod.ctf.game.base.BaseBuilderFactory;
+import me.gking2224.mc.mod.ctf.game.base.BaseDescription;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import me.gking2224.mc.mod.ctf.item.Flag;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
@@ -273,14 +274,15 @@ public class GameWorldManager {
             gameBounds.getFrom().getZ(), gameBounds.getTo().getZ(),
             refPos.getZ()));
     final IBlockState ambientBlock = this.getAmbientBlock(refPos);
-    this.createBaseStructure(game, builder, refPos, team, ambientBlock,
-            invertZ);
+    final BaseDescription bd = this.createBaseStructure(game, builder, refPos,
+            team, ambientBlock, invertZ);
     System.out.println(String.format("Team %s base location at %s\n", team,
             blockPosStr(refPos)));
     game.setBaseLocation(team, refPos);
+    game.setChestLocation(team, bd.getChestLocation());
   }
 
-  private Bounds createBaseStructure(Game game, BaseBuilder builder,
+  private BaseDescription createBaseStructure(Game game, BaseBuilder builder,
     BlockPos refPos, TeamColour team, IBlockState ambientBlock,
     boolean invertZ)
   {

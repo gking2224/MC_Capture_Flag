@@ -31,7 +31,7 @@ public class EventHandlerServer extends EventHandlerCommon {
     final IBlockState pb = event.getPlacedBlock();
     final int id = Block.getIdFromBlock(pb.getBlock());
     final int sid = Block.getStateId(pb);
-    System.out.println(String.format("Block %s(%d, state=%d) placed\n", 
+    System.out.println(String.format("Block %s(%d, state=%d) placed\n",
             pb.getBlock().getRegistryName(), id, sid));
   }
 
@@ -49,7 +49,9 @@ public class EventHandlerServer extends EventHandlerCommon {
 
   @SubscribeEvent public void newGame(NewGameEvent event) {
 
-    GameWorldManager.get().createGameArea(event.getGame());
+    final Game game = event.getGame();
+    GameWorldManager.get().createGameArea(game);
+    GameManager.get().stockHomeChests(event.getGame());
   }
 
   @SubscribeEvent public void onDamage(LivingHurtEvent event) {
@@ -66,8 +68,8 @@ public class EventHandlerServer extends EventHandlerCommon {
 
         if (!gameManager.allowPlayerToAttackedPlayer(attacker, attackee)) {
           event.setCanceled(true);
-          System.out.println(String.format("%s prevented from attacking %s\n", attacker, 
-                  attackee));
+          System.out.println(String.format("%s prevented from attacking %s\n",
+                  attacker, attackee));
         }
       }
 
@@ -78,10 +80,10 @@ public class EventHandlerServer extends EventHandlerCommon {
     final EntityPlayer player = event.player;
     final GameManager gameManager = GameManager.get();
     final String playerName = player.getName();
-    System.out.println(String.format("Player %s respawned\n",  playerName));
+    System.out.println(String.format("Player %s respawned\n", playerName));
     final Optional<Game> g = gameManager.getPlayerActiveGame(playerName);
     g.ifPresent(game -> {
-      System.out.println(String.format("Rejoin game %s\n",  game.getName()));
+      System.out.println(String.format("Rejoin game %s\n", game.getName()));
       GameEventManager.get().playerRespawned(player, game);
     });
   }

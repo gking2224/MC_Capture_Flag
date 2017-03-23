@@ -6,7 +6,7 @@ class CommentedLine {
     final int idx = line.indexOf("#");
     String comment = null;
     String content = line;
-    if (idx != 1) {
+    if (idx != -1) {
       comment = line.substring(idx);
       content = line.substring(0, idx - 1);
     }

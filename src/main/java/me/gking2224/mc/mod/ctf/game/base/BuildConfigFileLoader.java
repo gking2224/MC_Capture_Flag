@@ -29,15 +29,25 @@ import net.minecraft.util.math.BlockPos;
 
 public class BuildConfigFileLoader {
 
+  public static class HomeChestBuildInstruction extends BuildInstruction {
+
+    public HomeChestBuildInstruction(BuildInstruction i) {
+      super(i.getBounds(), Blocks.CHEST.getDefaultState(), i.getComment(),
+              i.getLineNumber());
+    }
+  }
+
   private static final String BASES_DIR_NAME = "bases";
   private static final String SUFFIX = ".dat";
   private static final String TEAM = "team";
+  private static final String CHEST = "chest";
 
   private static final String AMBIENT = "ambient";
-  private static final IBlockState TEAM_PLACEHOLDER = new NullBlockState(
-          "team");
+  private static final IBlockState TEAM_PLACEHOLDER = new NullBlockState(TEAM);
   private static final IBlockState AMBIENT_PLACEHOLDER = new NullBlockState(
-          "ambient");
+          AMBIENT);
+  private static final IBlockState CHEST_PLACEHOLDER = new NullBlockState(
+          CHEST);
   private final MinecraftServer server;
   @SuppressWarnings("unused") private final Game game;
 
@@ -62,6 +72,8 @@ public class BuildConfigFileLoader {
         return i.updateBlock(this.getTeamBlock(team));
       } else if (i.getBlockState() == AMBIENT_PLACEHOLDER) {
         return i.updateBlock(ambientBlock);
+      } else if (i.getBlockState() == CHEST_PLACEHOLDER) {
+        return new HomeChestBuildInstruction(i);
       } else {
         return i;
       }
@@ -112,8 +124,8 @@ public class BuildConfigFileLoader {
 
   private Optional<BuildInstruction> processLine(String line, int lineNumber) {
     BuildInstruction rv = null;
-    System.out.println(String.format("Reading base config file, line %d: %s\n", lineNumber, 
-            line));
+    System.out.println(String.format("Reading base config file, line %d: %s\n",
+            lineNumber, line));
     if (line.startsWith(TEAM)) {
       this.processTeamColour(line);
     } else if (!line.startsWith("#")) {
@@ -140,6 +152,8 @@ public class BuildConfigFileLoader {
       return AMBIENT_PLACEHOLDER;
     } else if (TEAM.equals(name)) {
       return TEAM_PLACEHOLDER;
+    } else if (CHEST.equals(name)) {
+      return CHEST_PLACEHOLDER;
     } else {
       return Blocks.WOOL.getDefaultState();
     }

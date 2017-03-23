@@ -15,6 +15,7 @@ import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.data.GameData;
 import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -75,6 +76,17 @@ public class Game {
     final Set<String> rv = new HashSet<String>(this.getTotalNumPlayers());
     this.gameData.getTeams().values().forEach(t -> rv.addAll(t.getPlayers()));
     return rv;
+  }
+
+  public Optional<TileEntityChest> getBaseChest(World world,
+    TeamColour colour)
+  {
+    TileEntityChest chest = null;
+    final BlockPos chestLoc = this.gameData.getChestLocations().get(colour);
+    if (chestLoc != null) {
+      chest = (TileEntityChest) world.getTileEntity(chestLoc);
+    }
+    return Optional.ofNullable(chest);
   }
 
   public BlockPos getBaseLocation(TeamColour team) {
@@ -178,6 +190,11 @@ public class Game {
 
   public void setBaseLocation(TeamColour team, BlockPos refPos) {
     this.gameData.getBaseLocations().put(team, refPos);
+    this.save();
+  }
+
+  public void setChestLocation(TeamColour team, BlockPos chestLocation) {
+    this.gameData.getChestLocations().put(team, chestLocation);
     this.save();
   }
 

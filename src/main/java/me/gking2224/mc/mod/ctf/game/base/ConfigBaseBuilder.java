@@ -18,6 +18,7 @@ import me.gking2224.mc.mod.ctf.game.Bounds;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.MutableBounds;
+import me.gking2224.mc.mod.ctf.game.base.BuildConfigFileLoader.HomeChestBuildInstruction;
 import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.server.MinecraftServer;
@@ -26,21 +27,38 @@ import net.minecraft.world.World;
 
 public class ConfigBaseBuilder implements BaseBuilder {
 
-  private static class BaseCollector
-          implements Collector<BuildInstruction, MutableBounds, Bounds>
+  private static class BaseCollector implements
+          Collector<BuildInstruction, MutableBounds, BaseDescription>
   {
 
     private final BlockPos refPos;
     private final World world;
+    private BlockPos chestPos;
 
     public BaseCollector(World world, BlockPos refPos) {
       this.refPos = refPos;
       this.world = world;
+      this.chestPos = null;
     }
 
     @Override public BiConsumer<MutableBounds, BuildInstruction> accumulator() {
-      return (MutableBounds cb, BuildInstruction bi) -> placeBlocks(this.world,
-              offset(this.refPos, bi.getBounds()), bi.getBlockState());
+      return (MutableBounds cb, BuildInstruction bi) -> this
+              .buildFromInstruction(bi);
+    }
+
+    private void buildFromInstruction(BuildInstruction bi) {
+      final IBlockState blockState = bi.getBlockState();
+      final Bounds bounds = bi.getBounds();
+      placeBlocks(this.world, offset(this.refPos, bounds), blockState);
+      this.captureInstruction(this.world, bi);
+    }
+
+    private void captureInstruction(World world, BuildInstruction bi) {
+
+      if (bi instanceof HomeChestBuildInstruction) {
+
+        this.chestPos = bi.getBounds().getFrom();
+      }
     }
 
     @Override public Set<java.util.stream.Collector.Characteristics> characteristics() {
@@ -52,8 +70,9 @@ public class ConfigBaseBuilder implements BaseBuilder {
       return (b1, b2) -> new MutableBounds(maximumBounds(b1, b2));
     }
 
-    @Override public Function<MutableBounds, Bounds> finisher() {
-      return i -> i.toImmutable();
+    @Override public Function<MutableBounds, BaseDescription> finisher() {
+      return i -> new BaseDescription(i.toImmutable(), this.chestPos == null
+              ? null : offset(this.refPos, this.chestPos));
     }
 
     @Override public Supplier<MutableBounds> supplier() {
@@ -118,14 +137,15 @@ public class ConfigBaseBuilder implements BaseBuilder {
     this.world = server.getEntityWorld();
   }
 
-  @Override public Bounds buildBase(BlockPos refPos, TeamColour team,
+  @Override public BaseDescription buildBase(BlockPos refPos, TeamColour team,
     IBlockState ambientBlock, boolean invertZ)
   {
-    System.out.println(String.format("Build base for %s at %s\n", team,  refPos));
+    System.out
+            .println(String.format("Build base for %s at %s\n", team, refPos));
     final List<BuildInstruction> config = this.loader
             .getConfig(team, ambientBlock).stream()
             .map(i -> this.invertZ(i, invertZ)).collect(Collectors.toList());
-    System.out.println(String.format("Use build instructions: %s\n",  config));
+    System.out.println(String.format("Use build instructions: %s\n", config));
     return config.stream().collect(new BaseCollector(this.world, refPos));
   }
 

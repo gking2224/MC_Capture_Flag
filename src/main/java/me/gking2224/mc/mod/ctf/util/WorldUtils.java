@@ -1,5 +1,7 @@
 package me.gking2224.mc.mod.ctf.util;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.floor;
 import static java.lang.String.format;
 import static me.gking2224.mc.mod.ctf.util.WorldUtils.MoveAction.DOWN;
 import static me.gking2224.mc.mod.ctf.util.WorldUtils.MoveAction.LATERAL;
@@ -118,8 +120,10 @@ public class WorldUtils {
   public static BlockPos adjustY(World world, BlockPos pos) {
     System.out.println(
             String.format("Get nearest teleport location to %s\n", pos));
-    while (!suitableForTeleport(world, pos)) {
+    int count = 0;
+    while (!suitableForTeleport(world, pos) && count < 100) {
       pos = tryDifferentTeleportLocation(world, pos);
+      count++;
     }
     System.out.println(String.format("Using %s\n", pos));
     return pos;
@@ -157,10 +161,10 @@ public class WorldUtils {
   public static Direction getDirectionFromAngle(double a) {
     final Set<Direction> ds = Direction.all().stream().filter(d -> {
       final int heading = d.getHeading();
-      final double deltaFromHeading = Math.abs(a - heading);
-      final double deltaFromHeading2 = Math.abs((a - 360) - heading);
-      System.out.println(format("%5.3f: %s delta: %5.3f/%5.3f", a, d,
-              deltaFromHeading, deltaFromHeading2));
+      final double deltaFromHeading = floor(abs(a - heading));
+      final double deltaFromHeading2 = floor(abs((a - 360) - heading));
+      System.out.println(format("%5.3f: %s delta: %5.3f/%5.3f :: %5.3f", a, d,
+              deltaFromHeading, deltaFromHeading2, Direction.HEADING_MIDPOINT));
       return deltaFromHeading <= Direction.HEADING_MIDPOINT
               || deltaFromHeading2 <= Direction.HEADING_MIDPOINT;
     }).collect(Collectors.toSet());

@@ -14,7 +14,40 @@ import net.minecraft.world.World;
 
 public class BaseBuilderFactory {
 
+  static class DefaultBaseBuilder implements BaseBuilder {
+
+    private static final int WOOL_BLUE_ID = 11;
+    private static final int WOOL_RED_ID = 14;
+
+    private static Block getPrimaryBaseBlock() {
+      return Blocks.WOOL;
+    }
+
+    private final World world;
+
+    public DefaultBaseBuilder(MinecraftServer server) {
+      this.world = server.getEntityWorld();
+    }
+
+    @Override public BaseDescription buildBase(BlockPos refPos,
+      TeamColour colour, IBlockState ambientBlock, boolean invertZ)
+    {
+      this.world.setBlockState(refPos, this.getPrimaryMaterial(colour));
+      return new BaseDescription(new Bounds(refPos, refPos));
+    }
+
+    private int getPrimaryBaseStateIdModifier(TeamColour colour) {
+      return (colour == TeamColour.BLUE) ? WOOL_BLUE_ID : WOOL_RED_ID;
+    }
+
+    @Override public IBlockState getPrimaryMaterial(TeamColour colour) {
+      return Block.getStateById(getIdFromBlock(getPrimaryBaseBlock())
+              + (this.getPrimaryBaseStateIdModifier(colour) << 12));
+    }
+  }
+
   private static BaseBuilder defaultBaseBuilder = null;
+
   private static final Object DEFAULT = "default";
 
   public static BaseBuilder defaultBaseBuilder(MinecraftServer server) {
@@ -24,41 +57,14 @@ public class BaseBuilderFactory {
     return defaultBaseBuilder;
   }
 
-  static class DefaultBaseBuilder implements BaseBuilder {
-
-    private static final int WOOL_BLUE_ID = 11;
-    private static final int WOOL_RED_ID = 14;
-    private World world;
-
-    public DefaultBaseBuilder(MinecraftServer server) {
-      this.world = server.getEntityWorld();
-    }
-
-    @Override public IBlockState getPrimaryMaterial(TeamColour colour) {
-      return Block.getStateById(getIdFromBlock(getPrimaryBaseBlock())
-              + (getPrimaryBaseStateIdModifier(colour) << 12));
-    }
-
-    private int getPrimaryBaseStateIdModifier(TeamColour colour) {
-      return (colour == TeamColour.BLUE) ? WOOL_BLUE_ID : WOOL_RED_ID;
-    }
-
-    private static Block getPrimaryBaseBlock() {
-      return Blocks.WOOL;
-    }
-
-    @Override public Bounds buildBase(BlockPos refPos, TeamColour colour,
-      IBlockState ambientBlock, boolean invertZ)
-    {
-      world.setBlockState(refPos, getPrimaryMaterial(colour));
-      return new Bounds(refPos, refPos);
-    }
-  }
-
   public static BaseBuilder getBaseBuilder(MinecraftServer server, Game game) {
-    String baseType = game.getOptions().getString("base").orElse("default");
-    if (DEFAULT.equals(baseType)) return defaultBaseBuilder(server);
-    else return new ConfigBaseBuilder(server, game, baseType);
+    final String baseType = game.getOptions().getString("base")
+            .orElse("default");
+    if (DEFAULT.equals(baseType)) {
+      return defaultBaseBuilder(server);
+    } else {
+      return new ConfigBaseBuilder(server, game, baseType);
+    }
   }
 
 }

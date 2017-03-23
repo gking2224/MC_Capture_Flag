@@ -30,13 +30,14 @@ public class GameData extends WorldSavedData {
   private static final String FLAG_HELD = "flagHeld";
   private static final String DATA_NAME = "CTF_GAME_DATA_";
   private static final String OPTIONS = "options";
+  private static final String CHEST_LOC = "chestLoc";
 
   public static GameData create(World world, String name, GameOptions options) {
 
     final MapStorage storage = world.getPerWorldStorage();
     final GameData instance = new GameData(name, options);
     storage.setData(getDataIdentifier(name), instance);
-    System.out.println(String.format("Stored GameData: %s\n",  instance));
+    System.out.println(String.format("Stored GameData: %s\n", instance));
     return instance;
   }
 
@@ -44,7 +45,7 @@ public class GameData extends WorldSavedData {
     final MapStorage storage = world.getPerWorldStorage();
     final GameData instance = (GameData) storage.getOrLoadData(GameData.class,
             getDataIdentifier(name));
-    System.out.println(String.format("Loaded GameData: %s\n",  instance));
+    System.out.println(String.format("Loaded GameData: %s\n", instance));
     return Optional.ofNullable(instance);
   }
 
@@ -58,6 +59,7 @@ public class GameData extends WorldSavedData {
   private Map<TeamColour, CtfTeam> teams = new HashMap<TeamColour, CtfTeam>();
   private Map<TeamColour, Integer> score = new HashMap<TeamColour, Integer>();
   private Map<TeamColour, BlockPos> baseLocations = new HashMap<TeamColour, BlockPos>();
+  private final Map<TeamColour, BlockPos> chestLocations = new HashMap<TeamColour, BlockPos>();
   private Map<TeamColour, BlockPos> flagLocations = new HashMap<TeamColour, BlockPos>();
 
   private Map<TeamColour, String> playerHoldingFlag = new HashMap<TeamColour, String>();
@@ -86,6 +88,10 @@ public class GameData extends WorldSavedData {
 
   public Bounds getBounds() {
     return this.bounds;
+  }
+
+  public Map<TeamColour, BlockPos> getChestLocations() {
+    return this.chestLocations;
   }
 
   public Map<TeamColour, BlockPos> getFlagLocations() {
@@ -133,6 +139,8 @@ public class GameData extends WorldSavedData {
               NBTUtils.getBlockPos(nbt, BASE_LOC + i));
       this.flagLocations.put(team.getColour(),
               NBTUtils.getBlockPos(nbt, FLAG_LOC + i));
+      this.chestLocations.put(team.getColour(),
+              NBTUtils.getBlockPos(nbt, CHEST_LOC + i));
       final boolean flagHeld = nbt.getBoolean(FLAG_HELD + i);
       if (flagHeld) {
         this.playerHoldingFlag.put(team.getColour(),
@@ -141,14 +149,14 @@ public class GameData extends WorldSavedData {
     }
 
     final String optionsStr = nbt.getString(OPTIONS);
-    System.out.println(String.format("read game options: %s\n",  optionsStr));
+    System.out.println(String.format("read game options: %s\n", optionsStr));
     this.options = (optionsStr != null) ? new GameOptions(optionsStr)
             : GameOptions.getDefault();
 
     this.teams.values().forEach(t -> t.getPlayers()
             .forEach(p -> this.handicaps.put(p, nbt.getInteger(HANDICAP + p))));
 
-    System.out.println(String.format("Read game from NBT: %s\n",  this));
+    System.out.println(String.format("Read game from NBT: %s\n", this));
   }
 
   public void setBaseLocations(Map<TeamColour, BlockPos> baseLocations) {
@@ -203,6 +211,7 @@ public class GameData extends WorldSavedData {
       nbt.setInteger(SCORE + i, this.score.get(colour));
       NBTUtils.setBlockPos(nbt, BASE_LOC + i, this.baseLocations.get(colour));
       NBTUtils.setBlockPos(nbt, FLAG_LOC + i, this.flagLocations.get(colour));
+      NBTUtils.setBlockPos(nbt, CHEST_LOC + i, this.chestLocations.get(colour));
       final String flagHolder = this.playerHoldingFlag.get(colour);
       nbt.setBoolean(FLAG_HELD + i, flagHolder != null);
       if (flagHolder != null) {
@@ -215,7 +224,7 @@ public class GameData extends WorldSavedData {
 
     this.handicaps.forEach((p, h) -> nbt.setInteger(HANDICAP + p, h));
 
-    System.out.println(String.format("Wrote game to NBT: %s\n",  this));
+    System.out.println(String.format("Wrote game to NBT: %s\n", this));
     return nbt;
   }
 }

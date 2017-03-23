@@ -391,7 +391,7 @@ public class GameManager {
     System.out.println(String.format("New game bounds: %s\n", newGameBounds));
     final Game game = new Game(this.world, name, owner, newGameBounds, options);
 
-    MinecraftForge.TERRAIN_GEN_BUS.post(new NewGameEvent(game));
+    MinecraftForge.TERRAIN_GEN_BUS.post(new NewGameEvent(this.world, game));
     if (options.getBoolean(GameOption.BONUS_CHEST).orElse(true)) {
       this.createBonusChest(game);
     }
@@ -423,8 +423,8 @@ public class GameManager {
   public void playerPickedUpOpponentFlag(String playerName, ItemBase item,
     Game game, EntityPlayer player, CtfTeam team, final TeamColour flagColour)
   {
-    this.broadcastToAllPlayers(game, format("Player %s has got %s team's flag!",
-            player, team.getColour()));
+    this.broadcastToAllPlayers(game,
+            format("%s has got %s team's flag!", playerName, team.getColour()));
     gem.schedule(() -> moveItemFromInventoryToPlayerHand(player, item));
     game.setPlayerHoldingFlag(flagColour, playerName);
   }
@@ -448,7 +448,7 @@ public class GameManager {
 
   private void resetGame(Game game) {
     this.server.addScheduledTask(() -> MinecraftForge.TERRAIN_GEN_BUS
-            .post(new GameResetEvent(game)));
+            .post(new GameResetEvent(this.world, game)));
     game.getAllPlayers().forEach(playerName -> {
       final Optional<EntityPlayer> ep = this.getPlayerByName(playerName);
       ep.ifPresent(player -> {
@@ -494,6 +494,15 @@ public class GameManager {
       this.movePlayerToPosition(player, pos.getX(), pos.getZ());
       this.broadcastToTeamPlayers(game, team.getColour(),
               format("%s rejoined game at %s", player.getName(), pos));
+    });
+  }
+
+  public void stockHomeChests(Game game) {
+    final String inv = game.getOptions().getString(GameOption.INVENTORY)
+            .orElse("default");
+    TeamColour.all().forEach(team -> {
+      game.getBaseChest(this.world, team).ifPresent(
+              chest -> GameInventoryFactory.get(inv).placeInChest(chest));
     });
   }
 
