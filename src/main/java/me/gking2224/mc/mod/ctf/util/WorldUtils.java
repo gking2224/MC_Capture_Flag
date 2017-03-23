@@ -16,6 +16,7 @@ import me.gking2224.mc.mod.ctf.game.ChunkLocation;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -114,6 +115,16 @@ public class WorldUtils {
     }
   }
 
+  public static BlockPos adjustY(World world, BlockPos pos) {
+    System.out.println(
+            String.format("Get nearest teleport location to %s\n", pos));
+    while (!suitableForTeleport(world, pos)) {
+      pos = tryDifferentTeleportLocation(world, pos);
+    }
+    System.out.println(String.format("Using %s\n", pos));
+    return pos;
+  }
+
   private static int delta(int p1, int p2, boolean absolute) {
     final int d = p1 - p2;
     return absolute ? Math.abs(d) : d;
@@ -202,25 +213,36 @@ public class WorldUtils {
     }
   }
 
-  public static BlockPos getNearestSuitableTeleportLocation(World world, int x,
-    int z)
-  {
-    BlockPos pos = getSurfaceBlock(world, x, z);
-    System.out.println(
-            String.format("Get nearest teleport location to %s\n", pos));
-    while (!suitableForTeleport(world, pos)) {
-      pos = tryDifferentTeleportLocation(world, pos);
-    }
-    System.out.println(String.format("Using %s\n", pos));
-    return pos;
-  }
+  // public static BlockPos getNearestSuitableTeleportLocation(World world, int
+  // x,
+  // int z)
+  // {
+  // return getSurfaceBlock(world, x, z, true);
+  // }
 
   public static BlockPos getSurfaceBlock(World world, BlockPos pos) {
-    return getSurfaceBlock(world, pos.getX(), pos.getZ());
+    return getSurfaceBlock(world, pos, true);
+  }
+
+  public static BlockPos getSurfaceBlock(World world, BlockPos pos,
+    boolean adjust)
+  {
+    return getSurfaceBlock(world, pos.getX(), pos.getZ(), adjust);
   }
 
   public static BlockPos getSurfaceBlock(World world, int x, int z) {
-    return new BlockPos(x, getWorldHeight(world, x, z) - 1, z);
+    return getSurfaceBlock(world, x, z, true);
+  }
+
+  public static BlockPos getSurfaceBlock(World world, int x, int z,
+    boolean adjust)
+  {
+    final BlockPos pos = new BlockPos(x, getWorldHeight(world, x, z) - 1, z);
+    if (adjust) {
+      return adjustY(world, pos);
+    } else {
+      return pos;
+    }
   }
 
   public static int getWorldHeight(World world, BlockPos pos) {
@@ -277,6 +299,23 @@ public class WorldUtils {
   {
     System.out.println(String.format("placeBlocks %s at %s\n", state, bounds));
     replaceBlocks(world, null, bounds, state);
+  }
+
+  public static TileEntityChest placeChest(World world, BlockPos pos) {
+    world.setBlockState(pos, Blocks.CHEST.getDefaultState());
+    final TileEntityChest tileEntity = (TileEntityChest) world
+            .getTileEntity(pos);
+    return tileEntity;
+  }
+
+  public static BlockPos randomPointInBounds(World world, Bounds bounds) {
+
+    final int gameWidth = bounds.getWidth();
+    final int gameDepth = bounds.getDepth();
+    final int x = world.rand.nextInt(gameWidth);
+    final int z = world.rand.nextInt(gameDepth);
+    final BlockPos offset = new BlockPos(x, 0, z);
+    return getSurfaceBlock(world, offset(bounds.getFrom(), offset), true);
   }
 
   public static void replaceBlocks(World world, Block replaceBlockType,

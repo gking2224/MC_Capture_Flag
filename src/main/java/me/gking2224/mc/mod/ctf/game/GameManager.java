@@ -35,12 +35,12 @@ import me.gking2224.mc.mod.ctf.game.event.NewGameEvent;
 import me.gking2224.mc.mod.ctf.item.ItemBase;
 import me.gking2224.mc.mod.ctf.net.CanMovePlayerToPosition;
 import me.gking2224.mc.mod.ctf.net.CtfNetworkHandler;
-import me.gking2224.mc.mod.ctf.util.InventoryUtils;
 import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
@@ -218,6 +218,18 @@ public class GameManager {
     player.setPosition(x, y, z);
   }
 
+  private void createBonusChest(Game game) {
+    final BlockPos pos = WorldUtils.randomPointInBounds(this.world,
+            game.getBounds());
+    final TileEntityChest chest = WorldUtils.placeChest(this.world, pos);
+    final GameInventory inventory = GameInventoryFactory
+            .get(game.getOptions().getString(GameOption.BONUS_CHEST_INVENTORY)
+                    .orElse(GameInventoryFactory.DEFAULT_BONUS_CHEST));
+    inventory.placeInChest(chest);
+    System.out.println(format("created bonus chest at %s", pos));
+
+  }
+
   public void freezePlayerOut(EntityPlayer player) {
     this.frozenPlayers.add(player.getName());
   }
@@ -359,12 +371,11 @@ public class GameManager {
   private void movePlayerToPosition(EntityPlayer player, final int x,
     final int z)
   {
-    final BlockPos pos = WorldUtils
-            .getNearestSuitableTeleportLocation(this.world, x, z);
+    final BlockPos pos = WorldUtils.getSurfaceBlock(this.world, x, z, true);
     CtfNetworkHandler.INSTANCE.sendTo(new CanMovePlayerToPosition(pos),
             (EntityPlayerMP) player);
     player.setPosition(pos.getX(), pos.getY(), pos.getZ());
-  }
+  };
 
   public Game newGame(EntityPlayer owner, String config)
     throws GameCreationException
@@ -379,6 +390,9 @@ public class GameManager {
     final Game game = new Game(this.world, name, owner, newGameBounds, options);
 
     MinecraftForge.TERRAIN_GEN_BUS.post(new NewGameEvent(game));
+    if (options.getBoolean(GameOption.BONUS_CHEST).orElse(true)) {
+      this.createBonusChest(game);
+    }
     game.save();
     this.addGame(game);
     this.save();
@@ -470,22 +484,20 @@ public class GameManager {
       final boolean invertZ = ((game.getBaseLocation(TeamColour.RED)
               .getZ() < game.getBaseLocation(TeamColour.BLUE).getZ())
               && team.getColour() == TeamColour.BLUE);
-      {
-        final int x = this.world.rand.nextInt(gameWidth);
-        final int z = this.world.rand.nextInt(gameDepth / 2);
-        final int zz = (invertZ) ? gameDepth - z : z;
-        final BlockPos offset = new BlockPos(x, 0, zz);
-        final BlockPos pos = WorldUtils.offset(gameBounds.getFrom(), offset);
-        this.movePlayerToPosition(player, pos.getX(), pos.getZ());
-        this.broadcastToTeamPlayers(game, team.getColour(),
-                format("%s rejoined game at %s", player.getName(), pos));
-      }
+      final int x = this.world.rand.nextInt(gameWidth);
+      final int z = this.world.rand.nextInt(gameDepth / 2);
+      final int zz = (invertZ) ? gameDepth - z : z;
+      final BlockPos offset = new BlockPos(x, 0, zz);
+      final BlockPos pos = WorldUtils.offset(gameBounds.getFrom(), offset);
+      this.movePlayerToPosition(player, pos.getX(), pos.getZ());
+      this.broadcastToTeamPlayers(game, team.getColour(),
+              format("%s rejoined game at %s", player.getName(), pos));
     });
   }
 
   public void toolUpPlayer(EntityPlayer p) {
-    InventoryUtils.setPlayerInventory(p,
-            GameInventoryFactory.getDefault().getGameItems());
+    // InventoryUtils.setPlayerInventory(p,
+    // GameInventoryFactory.getDefault().getGameItems());
   }
 
   public void unFreezePlayerOut(EntityPlayer player) {

@@ -58,6 +58,10 @@ public class GameConfigData extends WorldSavedData {
     this.options = new GameOptions(nbt.getString(OPTIONS));
   }
 
+  @Override public String toString() {
+    return this.options.toString();
+  }
+
   public void update(GameOptions gameOptions) {
     this.options = gameOptions;
     this.setDirty(true);
