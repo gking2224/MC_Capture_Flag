@@ -1,12 +1,15 @@
 package me.gking2224.mc.mod.ctf.util;
 
+import static java.lang.String.format;
 import static me.gking2224.mc.mod.ctf.util.WorldUtils.MoveAction.DOWN;
 import static me.gking2224.mc.mod.ctf.util.WorldUtils.MoveAction.LATERAL;
 import static me.gking2224.mc.mod.ctf.util.WorldUtils.MoveAction.UP;
 import static net.minecraft.block.Block.getIdFromBlock;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import me.gking2224.mc.mod.ctf.game.Bounds;
 import me.gking2224.mc.mod.ctf.game.ChunkLocation;
@@ -18,13 +21,67 @@ import net.minecraft.world.World;
 
 public class WorldUtils {
 
+  public enum Direction {
+
+    NORTH("north", 0), NORTH_EAST("north-east", 45), EAST("east",
+            90), SOUTH_EAST("south-east", 135), SOUTH("south", 180), SOUTH_WEST(
+                    "south-west",
+                    225), WEST("west", 270), NORTH_WEST("north-west", 315);
+
+    public static final double HEADING_MIDPOINT = 45 / 2;
+
+    public static Set<Direction> all() {
+      return new HashSet<Direction>(Arrays.asList(NORTH, SOUTH, EAST, WEST,
+              NORTH_EAST, NORTH_WEST, SOUTH_EAST, SOUTH_WEST));
+    }
+
+    private final int heading;
+    private final String name;
+
+    Direction(String name, int heading) {
+      this.heading = heading;
+      this.name = name;
+    }
+
+    public int getHeading() {
+      return this.heading;
+    }
+
+    @Override public String toString() {
+      return this.name;
+    }
+
+  }
+
+  public static class DistanceAndHeading {
+
+    private final double distance;
+    private final Direction direction;
+
+    public DistanceAndHeading(double distance, Direction direction) {
+      this.distance = distance;
+      this.direction = direction;
+    }
+
+    public Direction getDirection() {
+      return this.direction;
+    }
+
+    public double getDistance() {
+      return this.distance;
+    }
+
+  }
+
   public static enum MoveAction {
     DOWN, LATERAL, UP;
   }
 
   private static final Set<Integer> OVER_SURFACE_BLOCKS = new HashSet<Integer>();
   private static final Set<Integer> UNDER_SURFACE_BLOCKS = new HashSet<Integer>();
+
   private static final Set<Integer> CAN_TELEPORT_TO_BLOCKS = new HashSet<Integer>();
+
   private static final Set<Integer> CAN_TELEPORT_ABOVE_BLOCKS = new HashSet<Integer>();
 
   static {
@@ -32,7 +89,7 @@ public class WorldUtils {
     UNDER_SURFACE_BLOCKS.add(Block.getIdFromBlock(Blocks.STONE));
     UNDER_SURFACE_BLOCKS.add(Block.getIdFromBlock(Blocks.SANDSTONE));
     UNDER_SURFACE_BLOCKS.add(Block.getIdFromBlock(Blocks.DIRT));
-    CAN_TELEPORT_ABOVE_BLOCKS.add(Block.getIdFromBlock(Blocks.SAND));
+    UNDER_SURFACE_BLOCKS.add(Block.getIdFromBlock(Blocks.SAND));
 
     OVER_SURFACE_BLOCKS.add(Block.getIdFromBlock(Blocks.LEAVES));
     OVER_SURFACE_BLOCKS.add(Block.getIdFromBlock(Blocks.LEAVES2));
@@ -43,6 +100,18 @@ public class WorldUtils {
     CAN_TELEPORT_ABOVE_BLOCKS.add(Block.getIdFromBlock(Blocks.RED_FLOWER));
     CAN_TELEPORT_ABOVE_BLOCKS.add(Block.getIdFromBlock(Blocks.YELLOW_FLOWER));
     CAN_TELEPORT_ABOVE_BLOCKS.add(Block.getIdFromBlock(Blocks.WATER));
+  }
+
+  private static double adjustAngle(double a, int x, int z) {
+    if (x < 0 && z < 0) { // both negative
+      return 360 - a;
+    } else if (x > 0 && z > 0) { // both positive
+      return 180 - a;
+    } else if (x < 0 && z > 0) { // x negative
+      return 180 + a;
+    } else {
+      return a;
+    }
   }
 
   private static int delta(int p1, int p2, boolean absolute) {
@@ -72,6 +141,46 @@ public class WorldUtils {
     return new BlockPos(delta(p1.getX(), p2.getX(), absolute),
             delta(p1.getY(), p2.getY(), absolute),
             delta(p1.getZ(), p2.getZ(), absolute));
+  }
+
+  public static Direction getDirectionFromAngle(double a) {
+    final Set<Direction> ds = Direction.all().stream().filter(d -> {
+      final int heading = d.getHeading();
+      final double deltaFromHeading = Math.abs(a - heading);
+      final double deltaFromHeading2 = Math.abs((a - 360) - heading);
+      System.out.println(format("%5.3f: %s delta: %5.3f/%5.3f", a, d,
+              deltaFromHeading, deltaFromHeading2));
+      return deltaFromHeading <= Direction.HEADING_MIDPOINT
+              || deltaFromHeading2 <= Direction.HEADING_MIDPOINT;
+    }).collect(Collectors.toSet());
+    System.out.println(format("valid directions: %s", ds));
+    return ds.iterator().next();
+  }
+
+  public static DistanceAndHeading getDistanceAndHeading(
+    BlockPos playerPosition, BlockPos basePosition)
+  {
+    System.out.println("player position: " + playerPosition);
+    final BlockPos delta = WorldUtils.getDelta(basePosition, playerPosition,
+            false);
+
+    System.out.println(String.format("delta: %s", delta));
+
+    final int x = delta.getX();
+    final int z = delta.getZ();
+    final double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(z, 2));
+    // if (distance < (nearLimit * 16)) { return String.format("near by"); }
+
+    final double oppOverAdj = (z == 0) ? 0 : (double) x / (double) z;
+    final double atan = Math.atan(oppOverAdj);
+    final double a = Math.abs(atan * 180 / Math.PI);
+    System.out.println("angle: " + a);
+    final double aa = to360DegreeAngle(a, x, z);
+    System.out.println("adjusted angle: " + aa);
+
+    final Direction d = WorldUtils.getDirectionFromAngle(aa);
+
+    return new DistanceAndHeading(distance, d);
   }
 
   private static MoveAction getMoveAction(IBlockState blockAt) {
@@ -213,8 +322,28 @@ public class WorldUtils {
     return false;
   }
 
+  private static double to360DegreeAngle(double a, int x, int z) {
+    double aa = a;
+    if (Math.ceil(a) == 0) {
+      aa = toStraightLineAngle(x, z);
+    } else {
+      aa = adjustAngle(a, x, z);
+    }
+    return (aa == 360 ? 0 : aa);
+  }
+
   public static ChunkLocation toChunkLocation(BlockPos pos) {
     return new ChunkLocation(pos.getX() / 16, pos.getZ() / 16);
+  }
+
+  private static double toStraightLineAngle(int x, int z) {
+    if (x == 0) {
+      return (z < 0) ? 0 : 180;
+    } else if (z == 0) {
+      return (x < 0) ? 270 : 90;
+    } else {
+      throw new IllegalArgumentException("Either x or z must be 0");
+    }
   }
 
   private static BlockPos tryDifferentTeleportLocation(World world,

@@ -5,6 +5,7 @@ import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.Game;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
@@ -45,7 +46,7 @@ public class GameInfo extends CommandBase {
     if (e instanceof EntityPlayer) {
       final EntityPlayer player = (EntityPlayer) e;
       final Game game = this.getGame(player, gameArg);
-      sender.sendMessage(toIText(game.toString()));
+      this.sendGameInfo(game, sender);
     }
   }
 
@@ -77,5 +78,13 @@ public class GameInfo extends CommandBase {
 
   @Override public boolean isUsernameIndex(String[] args, int index) {
     return false;
+  }
+
+  private void sendGameInfo(Game game, ICommandSender sender) {
+    sender.sendMessage(toIText(game.getName()));
+    TeamColour.all().forEach(colour -> {
+      sender.sendMessage(toIText("  %s team (%s): %s", colour,
+              game.getScore().get(colour), game.getTeamPlayers(colour)));
+    });
   }
 }

@@ -20,49 +20,43 @@ import net.minecraft.world.World;
 
 public class Game {
 
-  private GameData gameData;
-
-  Game(World world, String name, EntityPlayer owner, Bounds bounds,
-          GameOptions options)
-  {
-
-    gameData = GameData.create(world, name, options);
-
-    gameData.setOwner(owner.getName());
-    gameData.setBounds(bounds);
-    addTeam(TeamColour.RED);
-    addTeam(TeamColour.BLUE);
-    gameData.getScore().put(TeamColour.RED, 0);
-    gameData.getScore().put(TeamColour.BLUE, 0);
-    save();
+  public static Optional<Game> load(World world, String name) {
+    final Optional<GameData> gameData = GameData.get(world, name);
+    return Optional
+            .ofNullable(gameData.isPresent() ? new Game(gameData.get()) : null);
   }
+
+  private final GameData gameData;
 
   Game(GameData gameData) {
     this.gameData = gameData;
   }
 
-  private void addTeam(TeamColour colour) {
-    ;
-    gameData.getTeams().put(colour, new CtfTeam(colour));
+  Game(World world, String name, EntityPlayer owner, Bounds bounds,
+          GameOptions options)
+  {
+
+    this.gameData = GameData.create(world, name, options);
+
+    this.gameData.setOwner(owner.getName());
+    this.gameData.setBounds(bounds);
+    this.addTeam(TeamColour.RED);
+    this.addTeam(TeamColour.BLUE);
+    this.gameData.getScore().put(TeamColour.RED, 0);
+    this.gameData.getScore().put(TeamColour.BLUE, 0);
+    this.save();
   }
 
   public CtfTeam addPlayer(String playerName) {
-    CtfTeam team = nextTeam();
+    final CtfTeam team = this.nextTeam();
     team.addPlayer(playerName);
-    save();
+    this.save();
     return team;
   }
 
-  private CtfTeam nextTeam() {
-    Comparator<? super CtfTeam> comp = (a, b) -> a.numPlayers()
-            - b.numPlayers();
-    CtfTeam nextTeam = Collections.min(gameData.getTeams().values(), comp);
-    // need to chose random here?
-    return nextTeam;
-  }
-
-  void save() {
-    gameData.setDirty(true);
+  private void addTeam(TeamColour colour) {
+    ;
+    this.gameData.getTeams().put(colour, new CtfTeam(colour));
   }
 
   @SuppressWarnings("unused") private TeamColour chooseRandomTeam() {
@@ -70,140 +64,149 @@ public class Game {
             : TeamColour.BLUE;
   }
 
-  protected int getTeamNumPlayers(String team) {
-    return gameData.getTeams().get(team).getPlayers().size();
-  }
-
   public boolean containsPlayer(String player) {
 
-    return gameData.getTeams().get(TeamColour.RED).containsPlayer(player)
-            || gameData.getTeams().get(TeamColour.BLUE).containsPlayer(player);
-  }
-
-  public Optional<CtfTeam> getTeamForPlayer(String player) {
-    return gameData.getTeams().values().stream()
-            .filter(t -> t.getPlayers().contains(player)).findAny();
-  }
-
-  public void setBaseLocation(TeamColour team, BlockPos refPos) {
-    gameData.getBaseLocations().put(team, refPos);
-    save();
-  }
-
-  public BlockPos getBaseLocation(TeamColour team) {
-    return gameData.getBaseLocations().get(team);
-  }
-
-  public int getTotalNumPlayers() {
-    Collector<CtfTeam, Integer, Integer> c = Collector.of(() -> 0,
-            (Integer tot, CtfTeam team) -> team.numPlayers(),
-            (t1, t2) -> t1 + t2);
-    return gameData.getTeams().values().stream().collect(c);
+    return this.gameData.getTeams().get(TeamColour.RED).containsPlayer(player)
+            || this.gameData.getTeams().get(TeamColour.BLUE)
+                    .containsPlayer(player);
   }
 
   public Set<String> getAllPlayers() {
-    Set<String> rv = new HashSet<String>(getTotalNumPlayers());
-    gameData.getTeams().values().forEach(t -> rv.addAll(t.getPlayers()));
+    final Set<String> rv = new HashSet<String>(this.getTotalNumPlayers());
+    this.gameData.getTeams().values().forEach(t -> rv.addAll(t.getPlayers()));
     return rv;
   }
 
-  public Set<String> getTeamPlayers(TeamColour colour) {
-    return gameData.getTeams().get(colour).getPlayers();
-  }
-
-  public void incrementScore(TeamColour team) {
-    Map<TeamColour, Integer> score = gameData.getScore();
-    score.put(team, score.get(team).intValue() + 1);
-    save();
-  }
-
-  public void updateFlagBlockPosition(TeamColour colour, BlockPos blockPos) {
-    gameData.getFlagLocations().put(colour, blockPos);
-    gameData.getPlayerHoldingFlag().remove(colour);
-    save();
-  }
-
-  public BlockPos getFlagPosition(TeamColour colour) {
-    return gameData.getFlagLocations().get(colour);
-  }
-
-  public void setPlayerHoldingFlag(TeamColour colour, String player) {
-    gameData.getPlayerHoldingFlag().put(colour, player);
-    gameData.getFlagLocations().remove(colour);
-    save();
-  }
-
-  public String getPlayerHoldingFlag(TeamColour colour) {
-    return gameData.getPlayerHoldingFlag().get(colour);
-  }
-
-  public void removePlayer(String playerName) {
-    gameData.getTeams().values().forEach(t -> t.removePlayer(playerName));
-    GameWorldManager gameWorldManager = GameWorldManager.get();
-    gameData.getPlayerHoldingFlag().entrySet().stream()
-            .filter(e -> e.getValue().equals(playerName))
-            .forEach(e -> gameWorldManager.resetFlag(this, e.getKey()));
-    GameManager gameManager = GameManager.get();
-    gameManager.broadcastToAllPlayers(this,
-            String.format("Player %s leaving game", playerName));
-    save();
-  }
-
-  public Set<CtfTeam> getTeams() {
-    return new HashSet<CtfTeam>(gameData.getTeams().values());
-  }
-
-  public Set<TeamColour> getTeamColours() {
-    return new HashSet<TeamColour>(gameData.getTeams().keySet());
-  }
-
-  public Map<TeamColour, Integer> getScore() {
-    return new HashMap<TeamColour, Integer>(gameData.getScore());
+  public BlockPos getBaseLocation(TeamColour team) {
+    return this.gameData.getBaseLocations().get(team);
   }
 
   public Bounds getBounds() {
-    return gameData.getBounds();
+    return this.gameData.getBounds();
   }
 
-  public String getName() {
-    return gameData.getName();
-  }
-
-  public static Optional<Game> load(World world, String name) {
-    Optional<GameData> gameData = GameData.get(world, name);
-    return Optional
-            .ofNullable(gameData.isPresent() ? new Game(gameData.get()) : null);
-  }
-
-  public GameOptions getOptions() {
-    return gameData.getOptions();
-  }
-
-  public void setPlayerHandicap(String p, int h) {
-    gameData.setPlayerHandicap(p, h);
-    save();
-  }
-
-  public int getPlayerHandicap(String p) {
-    Optional<Integer> h = gameData.getPlayerHandicap(p);
-    return h.orElse(0);
-  }
-
-  public String toString() {
-    return format(
-            "Game[" + "name=%s, players=[RED: %s, BLUE:%s], "
-                    + "score=%s, redBase=%s, blueBase=%s, options=%s]",
-            getName(), getTeamPlayers(TeamColour.RED),
-            getTeamPlayers(TeamColour.BLUE), getScore(),
-            WorldUtils.toChunkLocation(getBaseLocation(TeamColour.RED)),
-            WorldUtils.toChunkLocation(getBaseLocation(TeamColour.BLUE)),
-            getOptions());
+  public BlockPos getFlagPosition(TeamColour colour) {
+    return this.gameData.getFlagLocations().get(colour);
   }
 
   public String getFormattedScore() {
-    int redScore = getScore().get(TeamColour.RED);
-    int blueScore = getScore().get(TeamColour.BLUE);
-    return format("RED (%d) :: (%d) BLUE", redScore, blueScore);
+    final int redScore = this.getScore().get(TeamColour.RED);
+    final int blueScore = this.getScore().get(TeamColour.BLUE);
+    return format("%s (%d) :: (%d) %s", TeamColour.RED, redScore, blueScore,
+            TeamColour.BLUE);
+  }
+
+  public String getName() {
+    return this.gameData.getName();
+  }
+
+  public GameOptions getOptions() {
+    return this.gameData.getOptions();
+  }
+
+  public int getPlayerHandicap(String p) {
+    final Optional<Integer> h = this.gameData.getPlayerHandicap(p);
+    return h.orElse(0);
+  }
+
+  public String getPlayerHoldingFlag(TeamColour colour) {
+    return this.gameData.getPlayerHoldingFlag().get(colour);
+  }
+
+  public Map<TeamColour, Integer> getScore() {
+    return new HashMap<TeamColour, Integer>(this.gameData.getScore());
+  }
+
+  public Set<TeamColour> getTeamColours() {
+    return new HashSet<TeamColour>(this.gameData.getTeams().keySet());
+  }
+
+  public Optional<CtfTeam> getTeamForPlayer(String player) {
+    return this.gameData.getTeams().values().stream()
+            .filter(t -> t.getPlayers().contains(player)).findAny();
+  }
+
+  protected int getTeamNumPlayers(String team) {
+    return this.gameData.getTeams().get(team).getPlayers().size();
+  }
+
+  public Set<String> getTeamPlayers(TeamColour colour) {
+    return this.gameData.getTeams().get(colour).getPlayers();
+  }
+
+  public Set<CtfTeam> getTeams() {
+    return new HashSet<CtfTeam>(this.gameData.getTeams().values());
+  }
+
+  public int getTotalNumPlayers() {
+    final Collector<CtfTeam, Integer, Integer> c = Collector.of(() -> 0,
+            (Integer tot, CtfTeam team) -> team.numPlayers(),
+            (t1, t2) -> t1 + t2);
+    return this.gameData.getTeams().values().stream().collect(c);
+  }
+
+  public void incrementScore(TeamColour team) {
+    final Map<TeamColour, Integer> score = this.gameData.getScore();
+    score.put(team, score.get(team).intValue() + 1);
+    this.save();
+  }
+
+  private CtfTeam nextTeam() {
+    final Comparator<? super CtfTeam> comp = (a, b) -> a.numPlayers()
+            - b.numPlayers();
+    final CtfTeam nextTeam = Collections.min(this.gameData.getTeams().values(),
+            comp);
+    // need to chose random here?
+    return nextTeam;
+  }
+
+  public void removePlayer(String playerName) {
+    this.gameData.getTeams().values().forEach(t -> t.removePlayer(playerName));
+    final GameWorldManager gameWorldManager = GameWorldManager.get();
+    this.gameData.getPlayerHoldingFlag().entrySet().stream()
+            .filter(e -> e.getValue().equals(playerName))
+            .forEach(e -> gameWorldManager.resetFlag(this, e.getKey()));
+    final GameManager gameManager = GameManager.get();
+    gameManager.broadcastToAllPlayers(this,
+            String.format("Player %s leaving game", playerName));
+    this.save();
+  }
+
+  void save() {
+    this.gameData.setDirty(true);
+  }
+
+  public void setBaseLocation(TeamColour team, BlockPos refPos) {
+    this.gameData.getBaseLocations().put(team, refPos);
+    this.save();
+  }
+
+  public void setPlayerHandicap(String p, int h) {
+    this.gameData.setPlayerHandicap(p, h);
+    this.save();
+  }
+
+  public void setPlayerHoldingFlag(TeamColour colour, String player) {
+    this.gameData.getPlayerHoldingFlag().put(colour, player);
+    this.gameData.getFlagLocations().remove(colour);
+    this.save();
+  }
+
+  @Override public String toString() {
+    return format(
+            "Game[" + "name=%s, players=[RED: %s, BLUE:%s], "
+                    + "score=%s, redBase=%s, blueBase=%s, options=%s]",
+            this.getName(), this.getTeamPlayers(TeamColour.RED),
+            this.getTeamPlayers(TeamColour.BLUE), this.getScore(),
+            WorldUtils.toChunkLocation(this.getBaseLocation(TeamColour.RED)),
+            WorldUtils.toChunkLocation(this.getBaseLocation(TeamColour.BLUE)),
+            this.getOptions());
+  }
+
+  public void updateFlagBlockPosition(TeamColour colour, BlockPos blockPos) {
+    this.gameData.getFlagLocations().put(colour, blockPos);
+    this.gameData.getPlayerHoldingFlag().remove(colour);
+    this.save();
   }
 
 }

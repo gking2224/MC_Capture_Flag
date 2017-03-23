@@ -1,15 +1,20 @@
 package me.gking2224.mc.mod.ctf.command;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import static java.lang.String.format;
+import static me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour.BLUE;
+import static me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour.RED;
+import static me.gking2224.mc.mod.ctf.game.GameOption.OPPONENT_BASE_DIRECTIONS;
 
-import me.gking2224.mc.mod.ctf.game.CtfTeam;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
 import me.gking2224.mc.mod.ctf.util.StringUtils;
 import me.gking2224.mc.mod.ctf.util.WorldUtils;
+import me.gking2224.mc.mod.ctf.util.WorldUtils.DistanceAndHeading;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -18,85 +23,34 @@ import net.minecraft.util.math.BlockPos;
 
 public class BaseDirections extends CommandBase {
 
-  public enum Direction {
-
-    NORTH("north", 0), SOUTH("south", 180), EAST("east", 90), WEST("west",
-            270), NORTH_WEST("north-west", 315), NORTH_EAST("north-east",
-                    45), SOUTH_EAST("south-east", 135), SOUTH_WEST("south-west",
-                            215);
-
-    public static Set<Direction> all() {
-      return new HashSet<Direction>(Arrays.asList(NORTH, SOUTH, EAST, WEST,
-              NORTH_EAST, NORTH_WEST, SOUTH_EAST, SOUTH_WEST));
-    }
-
-    private final int heading;
-    private final String name;
-
-    Direction(String name, int heading) {
-      this.heading = heading;
-      this.name = name;
-    }
-
-    @Override public String toString() {
-      return this.name;
-    }
-
-  }
-
-  private static final double HEADING_MIDPOINT = 45 / 2;
-
-  private String directionsToBaseRelativeToPlayer(TeamColour team,
-    BlockPos basePosition, EntityPlayer player)
-  {
-    final BlockPos playerPosition = player.getPosition();
-    System.out.println("player position: " + playerPosition);
-    final BlockPos delta = WorldUtils.getDelta(basePosition, playerPosition,
-            false);
-
-    System.out.println(String.format("%s delta: %s", team, delta));
-
-    final int x = delta.getX();
-    final int z = delta.getZ();
-    final double oppOverAdj = (z == 0) ? 0 : (double) x / (double) z;
-    final double atan = Math.atan(oppOverAdj);
-    double a = atan * 180 / Math.PI;
-    System.out.println("angle: " + a);
-    if (x > 0) {
-      a += 180;
-      if (z > 0) {
-        a += 90;
-      }
-    } else if (z < 0) {
-      a += 90;
-    }
-    System.out.println("adjusted angle: " + a);
-
-    final double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(z, 2));
-    final Direction d = this.getDirectionFromAngle((int) a);
-
-    return String.format("%s base: %d(%s) %d", team, a, d, (int) distance);
-
-  }
-
   @Override protected void doExecute(MinecraftServer server,
     ICommandSender sender, String[] args)
       throws CommandException
   {
 
     final EntityPlayer player = (EntityPlayer) sender.getCommandSenderEntity();
-    final Game g = GameManager.get().getPlayerActiveGame(player.getName())
-            .orElseThrow(super.gameNotFoundForPlayerException(player));
+    final String name = player.getName();
+    final Game g = GameManager.get().getPlayerActiveGame(name)
+            .orElseThrow(this.gameNotFoundForPlayerException(player));
 
-    // TeamColour.all().forEach(colour -> {
-    final CtfTeam team = g.getTeamForPlayer(player.getName())
-            .orElseThrow(super.playerNotOnTeamException(player, g));
-    final TeamColour colour = team.getColour();
-    final BlockPos pos = g.getBaseLocation(colour);
+    final List<TeamColour> colours = new ArrayList<TeamColour>();
+    final TeamColour playerTeam = g.getTeamForPlayer(name)
+            .orElseThrow(this.playerNotOnTeamException(player, g)).getColour();
 
-    sender.sendMessage(StringUtils.toIText(
-            this.directionsToBaseRelativeToPlayer(colour, pos, player)));
-    // });
+    colours.add(playerTeam);
+    if (g.getOptions().getBoolean(OPPONENT_BASE_DIRECTIONS).orElse(true)) {
+      colours.add(playerTeam == RED ? BLUE : RED);
+    }
+    colours.forEach(colour -> {
+      final BlockPos pos = g.getBaseLocation(colour);
+
+      final int nearLimit = g.getOptions().getInteger("near").orElse(40);
+      final Random rand = server.getEntityWorld().rand;
+      final int randomDistance = rand.nextInt(4) - 2;
+      sender.sendMessage(
+              StringUtils.toIText(this.getDirectionsToBaseRelativeToPlayer(
+                      colour, pos, player, nearLimit, randomDistance)));
+    });
 
   }
 
@@ -106,14 +60,30 @@ public class BaseDirections extends CommandBase {
     };
   }
 
-  private Direction getDirectionFromAngle(int a) {
-    // final int aa = (a < 0) ? a + 360 : a;
-    return Direction.all().stream().filter(d -> {
-      final int heading = d.heading;
-      final int deltaFromHeading = Math.abs(a - heading);
-      return deltaFromHeading <= HEADING_MIDPOINT;
-    }).findFirst().orElseThrow(() -> new IllegalStateException(
-            "Could not find direction for angle " + a));
+  private String getDirectionsToBaseRelativeToPlayer(TeamColour team,
+    BlockPos basePosition, EntityPlayer player, int nearLimit, int random)
+  {
+    final BlockPos playerPosition = player.getPosition();
+
+    final DistanceAndHeading toFlag = WorldUtils
+            .getDistanceAndHeading(playerPosition, basePosition);
+    String details = null;
+    if (toFlag.getDistance() < nearLimit) {
+      details = "near by!";
+    } else {
+
+      final String distanceStr = this.getDistanceToDisplay(toFlag.getDistance(),
+              random);
+
+      details = String.format("%s %s", toFlag.getDirection(), distanceStr);
+    }
+    return String.format("%s base: %s", team, details);
+  }
+
+  private String getDistanceToDisplay(double distanceInBlocks, int random) {
+    final int chunks = (int) Math.floor(distanceInBlocks / 16);
+    final int rounded = (chunks / 2) * 2;
+    return format("approx. %s chunks", rounded + random);
   }
 
   @Override protected boolean[] getMandatoryArgs() {
