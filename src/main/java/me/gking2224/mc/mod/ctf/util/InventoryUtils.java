@@ -1,6 +1,7 @@
 package me.gking2224.mc.mod.ctf.util;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
 import me.gking2224.mc.mod.ctf.net.CtfNetworkHandler;
@@ -10,9 +11,19 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.NonNullList;
 
 public class InventoryUtils {
+
+  public static void addItemsToChest(Set<ItemStack> gameItems,
+    TileEntityChest chest)
+  {
+    final Iterator<ItemStack> it = gameItems.iterator();
+    for (int i = 0; it.hasNext(); i++) {
+      chest.setInventorySlotContents(i, it.next());
+    }
+  }
 
   public static void addItemsToPlayerInventory(EntityPlayer player,
     Set<ItemStack> items)

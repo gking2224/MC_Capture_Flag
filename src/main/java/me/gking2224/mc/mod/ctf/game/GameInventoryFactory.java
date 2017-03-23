@@ -1,19 +1,17 @@
 package me.gking2224.mc.mod.ctf.game;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntityChest;
 
 public class GameInventoryFactory {
 
-  private static class DefaultBonusChestInventory extends GameInventoryBase {
+  private static class DefaultBonusChestInventory implements GameInventory {
 
-    @Override public Set<ItemStack> getGameItems() {
+    @Override public Set<ItemStack> getItems() {
       final Set<ItemStack> set = new HashSet<ItemStack>();
       set.add(new ItemStack(Items.DIAMOND_SWORD, 1));
       set.add(new ItemStack(Items.DIAMOND_AXE, 1));
@@ -33,7 +31,7 @@ public class GameInventoryFactory {
 
   private static class DefaultGameInventory extends GameInventoryBase {
 
-    @Override public Set<ItemStack> getGameItems() {
+    @Override public Set<ItemStack> getItems() {
       final Set<ItemStack> set = new HashSet<ItemStack>();
       set.add(new ItemStack(Items.WOODEN_SWORD, 1));
       set.add(new ItemStack(Items.WOODEN_AXE, 1));
@@ -51,12 +49,6 @@ public class GameInventoryFactory {
 
   protected static abstract class GameInventoryBase implements GameInventory {
 
-    @Override public final void placeInChest(TileEntityChest chest) {
-      final Iterator<ItemStack> it = this.getGameItems().iterator();
-      for (int i = 0; it.hasNext(); i++) {
-        chest.setInventorySlotContents(i, it.next());
-      }
-    }
   }
 
   public static final String DEFAULT_BONUS_CHEST = "defaultBonusChest";

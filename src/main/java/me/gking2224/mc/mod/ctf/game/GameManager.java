@@ -1,6 +1,7 @@
 package me.gking2224.mc.mod.ctf.game;
 
 import static java.lang.String.format;
+import static me.gking2224.mc.mod.ctf.util.InventoryUtils.addItemsToChest;
 import static me.gking2224.mc.mod.ctf.util.InventoryUtils.moveItemFromInventoryToPlayerHand;
 import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
 
@@ -226,7 +227,7 @@ public class GameManager {
     final GameInventory inventory = GameInventoryFactory
             .get(game.getOptions().getString(GameOption.BONUS_CHEST_INVENTORY)
                     .orElse(GameInventoryFactory.DEFAULT_BONUS_CHEST));
-    inventory.placeInChest(chest);
+    addItemsToChest(inventory.getItems(), chest);
     System.out.println(format("created bonus chest at %s", pos));
 
   }
@@ -501,8 +502,10 @@ public class GameManager {
     final String inv = game.getOptions().getString(GameOption.INVENTORY)
             .orElse("default");
     TeamColour.all().forEach(team -> {
-      game.getBaseChest(this.world, team).ifPresent(
-              chest -> GameInventoryFactory.get(inv).placeInChest(chest));
+      game.getBaseChest(this.world, team).ifPresent(chest -> {
+        final GameInventory inventory = GameInventoryFactory.get(inv);
+        addItemsToChest(inventory.getItems(), chest);
+      });
     });
   }
 

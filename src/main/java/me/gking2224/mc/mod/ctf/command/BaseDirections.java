@@ -13,6 +13,7 @@ import java.util.Random;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.GameManager;
+import me.gking2224.mc.mod.ctf.game.GameOption;
 import me.gking2224.mc.mod.ctf.util.StringUtils;
 import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import me.gking2224.mc.mod.ctf.util.WorldUtils.DistanceAndHeading;
@@ -26,7 +27,7 @@ public class BaseDirections extends CommandBase {
 
   /**
    * Check if the given ICommandSender has permission to execute this command
-   * 
+   *
    * @param server
    *          The server instance
    * @param sender
@@ -59,12 +60,14 @@ public class BaseDirections extends CommandBase {
     colours.forEach(colour -> {
       final BlockPos pos = g.getBaseLocation(colour);
 
-      final int nearLimit = g.getOptions().getInteger("near").orElse(40);
+      final int nearLimit = g.getOptions().getInteger(GameOption.NEAR)
+              .orElse(40);
       final Random rand = server.getEntityWorld().rand;
-      final int randomDistance = rand.nextInt(4) - 2;
-      sender.sendMessage(
-              StringUtils.toIText(this.getDirectionsToBaseRelativeToPlayer(
-                      colour, pos, player, nearLimit, randomDistance)));
+      final boolean ownFlag = playerTeam == colour;
+      final int randomDistance = (ownFlag) ? 0 : rand.nextInt(4) - 2;
+      sender.sendMessage(StringUtils
+              .toIText(this.getDirectionsToBaseRelativeToPlayer(colour, pos,
+                      player, nearLimit, randomDistance, ownFlag)));
     });
 
   }
@@ -74,14 +77,15 @@ public class BaseDirections extends CommandBase {
   }
 
   private String getDirectionsToBaseRelativeToPlayer(TeamColour team,
-    BlockPos basePosition, EntityPlayer player, int nearLimit, int random)
+    BlockPos basePosition, EntityPlayer player, int nearLimit, int random,
+    boolean ownFlag)
   {
     final BlockPos playerPosition = player.getPosition();
 
     final DistanceAndHeading toFlag = WorldUtils
             .getDistanceAndHeading(playerPosition, basePosition);
     String details = null;
-    if (toFlag.getDistance() < nearLimit) {
+    if (!ownFlag && toFlag.getDistance() < nearLimit) {
       details = "near by!";
     } else {
 
@@ -96,7 +100,8 @@ public class BaseDirections extends CommandBase {
   private String getDistanceToDisplay(double distanceInBlocks, int random) {
     final int chunks = (int) Math.floor(distanceInBlocks / 16);
     final int rounded = (chunks / 2) * 2;
-    return format("approx. %s chunks", rounded + random);
+    return (rounded <= 2) ? "near by!"
+            : format("approx. %s chunks", rounded + random);
   }
 
   @Override public String getName() {

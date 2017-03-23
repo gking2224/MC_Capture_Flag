@@ -54,7 +54,7 @@ public class ToolUp extends CommandBase {
       final String inv = g.getOptions().getString(GameOption.INVENTORY)
               .orElse("default");
       InventoryUtils.addItemsToPlayerInventory(player,
-              GameInventoryFactory.get(inv).getGameItems());
+              GameInventoryFactory.get(inv).getItems());
     }
   }
 
