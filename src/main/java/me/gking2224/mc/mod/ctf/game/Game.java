@@ -235,4 +235,12 @@ public class Game {
     this.save();
   }
 
+  public void addPlayerToTeam(String name, TeamColour colour) {
+    this.gameData.getTeams().get(colour).addPlayer(name);
+    this.save();
+  }
+
+  public String getOwner() {
+	return gameData.getOwner();
+  }
 }

@@ -27,6 +27,7 @@ import me.gking2224.mc.mod.ctf.command.GetScore;
 import me.gking2224.mc.mod.ctf.command.JoinCtfGame;
 import me.gking2224.mc.mod.ctf.command.NewCtfGame;
 import me.gking2224.mc.mod.ctf.command.SaveGameConfiguration;
+import me.gking2224.mc.mod.ctf.command.SetTeam;
 import me.gking2224.mc.mod.ctf.command.ToolUp;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.data.GameConfigData;
@@ -295,6 +296,7 @@ public class GameManager {
     rv.add(new BaseDirections());
     rv.add(new SaveGameConfiguration());
     rv.add(new GetGameConfiguration());
+    rv.add(new SetTeam());
     return rv;
   }
 

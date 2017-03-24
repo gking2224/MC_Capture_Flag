@@ -25,7 +25,8 @@ public class Flag {
   }
 
   public static TeamColour getFlagColour(ItemBase item) {
-    return fromString(item.getName().substring(Flag.FLAG_PREFIX.length()));
+    return fromString(item.getName().substring(Flag.FLAG_PREFIX.length())).orElseThrow(
+	    () -> new IllegalStateException("invalid flag item"));
   }
 
   public static Optional<ItemBase> toFlag(ItemStack item) {

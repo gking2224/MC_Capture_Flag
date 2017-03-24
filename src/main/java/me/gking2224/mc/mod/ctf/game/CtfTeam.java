@@ -2,6 +2,7 @@ package me.gking2224.mc.mod.ctf.game;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
@@ -15,14 +16,14 @@ public class CtfTeam {
       return new HashSet<TeamColour>(Arrays.asList(BLUE, RED));
     }
 
-    public static TeamColour fromString(String s) {
+    public static Optional<TeamColour> fromString(String s) {
+      TeamColour t = null;
       if ("red".equals(s)) {
-        return RED;
+        t = RED;
       } else if ("blue".equals(s)) {
-        return BLUE;
-      } else {
-        throw new IllegalArgumentException("Unknown colour");
+        t = BLUE;
       }
+      return Optional.ofNullable(t);
     }
 
     private String colour;
@@ -42,7 +43,7 @@ public class CtfTeam {
 
   public static CtfTeam readFromNBT(NBTTagCompound nbt, String prefix) {
     final TeamColour colour = TeamColour
-            .fromString(nbt.getString(prefix + "colour"));
+            .fromString(nbt.getString(prefix + "colour")).orElseThrow(() -> new IllegalStateException("cannot read team colour"));
     final int numPlayers = nbt.getInteger(prefix + "numPlayers");
     final Set<String> players = new HashSet<String>();
     for (int i = 0; i < numPlayers; i++) {

@@ -12,6 +12,12 @@ import net.minecraft.server.MinecraftServer;
 
 public abstract class CommandBase extends net.minecraft.command.CommandBase {
 
+  protected GameManager gm;
+  
+  public CommandBase() {
+	this.gm = GameManager.get();
+  }
+
   protected abstract void doExecute(MinecraftServer server,
     ICommandSender sender, String[] args)
       throws CommandException;
@@ -78,8 +84,7 @@ public abstract class CommandBase extends net.minecraft.command.CommandBase {
   public Supplier<CommandException> playerNotOnTeamException(
     EntityPlayer player, Game game)
   {
-    return () -> new CommandException("No team found for player %s in game %s",
-            player.getName(), game.getName());
+	  return playerNotOnTeamException(player.getName(), game);
   }
 
   protected void validateArgs(MinecraftServer server, ICommandSender sender,
@@ -88,4 +93,9 @@ public abstract class CommandBase extends net.minecraft.command.CommandBase {
   {
 
   }
+
+	public Supplier<CommandException> playerNotOnTeamException(String playerName, Game game) {
+	    return () -> new CommandException("No team found for player %s in game %s",
+	    		playerName, game.getName());
+	}
 }

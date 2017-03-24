@@ -13,9 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
 
 import me.gking2224.mc.mod.ctf.blocks.ModBlocks;
 import me.gking2224.mc.mod.ctf.game.Bounds;
@@ -27,6 +26,8 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class BaseConfigFileLoader {
 
@@ -175,7 +176,12 @@ public IBlockState getTeamBlock(TeamColour team) {
     final String team = tokens.get(1);
     final IBlockState teamBlock = Block
             .getStateById(Integer.parseInt(tokens.get(2)));
-    this.teamColours.put(TeamColour.fromString(team), teamBlock);
+    TeamColour colour = TeamColour.fromString(team).orElseThrow(invalidTeamException(team));
+	this.teamColours.put(colour, teamBlock);
+  }
+
+  private Supplier<IllegalArgumentException> invalidTeamException(String team) {
+    return () -> new IllegalArgumentException(String.format("Invalid team: %s", team));
   }
 
   private IBlockState readBlockState(List<String> subList) {
