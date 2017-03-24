@@ -28,13 +28,23 @@ import net.minecraft.init.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 
-public class BuildConfigFileLoader {
+public class BaseConfigFileLoader {
 
   public static class HomeChestBuildInstruction extends BuildInstruction {
 
     public HomeChestBuildInstruction(BuildInstruction i) {
       super(i.getBounds(), Blocks.CHEST.getDefaultState(), i.getComment(),
               i.getLineNumber());
+    }
+
+    public HomeChestBuildInstruction(Bounds bounds, IBlockState blockState,
+			String comment, int lineNumber) {
+    	super(bounds, blockState, comment, lineNumber);
+	}
+
+	public BuildInstruction updateBounds(Bounds newBounds) {
+      return new HomeChestBuildInstruction(newBounds, this.getBlockState(),
+              this.getComment(), this.getLineNumber());
     }
   }
 
@@ -43,6 +53,16 @@ public class BuildConfigFileLoader {
     public OppFlagHolderBuildInstruction(BuildInstruction i) {
       super(i.getBounds(), ModBlocks.FLAG_HOLDER.getDefaultState(),
               i.getComment(), i.getLineNumber());
+    }
+
+    public OppFlagHolderBuildInstruction(Bounds bounds, IBlockState blockState,
+			String comment, int lineNumber) {
+    	super(bounds, blockState, comment, lineNumber);
+	}
+
+	public BuildInstruction updateBounds(Bounds newBounds) {
+      return new OppFlagHolderBuildInstruction(newBounds, this.getBlockState(),
+              this.getComment(), this.getLineNumber());
     }
   }
 
@@ -69,7 +89,7 @@ public class BuildConfigFileLoader {
 
   private final List<BuildInstruction> config;
 
-  public BuildConfigFileLoader(MinecraftServer server, Game game, String name) {
+  public BaseConfigFileLoader(MinecraftServer server, Game game, String name) {
     this.server = server;
     this.game = game;
     this.name = name;
@@ -79,7 +99,8 @@ public class BuildConfigFileLoader {
   public List<BuildInstruction> getConfig(TeamColour team,
     IBlockState ambientBlock)
   {
-    return new ArrayList<BuildInstruction>(this.config).stream().map(i -> {
+    ArrayList<BuildInstruction> copyConfig = new ArrayList<BuildInstruction>(this.config);
+	List<BuildInstruction> converted = copyConfig.stream().map(i -> {
       if (i.getBlockState() == TEAM_PLACEHOLDER) {
         return i.updateBlock(this.getTeamBlock(team));
       } else if (i.getBlockState() == AMBIENT_PLACEHOLDER) {
@@ -92,9 +113,10 @@ public class BuildConfigFileLoader {
         return i;
       }
     }).collect(Collectors.toList());
+	return converted;
   }
 
-  public IBlockState getTeamBlock(TeamColour team) {
+public IBlockState getTeamBlock(TeamColour team) {
     return this.teamColours.get(team);
   }
 
@@ -184,7 +206,7 @@ public class BuildConfigFileLoader {
             format("%s is not a directory", basesDir.getAbsolutePath())); }
     final File baseConfigFile = new File(basesDir, this.name + SUFFIX);
     if (!baseConfigFile.exists()) { throw new BaseBuilderException(
-            new NoSuchFileException(basesDir.getAbsolutePath())); }
+            new NoSuchFileException(baseConfigFile.getAbsolutePath())); }
     if (!baseConfigFile.isFile()) { throw new BaseBuilderException(
             format("%s is not a file", baseConfigFile.getAbsolutePath())); }
     return baseConfigFile;

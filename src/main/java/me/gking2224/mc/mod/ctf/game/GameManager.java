@@ -438,14 +438,14 @@ public class GameManager {
     Game game, EntityPlayer player, CtfTeam team, final TeamColour flagColour)
   {
     this.broadcastToAllPlayers(game,
-            format("%s has got %s team's flag!", playerName, team.getColour()));
+            format("%s has got %s team's flag!", playerName, flagColour));
     gem.schedule(() -> moveItemFromInventoryToPlayerHand(player, item));
     game.setPlayerHoldingFlag(flagColour, playerName);
   }
 
   public void playerPlacedOwnFlag(String player, Game game) {
     this.broadcastToAllPlayers(game,
-            format("Player %s has placed his team's flag!", player));
+            format("%s has placed their own team's flag!", player));
   }
 
   public void playerRejoinGame(EntityPlayer player, Game game) {

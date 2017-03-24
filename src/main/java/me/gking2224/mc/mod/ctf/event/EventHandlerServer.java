@@ -27,7 +27,6 @@ import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
 public class EventHandlerServer extends EventHandlerCommon {
 
   @SubscribeEvent public void blockPlaced(PlaceEvent event) {
-    System.out.println("block placed");
     final IBlockState pb = event.getPlacedBlock();
     final int id = Block.getIdFromBlock(pb.getBlock());
     final int sid = Block.getStateId(pb);
@@ -36,7 +35,6 @@ public class EventHandlerServer extends EventHandlerCommon {
   }
 
   @SubscribeEvent public void itemPlaced(RightClickBlock event) {
-    System.out.println("itemPlaced");
     final EntityPlayer player = event.getEntityPlayer();
     final Vec3d hitVec = event.getHitVec();
     final ItemStack item = event.getItemStack();

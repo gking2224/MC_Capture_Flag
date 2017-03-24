@@ -1,5 +1,6 @@
 package me.gking2224.mc.mod.ctf.game.base;
 
+import static java.lang.String.format;
 import static me.gking2224.mc.mod.ctf.util.WorldUtils.maximumBounds;
 import static me.gking2224.mc.mod.ctf.util.WorldUtils.offset;
 import static me.gking2224.mc.mod.ctf.util.WorldUtils.placeBlocks;
@@ -18,8 +19,8 @@ import me.gking2224.mc.mod.ctf.game.Bounds;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.Game;
 import me.gking2224.mc.mod.ctf.game.MutableBounds;
-import me.gking2224.mc.mod.ctf.game.base.BuildConfigFileLoader.HomeChestBuildInstruction;
-import me.gking2224.mc.mod.ctf.game.base.BuildConfigFileLoader.OppFlagHolderBuildInstruction;
+import me.gking2224.mc.mod.ctf.game.base.BaseConfigFileLoader.HomeChestBuildInstruction;
+import me.gking2224.mc.mod.ctf.game.base.BaseConfigFileLoader.OppFlagHolderBuildInstruction;
 import me.gking2224.mc.mod.ctf.util.WorldUtils;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.server.MinecraftServer;
@@ -124,7 +125,7 @@ public class ConfigBaseBuilder implements BaseBuilder {
     }
 
     @Override public String toString() {
-      return String.format("{%s: %s}", this.bounds, this.state);
+      return String.format("%s: {%s: %s}", this.getClass().getName(), this.bounds, this.state);
     }
 
     public BuildInstruction updateBlock(IBlockState newBlock) {
@@ -139,36 +140,32 @@ public class ConfigBaseBuilder implements BaseBuilder {
 
   }
 
-  private final BuildConfigFileLoader loader;
+  private final BaseConfigFileLoader loader;
 
   private final World world;
 
   public ConfigBaseBuilder(MinecraftServer server, Game game, String name) {
-    this.loader = new BuildConfigFileLoader(server, game, name);
+    this.loader = new BaseConfigFileLoader(server, game, name);
     this.world = server.getEntityWorld();
   }
 
   @Override public BaseDescription buildBase(BlockPos refPos, TeamColour team,
     IBlockState ambientBlock, boolean invertZ)
   {
-    System.out
-            .println(String.format("Build base for %s at %s\n", team, refPos));
-    final List<BuildInstruction> config = this.loader
-            .getConfig(team, ambientBlock).stream()
-            .map(i -> this.invertZ(i, invertZ)).collect(Collectors.toList());
-    System.out.println(String.format("Use build instructions: %s\n", config));
-    return config.stream().collect(new BaseCollector(this.world, refPos));
+    System.out.println(format("Build base for %s at %s\n", team, refPos));
+    List<BuildInstruction> rawInstructions = this.loader
+            .getConfig(team, ambientBlock);
+	final List<BuildInstruction> inverted = rawInstructions.stream()
+            .map(i -> (invertZ) ? this.invertZ(i) : i).collect(Collectors.toList());
+    System.out.println(String.format("Use build instructions: %s\n", inverted));
+    return inverted.stream().collect(new BaseCollector(this.world, refPos));
   }
 
   @Override public IBlockState getPrimaryMaterial(TeamColour team) {
     return this.loader.getTeamBlock(team);
   }
 
-  private BuildInstruction invertZ(BuildInstruction i, boolean invertZ) {
-    if (invertZ) {
-      return i.updateBounds(WorldUtils.invertZ(i.getBounds()));
-    } else {
-      return i;
-    }
+  private BuildInstruction invertZ(BuildInstruction i) {
+	  return i.updateBounds(WorldUtils.invertZ(i.getBounds()));
   }
 }
