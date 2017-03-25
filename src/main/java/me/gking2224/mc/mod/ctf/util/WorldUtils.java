@@ -199,19 +199,19 @@ public class WorldUtils {
   }
 
   private static MoveAction getMoveAction(IBlockState blockAt) {
-//    System.out.println("Which way to move for " + blockAt.getBlock());
+    // System.out.println("Which way to move for " + blockAt.getBlock());
     final int idFromBlock = Block.getIdFromBlock(blockAt.getBlock());
     if (OVER_SURFACE_BLOCKS.contains(idFromBlock)) {
-//      System.out.println("Try going down");
+      // System.out.println("Try going down");
       return DOWN;
     } else {
       if (CAN_TELEPORT_ABOVE_BLOCKS.contains(idFromBlock)
               || UNDER_SURFACE_BLOCKS.contains(idFromBlock))
       {
-//        System.out.println("Try going up");
+        // System.out.println("Try going up");
         return UP;
       } else {
-//        System.out.println("Try going laterally");
+        // System.out.println("Try going laterally");
         return LATERAL;
       }
     }
@@ -365,8 +365,9 @@ public class WorldUtils {
         }
       }
     }
-//    System.out.println(String.format("Not teleporting to %s (%s|%s|%s)\n", pos,
-//            blockBelow.getBlock(), blockAt.getBlock(), blockAbove.getBlock()));
+    // System.out.println(String.format("Not teleporting to %s (%s|%s|%s)\n",
+    // pos,
+    // blockBelow.getBlock(), blockAt.getBlock(), blockAbove.getBlock()));
     return false;
   }
 

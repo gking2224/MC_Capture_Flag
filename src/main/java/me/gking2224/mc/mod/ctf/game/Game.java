@@ -55,6 +55,11 @@ public class Game {
     return team;
   }
 
+  public void addPlayerToTeam(String name, TeamColour colour) {
+    this.gameData.getTeams().get(colour).addPlayer(name);
+    this.save();
+  }
+
   private void addTeam(TeamColour colour) {
     ;
     this.gameData.getTeams().put(colour, new CtfTeam(colour));
@@ -118,6 +123,10 @@ public class Game {
 
   public GameOptions getOptions() {
     return this.gameData.getOptions();
+  }
+
+  public String getOwner() {
+    return this.gameData.getOwner();
   }
 
   public int getPlayerHandicap(String p) {
@@ -233,14 +242,5 @@ public class Game {
     this.gameData.getFlagLocations().put(colour, blockPos);
     this.gameData.getPlayerHoldingFlag().remove(colour);
     this.save();
-  }
-
-  public void addPlayerToTeam(String name, TeamColour colour) {
-    this.gameData.getTeams().get(colour).addPlayer(name);
-    this.save();
-  }
-
-  public String getOwner() {
-	return gameData.getOwner();
   }
 }
