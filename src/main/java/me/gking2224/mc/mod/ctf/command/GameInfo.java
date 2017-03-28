@@ -62,7 +62,7 @@ public class GameInfo extends CommandBase {
 
   @Override protected boolean[] getMandatoryArgs() {
     return new boolean[] {
-        true
+        false
     };
   }
 

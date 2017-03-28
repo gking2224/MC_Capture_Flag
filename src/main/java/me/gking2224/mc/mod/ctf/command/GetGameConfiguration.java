@@ -32,7 +32,7 @@ public class GetGameConfiguration extends CommandBase {
     ICommandSender sender, String[] args)
       throws CommandException
   {
-    final String name = (args.length > 0) ? args[0] : null;
+    final String name = (args.length > 0) ? args[0] : null;	
     if (!Strings.isNullOrEmpty(name)) {
       final GameConfigData config = GameConfigData
               .get(server.getEntityWorld(), name).orElseThrow(
@@ -44,38 +44,45 @@ public class GetGameConfiguration extends CommandBase {
     else {
       Set<String> configs = this.gm.getAllAvailableConfigNames();
       sender.sendMessage(
-          toIText(configs.stream().collect(stringConcat())));
+          toIText("Configs: "+configs.stream().collect(stringConcat())));
     }
 
   }
 
-  private Collector<String, String, String> stringConcat() {
-    Collector<String, String, String> n = new Collector<String, String, String>() {
+  private Collector<String, StringBuilder, String> stringConcat() {
+    Collector<String, StringBuilder, String> n = new Collector<String, StringBuilder, String>() {
 
       @Override
-      public Supplier<String> supplier() {
-        return () -> "";
+      public Supplier<StringBuilder> supplier() {
+        return () -> new StringBuilder();
       }
 
       @Override
-      public BiConsumer<String, String> accumulator() {
-        return (s1, s2) -> {};
+      public BiConsumer<StringBuilder, String> accumulator() {
+        return (s1, s2) -> {
+        	s1.append(", "+s2);
+        	
+        };
       }
 
       @Override
-      public BinaryOperator<String> combiner() {
-        return (s1, s2) -> s1 + ", "+s2;
+      public BinaryOperator<StringBuilder> combiner() {
+        return (s1, s2) -> {
+        	return new StringBuilder(s1 + ", "+s2);
+        };
       }
 
       @Override
-      public Function<String, String> finisher() {
-        return s -> Strings.nullToEmpty(s).startsWith(", ") ? s.substring(2) : s;
+      public Function<StringBuilder, String> finisher() {
+        return s -> {
+        	String ss = s.toString();
+        	return Strings.nullToEmpty(ss).startsWith(", ") ? ss.substring(2) : ss;
+        };
       }
 
       @Override
       public Set<java.util.stream.Collector.Characteristics> characteristics() {
-        // TODO Auto-generated method stub
-        return null;
+        return Collections.emptySet();
       }
       
     };
