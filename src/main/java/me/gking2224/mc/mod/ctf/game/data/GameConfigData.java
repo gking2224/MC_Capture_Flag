@@ -71,4 +71,9 @@ public class GameConfigData extends WorldSavedData {
     nbt.setString(OPTIONS, this.options.toString());
     return nbt;
   }
+
+  public static void getAllAvailableConfigNames(World entityWorld) {
+    // TODO Auto-generated method stub
+    
+  }
 }

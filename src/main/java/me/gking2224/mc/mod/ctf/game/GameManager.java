@@ -5,6 +5,7 @@ import static me.gking2224.mc.mod.ctf.util.InventoryUtils.addItemsToChest;
 import static me.gking2224.mc.mod.ctf.util.InventoryUtils.moveItemFromInventoryToPlayerHand;
 import static me.gking2224.mc.mod.ctf.util.StringUtils.toIText;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +32,7 @@ import me.gking2224.mc.mod.ctf.command.SetTeam;
 import me.gking2224.mc.mod.ctf.command.ToolUp;
 import me.gking2224.mc.mod.ctf.game.CtfTeam.TeamColour;
 import me.gking2224.mc.mod.ctf.game.data.GameConfigData;
+import me.gking2224.mc.mod.ctf.game.data.GameConfigList;
 import me.gking2224.mc.mod.ctf.game.data.GameList;
 import me.gking2224.mc.mod.ctf.game.event.GameEventManager;
 import me.gking2224.mc.mod.ctf.game.event.GameResetEvent;
@@ -85,11 +87,13 @@ public class GameManager {
 
   private Map<String, Game> games = null;
   private final Set<String> frozenPlayers = new HashSet<String>();
+  private GameConfigList gameConfigList;
 
   private GameManager(MinecraftServer server) {
     this.server = server;
     this.world = server.getEntityWorld();
     this.gameList = GameList.get(this.world);
+    this.gameConfigList = GameConfigList.get(this.world);
     this.games = new HashMap<String, Game>();
   }
 
@@ -180,14 +184,18 @@ public class GameManager {
     this.broadcastToAllPlayers(game, game.getFormattedScore());
   }
 
-  public void broadcastToAllPlayers(Game game, String msg) {
+  public void broadcastToAllPlayers(Game game, String msg, Object... args) {
     game.getAllPlayers().forEach(
-            (player) -> this.broadCastMessageToPlayer(player, toIText(msg)));
+            (player) -> this.broadCastMessageToPlayer(player, toIText(msg, args)));
   }
 
-  public void broadcastToTeamPlayers(Game game, TeamColour colour, String msg) {
+//  public void broadcastToTeamPlayers(Game game, TeamColour colour, String msg) {
+//    broadcastToTeamPlayers(game, colour, msg, null);
+//  }
+
+  public void broadcastToTeamPlayers(Game game, TeamColour colour, String msg, Object... args) {
     game.getTeamPlayers(colour).forEach(
-            (player) -> this.broadCastMessageToPlayer(player, toIText(msg)));
+            (player) -> this.broadCastMessageToPlayer(player, toIText(msg, args)));
   }
 
   private String checkGameNameUnique(final String name)
@@ -531,5 +539,14 @@ public class GameManager {
 
   public void unFreezePlayerOut(EntityPlayer player) {
     this.frozenPlayers.remove(player.getName());
+  }
+
+  public Set<String> getAllAvailableConfigNames() {
+    return this.gameConfigList.getGames();
+  }
+
+  public void newConfiguration(String name, GameOptions gameOptions) {
+    GameConfigData.create(world, name, gameOptions);
+    this.gameConfigList.add(name);
   }
 }

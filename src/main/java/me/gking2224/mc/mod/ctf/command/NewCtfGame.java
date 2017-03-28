@@ -78,13 +78,13 @@ public class NewCtfGame extends CommandBase {
 
   @Override protected String[] getArgNames() {
     return new String[] {
-        "name", "options"
+        "config"
     };
   }
 
   @Override protected boolean[] getMandatoryArgs() {
     return new boolean[] {
-        false, false
+        true
     };
   }
 

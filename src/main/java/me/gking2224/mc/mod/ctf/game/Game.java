@@ -243,4 +243,9 @@ public class Game {
     this.gameData.getPlayerHoldingFlag().remove(colour);
     this.save();
   }
+
+	public void setScore(TeamColour team, Integer score) {
+		this.gameData.getScore().put(team, score);
+		this.save();
+	}
 }

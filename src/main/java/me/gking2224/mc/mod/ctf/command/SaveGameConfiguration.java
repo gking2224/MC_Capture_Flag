@@ -40,7 +40,7 @@ public class SaveGameConfiguration extends CommandBase {
       existing.get().update(gameOptions);
       sender.sendMessage(toIText("Updated config '%s'", name));
     } else {
-      GameConfigData.create(server.getEntityWorld(), name, gameOptions);
+      this.gm.newConfiguration(name, gameOptions);
       sender.sendMessage(StringUtils.toIText("Created config '%s'", name));
     }
 

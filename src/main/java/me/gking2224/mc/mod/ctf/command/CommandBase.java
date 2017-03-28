@@ -47,12 +47,12 @@ public abstract class CommandBase extends net.minecraft.command.CommandBase {
     return sb.toString();
   }
 
-  private void getArgUsageString(StringBuilder sb, int index) {
-    if (this.getArgNames().length <= index) { return; }
+  private String getArgUsageString(StringBuilder sb, int index) {
+    if (this.getArgNames().length <= index) { return sb.toString(); }
     final String argName = this.getArgNames()[index];
     final boolean mandatory = this.getMandatoryArgs()[index];
     sb.append(String.format(" <%s>%s", argName, mandatory ? "" : "?"));
-    this.getArgUsageString(sb, ++index);
+    return getArgUsageString(sb, ++index);
   }
 
   protected Game getGame(EntityPlayer player, String gameArg)
@@ -91,10 +91,20 @@ public abstract class CommandBase extends net.minecraft.command.CommandBase {
     String[] args)
       throws CommandException
   {
-
+    int mandCheck = getConsecutiveMandatoryArgs();
+    if (args.length < mandCheck) throw new CommandException(getUsage(sender));
   }
 
-	public Supplier<CommandException> playerNotOnTeamException(String playerName, Game game) {
+	private int getConsecutiveMandatoryArgs() {
+	  int i = 0;
+	  boolean[] mandatoryArgs = getMandatoryArgs();
+	  for (; i < mandatoryArgs.length; i++) {
+	    if (!mandatoryArgs[i]) return i;
+	  }
+	  return i;
+  }
+
+  public Supplier<CommandException> playerNotOnTeamException(String playerName, Game game) {
 	    return () -> new CommandException("No team found for player %s in game %s",
 	    		playerName, game.getName());
 	}
